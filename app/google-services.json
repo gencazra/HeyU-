@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "919827605368",
+    "project_id": "heyu-ff275",
+    "storage_bucket": "heyu-ff275.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:919827605368:android:ec87bcd884639e81b28a8d",
+        "android_client_info": {
+          "package_name": "com.azrag.heyu"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDOQ_nXjTOZvga2huhF_Kla72R-jJmrg50"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
