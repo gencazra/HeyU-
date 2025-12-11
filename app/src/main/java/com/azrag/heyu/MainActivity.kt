@@ -1,37 +1,41 @@
+// Dosya: MainActivity.kt
+
 package com.azrag.heyu
 
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.runtime.Composable
-import androidx.hilt.navigation.compose.hiltViewModel // ÖNEMLİ: Bu import'u ekle
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import com.azrag.heyu.ui.auth.ForgotPasswordScreen
-import com.azrag.heyu.ui.auth.LoginScreen
-import com.azrag.heyu.ui.auth.SignupScreen
-import com.azrag.heyu.ui.dashboard.DashboardScreen
-import com.azrag.heyu.ui.profile.CreateProfileScreen
-import com.azrag.heyu.ui.profile.EditProfileScreen
-import com.azrag.heyu.ui.profile.FeedbackScreen
-import com.azrag.heyu.ui.profile.MyProfileScreen // ÖNEMLİ: Yeni ekranımızı import et
-import com.azrag.heyu.ui.profile.SettingsScreen
-import com.azrag.heyu.ui.theme.HeyUTheme // Temanın adının 'HeyUTheme' olduğunu varsayıyorum
+import com.azrag.heyu.ui.dashboard.DashboardScreen // DİKKAT: DashboardScreen'in doğru import edildiğinden emin ol
+import com.azrag.heyu.ui.dashboard.events.AddEventScreen
+import com.azrag.heyu.ui.dashboard.events.EventDetailScreen
+import com.azrag.heyu.ui.dashboard.notices.AddNoticeScreen
+import com.azrag.heyu.ui.login.ForgotPasswordScreen
+import com.azrag.heyu.ui.login.LoginScreen
+import com.azrag.heyu.ui.profile.*
+import com.azrag.heyu.ui.signup.SignupScreen
+import com.azrag.heyu.ui.theme.HeyUTheme
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.ktx.Firebase
+import dagger.hilt.android.AndroidEntryPoint
 
+@AndroidEntryPoint
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
             HeyUTheme {
                 val navController = rememberNavController()
+                // Kullanıcı giriş yapmışsa Dashboard'a, yapmamışsa Login'e yönlendir
                 val startDestination = if (Firebase.auth.currentUser != null) {
-                    Screens.Dashboard.route // Giriş yapmışsa Dashboard'a
+                    Screens.Dashboard.route
                 } else {
-                    Screens.Login.route // Yapmamışsa Login'e
+                    Screens.Login.route
                 }
                 NavGraph(navController = navController, startDestination = startDestination)
             }
@@ -39,7 +43,7 @@ class MainActivity : ComponentActivity() {
     }
 }
 
-// Rotalar için Sealed Class - Yeni "MyProfile" rotası eklendi
+// Ekran rotaları - Burası doğru, değişiklik gerekmiyor
 sealed class Screens(val route: String) {
     object Login : Screens("login_screen")
     object Signup : Screens("signup_screen")
@@ -48,36 +52,33 @@ sealed class Screens(val route: String) {
         fun createRoute(fullName: String) = "create_profile_screen/$fullName"
     }
     object Dashboard : Screens("dashboard_screen")
-
-    // --- PROFİL EKRANLARI İÇİN YENİ ROTALAR ---
-    object MyProfile : Screens("my_profile_screen") // Ana profil ekranı rotası
+    object MyProfile : Screens("my_profile_screen")
     object EditProfile : Screens("edit_profile_screen")
     object Settings : Screens("settings_screen")
     object Feedback : Screens("feedback_screen")
+    object AddNotice : Screens("add_notice_screen")
+    object AddEvent : Screens("add_event_screen")
+    object EventDetail : Screens("event_detail_screen/{eventId}") {
+        fun createRoute(eventId: String) = "event_detail_screen/$eventId"
+    }
 }
 
+// Navigasyon grafiği - **ÖNEMLİ DEĞİŞİKLİKLER BURADA**
 @Composable
 fun NavGraph(navController: NavHostController, startDestination: String) {
     NavHost(navController = navController, startDestination = startDestination) {
-        // --- GİRİŞ VE KAYIT AKIŞI (Değişiklik yok) ---
+
+        // --- GİRİŞ / KAYIT AKIŞI ---
         composable(Screens.Login.route) {
             LoginScreen(
-                onLoginSuccess = {
-                    navController.navigate(Screens.Dashboard.route) {
-                        popUpTo(Screens.Login.route) { inclusive = true }
-                    }
-                },
+                onLoginSuccess = { navController.navigate(Screens.Dashboard.route) { popUpTo(Screens.Login.route) { inclusive = true } } },
                 onNavigateToSignup = { navController.navigate(Screens.Signup.route) },
                 onNavigateToForgotPassword = { navController.navigate(Screens.ForgotPassword.route) }
             )
         }
         composable(Screens.Signup.route) {
             SignupScreen(
-                onSignupSuccess = { fullName ->
-                    navController.navigate(Screens.CreateProfile.createRoute(fullName)) {
-                        popUpTo(Screens.Login.route) { inclusive = true }
-                    }
-                },
+                onSignupSuccess = { fullName -> navController.navigate(Screens.CreateProfile.createRoute(fullName)) { popUpTo(Screens.Login.route) { inclusive = true } } },
                 onNavigateBack = { navController.popBackStack() }
             )
         }
@@ -88,61 +89,60 @@ fun NavGraph(navController: NavHostController, startDestination: String) {
             val fullName = backStackEntry.arguments?.getString("fullName") ?: ""
             CreateProfileScreen(
                 fullName = fullName,
-                onProfileCreated = {
-                    navController.navigate(Screens.Dashboard.route) {
-                        popUpTo(Screens.CreateProfile.route) { inclusive = true }
-                    }
-                }
+                onProfileCreated = { navController.navigate(Screens.Dashboard.route) { popUpTo(Screens.CreateProfile.route) { inclusive = true } } }
             )
         }
 
-        // --- ANA EKRAN (Dashboard) ---
+        // --- ANA EKRAN (DASHBOARD) VE İÇERİK AKIŞI ---
         composable(Screens.Dashboard.route) {
-            DashboardScreen(
-                // Not: Dashboard'dan direkt Ayarlar veya Profili Düzenle yerine
-                // önce ana profil ekranına gitmek daha mantıklı bir akış olabilir.
-                onNavigateToMyProfile = { navController.navigate(Screens.MyProfile.route) }
-            )
+            DashboardScreen(navController = navController)
+        }
+        composable(Screens.AddNotice.route) {
+            AddNoticeScreen(onNavigateBack = { navController.popBackStack() })
+        }
+        composable(Screens.AddEvent.route) {
+            AddEventScreen(onNavigateBack = { navController.popBackStack() })
         }
 
-        // --- PROFİL AKIŞI (TAMAMEN YENİDEN DÜZENLENDİ) ---
-
-        // Ana Profil Ekranı
-        composable(Screens.MyProfile.route) {
-            MyProfileScreen(
-                // ViewModel'i Hilt'in sağlaması için sadece hiltViewModel() çağrılır.
-                // Bu ekran kendi ViewModel'ini yönetir.
-                viewModel = hiltViewModel(),
-                onNavigateToEditProfile = { navController.navigate(Screens.EditProfile.route) },
-                onNavigateToSettings = { navController.navigate(Screens.Settings.route) },
-                onLogoutSuccess = {
-                    navController.navigate(Screens.Login.route) {
-                        popUpTo(0) // Tüm geçmişi temizle
-                    }
-                }
-            )
-        }
-
-        // Profili Düzenleme Ekranı
-        composable(Screens.EditProfile.route) {
-            EditProfileScreen(
-                // Bu ekran da kendi ViewModel'ini Hilt'ten alır.
-                // Bu sayede ekranlar arası gereksiz veri taşıma olmaz.
-                viewModel = hiltViewModel(),
+        // --- BU BLOK DÜZELTİLDİ ---
+        // EventDetailScreen artık eventId'yi parametre olarak almıyor.
+        // Kendi ViewModel'i içinden Hilt aracılığıyla alıyor.
+        composable(Screens.EventDetail.route) {
+            EventDetailScreen(
                 onNavigateBack = { navController.popBackStack() }
             )
         }
 
-        // Ayarlar Ekranı (SettingsScreen'in ViewModel'e ihtiyacı var mı?)
-        // Eğer SettingsScreen'in de ProfileViewModel'e ihtiyacı varsa, o da kendi hiltViewModel()'ini çağırabilir.
-        // Eğer yoksa, parametre olarak istemesine de gerek yoktur.
+        // --- PROFİL VE AYARLAR AKIŞI ---
+        composable(Screens.MyProfile.route) {
+            // hiltViewModel() çağrısını burada yapmak daha temizdir
+            MyProfileScreen(
+                viewModel = hiltViewModel<ProfileViewModel>(),
+                onNavigateToEditProfile = { navController.navigate(Screens.EditProfile.route) },
+                onNavigateToSettings = { navController.navigate(Screens.Settings.route) },
+                onLogoutSuccess = {
+                    // Güvenli çıkış ve yönlendirme
+                    Firebase.auth.signOut()
+                    navController.navigate(Screens.Login.route) {
+                        // Geri tuşuna basıldığında tekrar uygulamaya girmesini engelle
+                        popUpTo(navController.graph.startDestinationId) { inclusive = true }
+                    }
+                }
+            )
+        }
+        composable(Screens.EditProfile.route) {
+            // Bu ekran da aynı ProfileViewModel'i kullanabilir
+            EditProfileScreen(
+                viewModel = hiltViewModel<ProfileViewModel>(),
+                onNavigateBack = { navController.popBackStack() }
+            )
+        }
         composable(Screens.Settings.route) {
             SettingsScreen(
                 onNavigateBack = { navController.popBackStack() },
-                // onNavigateToFeedback gibi diğer navigasyonlar buraya eklenebilir
+                onNavigateToFeedback = { navController.navigate(Screens.Feedback.route) },
             )
         }
-
         composable(Screens.Feedback.route) {
             FeedbackScreen(onNavigateBack = { navController.popBackStack() })
         }

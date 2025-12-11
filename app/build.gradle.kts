@@ -1,19 +1,21 @@
+// Dosya: app/build.gradle.kts (TAMAMEN BUNUNLA DEĞİŞTİR)
+
 plugins {
-    alias(libs.plugins.android.application)
-    alias(libs.plugins.kotlin.android)
+    id("com.android.application")
+    id("org.jetbrains.kotlin.android")
     id("com.google.gms.google-services")
+    id("kotlin-kapt") // Hilt için bu sıra önemli
     id("com.google.dagger.hilt.android")
-    id("kotlin-kapt")
 }
 
 android {
     namespace = "com.azrag.heyu"
-    compileSdk = 36
+    compileSdk = 34 // 36 henüz stabil değil, 34 en güncel stabil versiyon.
 
     defaultConfig {
         applicationId = "com.azrag.heyu"
         minSdk = 26
-        targetSdk = 36
+        targetSdk = 34 // CompileSdk ile aynı olmalı
         versionCode = 1
         versionName = "1.0"
 
@@ -33,6 +35,7 @@ android {
         }
     }
     compileOptions {
+        // Java 17 desteği için 1_8 yerine VERSION_17 kullan
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
     }
@@ -43,6 +46,7 @@ android {
         compose = true
     }
     composeOptions {
+        // Compose Compiler ve Kotlin versiyon uyumu kritik. 1.5.14, Kotlin 2.0.0 ile uyumlu.
         kotlinCompilerExtensionVersion = "1.5.14"
     }
     packaging {
@@ -55,47 +59,54 @@ android {
 dependencies {
 
     // ----- TEMEL ANDROID VE JETPACK -----
-    implementation(libs.androidx.core.ktx)
-    implementation(libs.androidx.lifecycle.runtime.ktx)
-    implementation("androidx.activity:activity-compose:1.9.0") // activity-ktx'i zaten içerir
+    implementation("androidx.core:core-ktx:1.13.1")
+    implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.8.3")
+    implementation("androidx.activity:activity-compose:1.9.0")
 
     // ----- JETPACK COMPOSE UI -----
-    implementation(platform(libs.androidx.compose.bom)) // Compose Bill of Materials
-    implementation(libs.androidx.ui)
-    implementation(libs.androidx.ui.graphics)
-    implementation(libs.androidx.material3)
-    implementation("androidx.compose.material:material-icons-extended-android:1.6.8") // Tekrarlanan silindi
+    // Compose BOM, tüm Compose kütüphaneleri için uyumlu versiyonları yönetir.
+    implementation(platform("androidx.compose:compose-bom:2024.06.00"))
+    implementation("androidx.compose.ui:ui")
+    implementation("androidx.compose.ui:ui-graphics")
+    implementation("androidx.compose.ui:ui-tooling-preview") // preview için bu daha doğru
+    implementation("androidx.compose.material3:material3")
+    implementation("androidx.compose.material:material-icons-extended") // Android uzantısı gereksiz
     implementation("androidx.navigation:navigation-compose:2.7.7")
-    implementation("androidx.constraintlayout:constraintlayout-compose:1.1.0-alpha13")
+    implementation("androidx.constraintlayout:constraintlayout-compose:1.0.1") // En stabil versiyon
 
     // ----- FIREBASE -----
-    // Firebase BOM, tüm Firebase kütüphaneleri için uyumlu sürümleri otomatik olarak yönetir.
-    implementation(platform("com.google.firebase:firebase-bom:33.1.0"))
+    // Firebase BOM, tüm Firebase kütüphaneleri için uyumlu sürümleri yönetir.
+    implementation(platform("com.google.firebase:firebase-bom:33.1.1"))
     implementation("com.google.firebase:firebase-analytics")
-    implementation("com.google.firebase:firebase-auth")
-    implementation("com.google.firebase:firebase-firestore")
-    implementation("com.google.firebase:firebase-storage")
-    // Not: Artık -ktx uzantılı kütüphaneler ana kütüphanelerle birleşti, ayrıca eklemeye gerek yok.
+    implementation("com.google.firebase:firebase-auth-ktx")
+    implementation("com.google.firebase:firebase-firestore-ktx")
+    implementation("com.google.firebase:firebase-storage-ktx")
+    // Not: -ktx uzantıları hala en iyi pratik olarak kabul ediliyor.
 
     // ----- HILT (DEPENDENCY INJECTION) -----
-    implementation("com.google.dagger:hilt-android:2.50")
-    kapt("com.google.dagger:hilt-android-compiler:2.50")
+    // Hilt versiyonlarını güncelledim. 2.50 versiyonu eski kalmış.
+    implementation("com.google.dagger:hilt-android:2.51.1")
+    kapt("com.google.dagger:hilt-android-compiler:2.51.1")
     implementation("androidx.hilt:hilt-navigation-compose:1.2.0")
 
     // ----- YARDIMCI KÜTÜPHANELER -----
-    implementation("io.coil-kt:coil-compose:2.6.0") // Resim yükleme için
-    // DİKKAT: Accompanist-FlowLayout artık güncel değil. Yerine Compose'un kendi FlowRow/FlowColumn'u geldi.
-    // Şimdilik sorun çıkarmaz, ancak ileride kaldırmayı düşünebilirsin.
+    implementation("io.coil-kt:coil-compose:2.6.0") // Resim yükleme
+    // Accompanist FlowLayout artık Compose'un kendi FlowRow'u içinde.
+    // Ancak henüz kaldırmayalım, projedeki eski kodlar kullanıyor olabilir.
     implementation("com.google.accompanist:accompanist-flowlayout:0.17.0")
 
     // ----- TEST KÜTÜPHANELERİ -----
-    testImplementation(libs.junit)
-    androidTestImplementation(libs.androidx.junit)
-    androidTestImplementation(libs.androidx.espresso.core)
-    androidTestImplementation(platform(libs.androidx.compose.bom))
-    androidTestImplementation(libs.androidx.ui.test.junit4)
-    debugImplementation(libs.androidx.ui.tooling)
-    debugImplementation(libs.androidx.ui.tooling.preview) // tooling.preview daha doğru
-    debugImplementation(libs.androidx.ui.test.manifest)
+    testImplementation("junit:junit:4.13.2")
+    androidTestImplementation("androidx.test.ext:junit:1.2.1")
+    androidTestImplementation("androidx.test.espresso:espresso-core:3.6.1")
+    androidTestImplementation(platform("androidx.compose:compose-bom:2024.06.00"))
+    androidTestImplementation("androidx.compose.ui:ui-test-junit4")
+    debugImplementation("androidx.compose.ui:ui-tooling")
+    debugImplementation("androidx.compose.ui:ui-test-manifest")
+}
+
+// Hilt için kapt bloğunun varlığından emin ol
+kapt {
+    correctErrorTypes = true
 }
 

@@ -1,5 +1,3 @@
-// In file: app/src/main/java/com/azrag/heyu/ui/login/LoginScreen.kt
-
 package com.azrag.heyu.ui.login
 
 import android.content.Context
@@ -26,10 +24,10 @@ import com.google.firebase.ktx.Firebase
 @Composable
 fun LoginScreen(
     onLoginSuccess: () -> Unit,
-    onNavigateToSignUp: () -> Unit
+    onNavigateToSignup: () -> Unit, // Parametre adı düzeltildi
+    onNavigateToForgotPassword: () -> Unit // Eksik parametre eklendi
 ) {
     val context = LocalContext.current
-    // SharedPreferences'dan kayıtlı verileri okumak için
     val sharedPreferences = remember { context.getSharedPreferences("heyU_prefs", Context.MODE_PRIVATE) }
 
     var email by remember { mutableStateOf(sharedPreferences.getString("email", "") ?: "") }
@@ -81,7 +79,6 @@ fun LoginScreen(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // Beni Hatırla Checkbox'ı
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically
@@ -105,14 +102,12 @@ fun LoginScreen(
                     auth.signInWithEmailAndPassword(email, password)
                         .addOnCompleteListener { task ->
                             if (task.isSuccessful) {
-                                // Giriş başarılı! "Beni Hatırla" durumunu kaydet.
                                 val editor = sharedPreferences.edit()
                                 if (rememberMe) {
                                     editor.putString("email", email)
                                     editor.putString("password", password)
                                     editor.putBoolean("rememberMe", true)
                                 } else {
-                                    // "Beni Hatırla" seçili değilse, kayıtlı bilgileri temizle
                                     editor.clear()
                                 }
                                 editor.apply()
@@ -141,7 +136,19 @@ fun LoginScreen(
                     color = MaterialTheme.colorScheme.primary,
                     fontWeight = FontWeight.Bold
                 ),
-                onClick = { onNavigateToSignUp() }
+                onClick = { onNavigateToSignup() } // onClick güncellendi
+            )
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            // Şifremi unuttum ekranına yönlendirme metni
+            ClickableText(
+                text = AnnotatedString("Şifreni mi unuttun?"),
+                style = TextStyle(
+                    color = MaterialTheme.colorScheme.secondary,
+                    fontWeight = FontWeight.Bold
+                ),
+                onClick = { onNavigateToForgotPassword() } // onClick eklendi
             )
         }
     }
