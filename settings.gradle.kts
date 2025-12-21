@@ -1,16 +1,15 @@
+// Dosya: settings.gradle.kts
+
 pluginManagement {
     repositories {
-        google {
-            content {
-                includeGroupByRegex("com\\.android.*")
-                includeGroupByRegex("com\\.google.*")
-                includeGroupByRegex("androidx.*")
-            }
-        }
+        google()
+        // <<< EKLENECEK EN ÖNEMLİ SATIR >>>
+        // Eklentilerin bulunduğu ana depo burasıdır.
         mavenCentral()
         gradlePluginPortal()
     }
 }
+
 dependencyResolutionManagement {
     repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
     repositories {
@@ -19,6 +18,5 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "heyU!"
+rootProject.name = "HeyU"
 include(":app")
- 

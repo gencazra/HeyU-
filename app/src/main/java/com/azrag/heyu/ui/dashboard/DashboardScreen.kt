@@ -1,44 +1,106 @@
-// Dosya: ui/dashboard/discover/DashboardScreen.kt
+package com.azrag.heyu.ui.dashboard
 
-package com.azrag.heyu.ui.dashboard.discover
-
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.navigation.NavController
+import androidx.navigation.NavGraph.Companion.findStartDestination
+import androidx.navigation.compose.*
+import com.azrag.heyu.ui.dashboard.messages.ChatListScreen
 import com.azrag.heyu.ui.dashboard.events.EventBoardScreen
-import com.azrag.heyu.ui.dashboard.notices.NoticeBoardScreen
+import com.azrag.heyu.ui.dashboard.discover.DiscoverScreen // PAKET YOLU GÜNCELLENDİ
+import com.azrag.heyu.ui.profile.MyProfileScreen
+import com.azrag.heyu.util.Screen
 
-@OptIn(ExperimentalMaterial3Api::class)
+/**
+ * DashboardScreen, alt navigasyon (Bottom Bar) ve bu menülerin
+ * iç sayfalarını yöneten ana konteynırdır.
+ */
 @Composable
-fun DashboardScreen(
-    // Gelecekte eklenecek navigasyonlar için şimdilik boş
-) {
-    // Hangi sekmenin seçili olduğunu tutan state
-    var selectedTabIndex by remember { mutableStateOf(0) }
-    val tabs = listOf("Keşfet", "Etkinlikler", "Duyurular")
+fun DashboardScreen(mainNavController: NavController) {
+    val dashboardNavController = rememberNavController()
 
-    Scaffold { paddingValues ->
-        Column(modifier = Modifier.padding(paddingValues)) {
-            // Üstteki Sekme Çubuğu
-            TabRow(selectedTabIndex = selectedTabIndex) {
-                tabs.forEachIndexed { index, title ->
-                    Tab(
-                        selected = selectedTabIndex == index,
-                        onClick = { selectedTabIndex = index },
-                        text = { Text(text = title) }
+    // Bottom Navigation'da gösterilecek ana sayfalar
+    val bottomNavItems = listOf(
+        Screen.Discover,
+        Screen.EventBoard,
+        Screen.MessageList,
+        Screen.ProfileView
+    )
+
+    Scaffold(
+        bottomBar = {
+            NavigationBar {
+                val navBackStackEntry by dashboardNavController.currentBackStackEntryAsState()
+                val currentRoute = navBackStackEntry?.destination?.route
+
+                bottomNavItems.forEach { screen ->
+                    NavigationBarItem(
+                        selected = currentRoute == screen.route,
+                        onClick = {
+                            dashboardNavController.navigate(screen.route) {
+                                // Geri tuşuna basıldığında ana hedefe (Discover) dönmesi için
+                                popUpTo(dashboardNavController.graph.findStartDestination().id) {
+                                    saveState = true
+                                }
+                                launchSingleTop = true
+                                restoreState = true
+                            }
+                        },
+                        icon = {
+                            // Icon null-safety kontrolü
+                            screen.icon?.let {
+                                Icon(
+                                    imageVector = it,
+                                    contentDescription = screen.title
+                                )
+                            }
+                        },
+                        label = { screen.title?.let { Text(it) } }
                     )
                 }
             }
+        }
+    ) { paddingValues ->
+        // Dashboard içindeki iç navigasyon (Bottom Nav içerikleri)
+        NavHost(
+            navController = dashboardNavController,
+            startDestination = Screen.Discover.route,
+            modifier = Modifier.padding(paddingValues)
+        ) {
+            // KEŞFET (Discover) - Mühürlü
+            composable(Screen.Discover.route) {
+                DiscoverScreen(mainNavController = mainNavController)
+            }
 
-            // Seçili sekmeye göre ilgili ekranı göster
-            when (selectedTabIndex) {
-                0 -> DiscoverScreen()
-                1 -> EventBoardScreen(navController = navController) // navController'ı ilet
-                2 -> NoticeBoardScreen(navController = navController) // navController'ı ilet
+            // ETKİNLİKLER (Event Board) - Mühürlü
+            composable(Screen.EventBoard.route) {
+                EventBoardScreen(navController = mainNavController)
+            }
+
+            // MESAJ LİSTESİ (Chat List) - Mühürlü
+            composable(Screen.MessageList.route) {
+                ChatListScreen(navController = mainNavController)
+            }
+
+            // PROFİLİM (My Profile) - Mühürlü
+            composable(Screen.ProfileView.route) {
+                MyProfileScreen(
+                    onNavigateToEditProfile = {
+                        // Profil düzenleme (Onboarding akışına geri döner)
+                        mainNavController.navigate(Screen.Onboarding1.route)
+                    },
+                    onNavigateToSettings = {
+                        // Ayarlar ekranı mühürlü rotası
+                        mainNavController.navigate(Screen.Settings.route)
+                    },
+                    onLogoutSuccess = {
+                        mainNavController.navigate(Screen.Login.route) {
+                            popUpTo(Screen.Dashboard.route) { inclusive = true }
+                        }
+                    }
+                )
             }
         }
     }

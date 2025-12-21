@@ -1,150 +1,201 @@
-// Dosya: MainActivity.kt
-
 package com.azrag.heyu
 
+import android.content.Context
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.compose.runtime.Composable
-import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.navigation.NavHostController
-import androidx.navigation.compose.NavHost
-import androidx.navigation.compose.composable
-import androidx.navigation.compose.rememberNavController
-import com.azrag.heyu.ui.dashboard.DashboardScreen // DİKKAT: DashboardScreen'in doğru import edildiğinden emin ol
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
+import androidx.compose.runtime.*
+import androidx.compose.ui.Modifier
+import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
+import androidx.datastore.preferences.core.booleanPreferencesKey
+import androidx.datastore.preferences.core.edit
+import androidx.datastore.preferences.preferencesDataStore
+import androidx.lifecycle.lifecycleScope
+import androidx.navigation.NavType
+import androidx.navigation.compose.*
+import androidx.navigation.navArgument
+import com.azrag.heyu.ui.dashboard.DashboardScreen
+import com.azrag.heyu.ui.dashboard.discover.MatchAnimationScreen
 import com.azrag.heyu.ui.dashboard.events.AddEventScreen
 import com.azrag.heyu.ui.dashboard.events.EventDetailScreen
-import com.azrag.heyu.ui.dashboard.notices.AddNoticeScreen
-import com.azrag.heyu.ui.login.ForgotPasswordScreen
-import com.azrag.heyu.ui.login.LoginScreen
-import com.azrag.heyu.ui.profile.*
-import com.azrag.heyu.ui.signup.SignupScreen
+import com.azrag.heyu.ui.dashboard.messages.ChatScreen
+import com.azrag.heyu.ui.login.*
+import com.azrag.heyu.ui.signup.*
+import com.azrag.heyu.ui.start.StartScreen
 import com.azrag.heyu.ui.theme.HeyUTheme
+import com.azrag.heyu.util.Screen
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.ktx.Firebase
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.launch
+
+// DataStore Tanımı
+val Context.dataStore by preferencesDataStore(name = "settings")
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
+
+    private var isLoading by mutableStateOf(true)
+
     override fun onCreate(savedInstanceState: Bundle?) {
+        val splashScreen = installSplashScreen()
         super.onCreate(savedInstanceState)
-        setContent {
-            HeyUTheme {
-                val navController = rememberNavController()
-                // Kullanıcı giriş yapmışsa Dashboard'a, yapmamışsa Login'e yönlendir
-                val startDestination = if (Firebase.auth.currentUser != null) {
-                    Screens.Dashboard.route
-                } else {
-                    Screens.Login.route
-                }
-                NavGraph(navController = navController, startDestination = startDestination)
-            }
-        }
-    }
-}
 
-// Ekran rotaları - Burası doğru, değişiklik gerekmiyor
-sealed class Screens(val route: String) {
-    object Login : Screens("login_screen")
-    object Signup : Screens("signup_screen")
-    object ForgotPassword : Screens("forgot_password_screen")
-    object CreateProfile : Screens("create_profile_screen/{fullName}") {
-        fun createRoute(fullName: String) = "create_profile_screen/$fullName"
-    }
-    object Dashboard : Screens("dashboard_screen")
-    object MyProfile : Screens("my_profile_screen")
-    object EditProfile : Screens("edit_profile_screen")
-    object Settings : Screens("settings_screen")
-    object Feedback : Screens("feedback_screen")
-    object AddNotice : Screens("add_notice_screen")
-    object AddEvent : Screens("add_event_screen")
-    object EventDetail : Screens("event_detail_screen/{eventId}") {
-        fun createRoute(eventId: String) = "event_detail_screen/$eventId"
-    }
-}
+        splashScreen.setKeepOnScreenCondition { isLoading }
 
-// Navigasyon grafiği - **ÖNEMLİ DEĞİŞİKLİKLER BURADA**
-@Composable
-fun NavGraph(navController: NavHostController, startDestination: String) {
-    NavHost(navController = navController, startDestination = startDestination) {
+        var startDestination by mutableStateOf(Screen.Login.route)
 
-        // --- GİRİŞ / KAYIT AKIŞI ---
-        composable(Screens.Login.route) {
-            LoginScreen(
-                onLoginSuccess = { navController.navigate(Screens.Dashboard.route) { popUpTo(Screens.Login.route) { inclusive = true } } },
-                onNavigateToSignup = { navController.navigate(Screens.Signup.route) },
-                onNavigateToForgotPassword = { navController.navigate(Screens.ForgotPassword.route) }
-            )
-        }
-        composable(Screens.Signup.route) {
-            SignupScreen(
-                onSignupSuccess = { fullName -> navController.navigate(Screens.CreateProfile.createRoute(fullName)) { popUpTo(Screens.Login.route) { inclusive = true } } },
-                onNavigateBack = { navController.popBackStack() }
-            )
-        }
-        composable(Screens.ForgotPassword.route) {
-            ForgotPasswordScreen(onNavigateBack = { navController.popBackStack() })
-        }
-        composable(Screens.CreateProfile.route) { backStackEntry ->
-            val fullName = backStackEntry.arguments?.getString("fullName") ?: ""
-            CreateProfileScreen(
-                fullName = fullName,
-                onProfileCreated = { navController.navigate(Screens.Dashboard.route) { popUpTo(Screens.CreateProfile.route) { inclusive = true } } }
-            )
-        }
+        lifecycleScope.launch {
+            val onboardingCompleted = dataStore.data.map {
+                it[booleanPreferencesKey("onboarding_completed")] ?: false
+            }.first()
 
-        // --- ANA EKRAN (DASHBOARD) VE İÇERİK AKIŞI ---
-        composable(Screens.Dashboard.route) {
-            DashboardScreen(navController = navController)
-        }
-        composable(Screens.AddNotice.route) {
-            AddNoticeScreen(onNavigateBack = { navController.popBackStack() })
-        }
-        composable(Screens.AddEvent.route) {
-            AddEventScreen(onNavigateBack = { navController.popBackStack() })
-        }
+            val currentUser = Firebase.auth.currentUser
 
-        // --- BU BLOK DÜZELTİLDİ ---
-        // EventDetailScreen artık eventId'yi parametre olarak almıyor.
-        // Kendi ViewModel'i içinden Hilt aracılığıyla alıyor.
-        composable(Screens.EventDetail.route) {
-            EventDetailScreen(
-                onNavigateBack = { navController.popBackStack() }
-            )
-        }
-
-        // --- PROFİL VE AYARLAR AKIŞI ---
-        composable(Screens.MyProfile.route) {
-            // hiltViewModel() çağrısını burada yapmak daha temizdir
-            MyProfileScreen(
-                viewModel = hiltViewModel<ProfileViewModel>(),
-                onNavigateToEditProfile = { navController.navigate(Screens.EditProfile.route) },
-                onNavigateToSettings = { navController.navigate(Screens.Settings.route) },
-                onLogoutSuccess = {
-                    // Güvenli çıkış ve yönlendirme
-                    Firebase.auth.signOut()
-                    navController.navigate(Screens.Login.route) {
-                        // Geri tuşuna basıldığında tekrar uygulamaya girmesini engelle
-                        popUpTo(navController.graph.startDestinationId) { inclusive = true }
+            // KRİTİK GÜNCELLEME: Yeditepe E-posta Doğrulama ve Onboarding Kontrolü
+            startDestination = when {
+                currentUser != null -> {
+                    if (!currentUser.isEmailVerified) {
+                        // Giriş yapmış ama mailini onaylamamışsa Login'e gönder (Login'de uyarı gösterilecek)
+                        Screen.Login.route
+                    } else if (!onboardingCompleted) {
+                        Screen.Onboarding1.route
+                    } else {
+                        Screen.Dashboard.route
                     }
                 }
-            )
+                !onboardingCompleted && currentUser == null -> Screen.Start.route
+                else -> Screen.Login.route
+            }
+
+            isLoading = false
         }
-        composable(Screens.EditProfile.route) {
-            // Bu ekran da aynı ProfileViewModel'i kullanabilir
-            EditProfileScreen(
-                viewModel = hiltViewModel<ProfileViewModel>(),
-                onNavigateBack = { navController.popBackStack() }
-            )
-        }
-        composable(Screens.Settings.route) {
-            SettingsScreen(
-                onNavigateBack = { navController.popBackStack() },
-                onNavigateToFeedback = { navController.navigate(Screens.Feedback.route) },
-            )
-        }
-        composable(Screens.Feedback.route) {
-            FeedbackScreen(onNavigateBack = { navController.popBackStack() })
+
+        setContent {
+            HeyUTheme {
+                Surface(
+                    modifier = Modifier.fillMaxSize(),
+                    color = MaterialTheme.colorScheme.background
+                ) {
+                    if (!isLoading) {
+                        val navController = rememberNavController()
+                        val scope = rememberCoroutineScope()
+
+                        NavHost(
+                            navController = navController,
+                            startDestination = startDestination
+                        ) {
+                            // --- START & AUTH ---
+                            composable(Screen.Start.route) {
+                                StartScreen(
+                                    onLoginClicked = { navController.navigate(Screen.Login.route) },
+                                    onSignUpClicked = { navController.navigate(Screen.Signup.route) }
+                                )
+                            }
+
+                            composable(Screen.Login.route) {
+                                LoginScreen(
+                                    onLoginSuccess = { hasProfile ->
+                                        // Login başarılıysa ve mail onaylıysa yönlendir
+                                        val user = Firebase.auth.currentUser
+                                        if (user?.isEmailVerified == true) {
+                                            val dest = if (hasProfile) Screen.Dashboard.route else Screen.Onboarding1.route
+                                            navController.navigate(dest) { popUpTo(0) }
+                                        }
+                                    },
+                                    onNavigateToSignUp = { navController.navigate(Screen.Signup.route) },
+                                    onNavigateToForgotPassword = { navController.navigate(Screen.ForgotPassword.route) }
+                                )
+                            }
+
+                            composable(Screen.Signup.route) {
+                                SignupScreen(
+                                    onSignupSuccess = {
+                                        // Kayıt sonrası doğrulama bekleniyor, Login'e yönlendirilir
+                                        navController.navigate(Screen.Login.route) { popUpTo(0) }
+                                    },
+                                    onNavigateBack = { navController.popBackStack() }
+                                )
+                            }
+
+                            composable(Screen.ForgotPassword.route) {
+                                ForgotPasswordScreen(onNavigateBack = { navController.popBackStack() })
+                            }
+
+                            // --- ONBOARDING (Yeditepe Özel Akışı) ---
+                            composable(Screen.Onboarding1.route) {
+                                OnboardingNameAgeScreen(
+                                    onNavigateToMajor = { navController.navigate(Screen.Onboarding2.route) },
+                                    onNavigateBack = { navController.popBackStack() }
+                                )
+                            }
+
+                            composable(Screen.Onboarding2.route) {
+                                OnboardingScreen2(
+                                    onNext = { navController.navigate(Screen.Onboarding3.route) },
+                                    onBack = { navController.popBackStack() }
+                                )
+                            }
+
+                            composable(Screen.Onboarding3.route) {
+                                OnboardingScreen3(
+                                    onNavigateToPicture = { navController.navigate(Screen.Onboarding4.route) },
+                                    onNavigateBack = { navController.popBackStack() }
+                                )
+                            }
+
+                            composable(Screen.Onboarding4.route) {
+                                OnboardingScreen4(
+                                    onOnboardingComplete = {
+                                        scope.launch {
+                                            dataStore.edit { it[booleanPreferencesKey("onboarding_completed")] = true }
+                                            navController.navigate(Screen.Dashboard.route) {
+                                                popUpTo(0) { inclusive = true }
+                                            }
+                                        }
+                                    },
+                                    onNavigateBack = { navController.popBackStack() }
+                                )
+                            }
+
+                            // --- ANA EKRAN & DİĞERLERİ ---
+                            composable(Screen.Dashboard.route) {
+                                DashboardScreen(mainNavController = navController)
+                            }
+
+                            composable(Screen.AddEvent.route) {
+                                AddEventScreen(navController = navController)
+                            }
+
+                            composable(
+                                route = Screen.EventDetail.route,
+                                arguments = listOf(navArgument("eventId") { type = NavType.StringType })
+                            ) { backStackEntry ->
+                                val id = backStackEntry.arguments?.getString("eventId") ?: ""
+                                EventDetailScreen(eventId = id, navController = navController)
+                            }
+
+                            composable(
+                                route = Screen.Chat.route,
+                                arguments = listOf(navArgument("chatRoomId") { type = NavType.StringType })
+                            ) { ChatScreen(navController = navController) }
+
+                            composable(
+                                route = Screen.MatchSuccess.route,
+                                arguments = listOf(navArgument("matchedUserId") { type = NavType.StringType })
+                            ) { backStackEntry ->
+                                val userId = backStackEntry.arguments?.getString("matchedUserId") ?: ""
+                                MatchAnimationScreen(navController = navController, matchedUserId = userId)
+                            }
+                        }
+                    }
+                }
+            }
         }
     }
 }

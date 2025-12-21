@@ -1,146 +1,84 @@
-// Dosya: ui/profile/MyProfileScreen.kt
-
 package com.azrag.heyu.ui.profile
 
-import androidx.compose.foundation.gestures.forEach
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.*
-import androidx.compose.material3.Button
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.Divider
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.SuggestionChip
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
+import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.semantics.error
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.preference.isNotEmpty
-import coil.compose.AsyncImage
-import coil.request.ImageRequest
-import com.azrag.heyu.R // Varsayılan bir placeholder drawable olduğundan emin olun
-import com.google.accompanist.flowlayout.FlowRow
+import androidx.hilt.navigation.compose.hiltViewModel
+import coil.compose.rememberAsyncImagePainter
+import com.azrag.heyu.R
+import com.azrag.heyu.data.model.UserProfile
 
-// Bu Composable'ı SettingsScreen'den ayrı tutuyoruz ki gelecekte farklılaşabilir.
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MyProfileScreen(
-    viewModel: ProfileViewModel, // NavGraph'ten bu viewModel'i alacağız
     onNavigateToEditProfile: () -> Unit,
     onNavigateToSettings: () -> Unit,
-    onLogoutSuccess: () -> Unit
+    onLogoutSuccess: () -> Unit,
+    viewModel: ProfileViewModel = hiltViewModel()
 ) {
-    // ViewModel'deki UI durumunu (state) dinliyoruz.
-    // uiState her değiştiğinde (Loading -> Success gibi), bu ekran yeniden çizilir.
     val uiState by viewModel.uiState.collectAsState()
 
-    Column(modifier = Modifier.fillMaxSize()) {
-        when (val state = uiState) {
-            is ProfileUiState.Loading -> {
-                // Durum "Yükleniyor" ise ekranın ortasında bir progress indicator göster
-                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    CircularProgressIndicator()
-                }
-            }
-            is ProfileUiState.Success -> {
-                // Durum "Başarılı" ise gelen kullanıcı verileriyle ekranı doldur
-                val user = state.userProfile
-                LazyColumn(
-                    modifier = Modifier.fillMaxSize(),
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                    // 1. Parça: Profilin üst kısmı (Foto, İsim, Bio vb.)
-                    item {
-                        ProfileHeader(user = user, onEditClick = onNavigateToEditProfile)
-                    }
+    LaunchedEffect(uiState) {
+        if (uiState is MyProfileUiState.LoggedOut) onLogoutSuccess()
+    }
 
-                    // 2. Parça: Ayarlar ve Çıkış Yap butonları
-                    item { Divider(modifier = Modifier.padding(vertical = 16.dp)) }
-                    item {
-                        // Ayarlar ekranına gitmek için bir navigasyon butonu
-                        SettingItem(
-                            icon = Icons.Default.Settings,
-                            text = "Uygulama Ayarları",
-                            onClick = onNavigateToSettings
-                        )
-                    }
-                    item {
-                        // Çıkış yapmak için buton
-                        SettingItem(
-                            icon = Icons.Default.Logout,
-                            text = "Çıkış Yap",
-                            isLogout = true,
-                            onClick = onLogoutSuccess
-                        )
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = { Text("Profilim") },
+                actions = {
+                    IconButton(onClick = onNavigateToSettings) {
+                        Icon(Icons.Default.Settings, contentDescription = "Ayarlar")
                     }
                 }
-            }
-            is ProfileUiState.Error -> {
-                // Durum "Hata" ise ekranın ortasında hata mesajını göster
-                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    Text(text = state.message, color = MaterialTheme.colorScheme.error)
+            )
+        }
+    ) { paddingValues ->
+        Box(modifier = Modifier.padding(paddingValues).fillMaxSize(), contentAlignment = Alignment.Center) {
+            when (val state = uiState) {
+                is MyProfileUiState.Loading -> CircularProgressIndicator()
+                is MyProfileUiState.Error -> Text(state.message, color = MaterialTheme.colorScheme.error)
+                is MyProfileUiState.Success -> {
+                    ProfileContent(profile = state.profile, onEditClick = onNavigateToEditProfile, onLogoutClick = { viewModel.logout() })
                 }
+                else -> {}
             }
         }
     }
 }
 
-// Bu yardımcı Composable, hem MyProfileScreen hem de SettingsScreen tarafından kullanılabilir.
-// Henüz oluşturmadıysak bu kodu da ekleyelim.
 @Composable
-fun ProfileHeader(user: UserProfile, onEditClick: () -> Unit) {
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(16.dp),
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        AsyncImage(
-            model = ImageRequest.Builder(LocalContext.current)
-                .data(user.profileImageUrl.ifEmpty { R.drawable.ic_launcher_background }) // URL boşsa varsayılanı kullan
-                .crossfade(true)
-                .build(),
-            placeholder = painterResource(R.drawable.ic_launcher_background), // Yüklenirken gösterilecek
-            error = painterResource(R.drawable.ic_launcher_background), // Hata olursa gösterilecek
-            contentDescription = "Profil Fotoğrafı",
-            contentScale = ContentScale.Crop,
-            modifier = Modifier
-                .size(120.dp)
-                .clip(CircleShape)
+private fun ProfileContent(profile: UserProfile, onEditClick: () -> Unit, onLogoutClick: () -> Unit) {
+    Column(modifier = Modifier.fillMaxSize().padding(24.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+        Image(
+            painter = rememberAsyncImagePainter(profile.photoUrl.ifEmpty { R.drawable.ic_default_profile }),
+            contentDescription = null,
+            modifier = Modifier.size(140.dp).clip(CircleShape).background(MaterialTheme.colorScheme.surfaceVariant),
+            contentScale = ContentScale.Crop
         )
-        Spacer(modifier = Modifier.height(16.dp))
-
-        Text(text = user.fullName, style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
-        Text(text = user.department, style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
-        Text(text = user.bio, style = MaterialTheme.typography.bodyMedium, modifier = Modifier.padding(top = 8.dp))
-        Spacer(modifier = Modifier.height(16.dp))
-
-        // İlgi alanları etiketlerini göster
-        if (user.interests.isNotEmpty()) {
-            FlowRow(
-                modifier = Modifier.padding(horizontal = 16.dp),
-                mainAxisSpacing = 8.dp,
-                crossAxisSpacing = 8.dp
-            ) {
-                user.interests.forEach { interest ->
-                    SuggestionChip(onClick = {}, label = { Text(interest) })
-                }
-            }
-            Spacer(modifier = Modifier.height(24.dp))
-        }
-
-        Button(onClick = onEditClick) {
+        Spacer(Modifier.height(16.dp))
+        Text(profile.displayName, style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold)
+        Text(profile.department, style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.secondary)
+        Spacer(Modifier.height(16.dp))
+        Text(profile.bio, style = MaterialTheme.typography.bodyMedium)
+        Spacer(Modifier.weight(1f))
+        Button(onClick = onEditClick, modifier = Modifier.fillMaxWidth()) {
+            Icon(Icons.Default.Edit, null)
+            Spacer(Modifier.width(8.dp))
             Text("PROFİLİ DÜZENLE")
         }
+        TextButton(onClick = onLogoutClick) { Text("Çıkış Yap", color = MaterialTheme.colorScheme.error) }
     }
 }

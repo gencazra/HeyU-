@@ -1,3 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">heyU!</string>
+
+    <string name="kvkk_text">
+        <b>PRIVACY POLICY AND DATA PROTECTION (GDPR/KVKK)</b>\n\n
+
+        <b>1. Data Controller</b>\n
+        As HeyU (\"the App\"), we are committed to protecting the personal data of Yeditepe University students. Your data is processed in accordance with the Law on the Protection of Personal Data.\n\n
+
+        <b>2. Collected Personal Data</b>\n
+        To provide our services, we collect the following information:\n
+        • University email address (@std.yeditepe.edu.tr)\n
+        • Profile information (Name, Age, Major, Bio)\n
+        • User-uploaded photos\n
+        • Interests and hobbies for matching algorithms\n\n
+
+        <b>3. Purpose of Processing</b>\n
+        Your data is used exclusively for:\n
+        • Facilitating campus-based networking.\n
+        • Verifying university student status.\n
+        • Calculating match scores based on shared interests.\n
+        • Maintaining community safety and moderation.\n\n
+
+        <b>4. Data Storage and Security</b>\n
+        All communications and profile data are stored securely using Firebase encrypted infrastructure. We do not sell your personal data to third parties.\n\n
+
+        <b>5. User Rights</b>\n
+        You have the right to request the deletion of your account and all associated data at any time via the \"Settings\" menu.\n\n
+
+        By using HeyU, you acknowledge that you have read and agreed to these terms.
+    </string>
 </resources>
