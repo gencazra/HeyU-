@@ -8,12 +8,12 @@ data class Event(
     val title: String = "",
     val description: String = "",
     val organizer: String = "",
-    val creatorName: String = "", // Eklendi
+    val creatorName: String = "",
     val category: String = "Genel",
     val location: String = "",
     val creatorId: String = "",
     val imageUrl: String = "",
-    val participants: List<String> = emptyList(), // attendees -> participants olarak mühürlendi
+    val participants: List<String> = emptyList(),
 
     val eventDate: String = "",
     val eventTime: String = "",

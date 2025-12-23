@@ -30,12 +30,10 @@ fun EventBoardScreen(
     navController: NavController,
     viewModel: EventsViewModel = hiltViewModel()
 ) {
-    // ViewModel'daki uiState akışını dinle
     val uiState by viewModel.uiState.collectAsState()
 
     Scaffold(
         floatingActionButton = {
-            // Admin kontrolü mühürlendi
             if (uiState.isCurrentUserAdmin) {
                 FloatingActionButton(
                     onClick = { navController.navigate(Screen.AddEvent.route) },
@@ -68,7 +66,6 @@ fun EventBoardScreen(
                             EventBoardCard(
                                 event = event,
                                 onClick = {
-                                    // Detay sayfasına güvenli yönlendirme
                                     navController.navigate(Screen.EventDetail.createRoute(event.id))
                                 }
                             )
@@ -89,7 +86,6 @@ fun EventBoardCard(event: Event, onClick: () -> Unit) {
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
         Column {
-            // Görsel yükleme: Boşsa varsayılan profil/etkinlik görseli
             Image(
                 painter = rememberAsyncImagePainter(
                     model = event.imageUrl.ifBlank { R.drawable.ic_default_profile }
@@ -102,7 +98,7 @@ fun EventBoardCard(event: Event, onClick: () -> Unit) {
             )
 
             Column(modifier = Modifier.padding(16.dp)) {
-                // Başlık
+
                 Text(
                     text = event.title,
                     style = MaterialTheme.typography.titleLarge,
@@ -111,7 +107,6 @@ fun EventBoardCard(event: Event, onClick: () -> Unit) {
                     overflow = TextOverflow.Ellipsis
                 )
 
-                // Organizatör
                 Text(
                     text = event.organizer,
                     style = MaterialTheme.typography.labelMedium,
@@ -120,8 +115,6 @@ fun EventBoardCard(event: Event, onClick: () -> Unit) {
 
                 Spacer(modifier = Modifier.height(8.dp))
 
-                // TARİH HATASI ÇÖZÜMÜ:
-                // Modeldeki eventDate (String) önceliklidir, yoksa serverTimestamp kullanılır.
                 val displayDate = remember(event) {
                     if (event.eventDate.isNotBlank()) {
                         "${event.eventDate} ${event.eventTime}"

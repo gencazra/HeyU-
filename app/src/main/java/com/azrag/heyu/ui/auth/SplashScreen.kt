@@ -21,11 +21,11 @@ fun SplashScreen(
 ) {
     val startDestination by viewModel.startDestination.collectAsState()
 
-    // Navigasyon Tetikleyici
+
     LaunchedEffect(startDestination) {
         startDestination?.let { destination ->
             navController.navigate(destination) {
-                // Splash ekranını tamamen yığından çıkar (Geri basınca gelmesin)
+
                 popUpTo(Screen.Splash.route) {
                     inclusive = true
                 }
@@ -36,11 +36,11 @@ fun SplashScreen(
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(MaterialTheme.colorScheme.primary), // Uygulama ana rengi
+            .background(MaterialTheme.colorScheme.primary),
         contentAlignment = Alignment.Center
     ) {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            // HeyU Logosu (Placeholder)
+
             Text(
                 text = "HeyU",
                 fontSize = 42.sp,
@@ -50,7 +50,7 @@ fun SplashScreen(
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            // Minimal Yükleme Göstergesi
+
             CircularProgressIndicator(
                 color = Color.White,
                 strokeWidth = 3.dp

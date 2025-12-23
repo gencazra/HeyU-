@@ -38,18 +38,16 @@ class SignupViewModel @Inject constructor(
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true, errorMessage = null) }
             try {
-                // 1. Kullanıcı Oluştur
+
                 val result = auth.createUserWithEmailAndPassword(cleanEmail, pass).await()
                 val user = result.user
 
                 if (user != null) {
-                    // 2. İsim Güncelleme (Türkçe Karakter Desteği)
                     val profileUpdates = userProfileChangeRequest {
                         this.displayName = fullName
                     }
                     user.updateProfile(profileUpdates).await()
 
-                    // 3. Firestore Dokümanı (Türkçe Karakter Safe)
                     val userMap = mapOf(
                         "uid" to user.uid,
                         "email" to cleanEmail,
@@ -60,7 +58,6 @@ class SignupViewModel @Inject constructor(
                     firestore.collection("users").document(user.uid).set(userMap).await()
                 }
 
-                // 4. BAŞARI: Flag'i ateşle
                 _uiState.update { it.copy(isLoading = false, isSignupSuccess = true) }
 
             } catch (e: Exception) {

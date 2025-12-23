@@ -22,8 +22,8 @@ import kotlinx.coroutines.flow.collectLatest
 @Composable
 fun OnboardingScreen4(
     viewModel: OnboardingViewModel = hiltViewModel(),
-    onOnboardingComplete: () -> Unit, // MainActivity ile %100 aynı isim
-    onNavigateBack: () -> Unit        // MainActivity ile %100 aynı isim
+    onOnboardingComplete: () -> Unit,
+    onNavigateBack: () -> Unit
 ) {
     val imageUri by viewModel.imageUri
     val isLoading by viewModel.isLoading

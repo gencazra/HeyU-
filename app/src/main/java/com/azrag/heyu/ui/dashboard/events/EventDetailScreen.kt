@@ -78,10 +78,8 @@ private fun EventDetailsContent(
     onJoinLeaveClick: () -> Unit
 ) {
     val currentUserId = Firebase.auth.currentUser?.uid
-    // DÜZELTME: attendees yerine participants kullanıldı
     val isUserParticipant = event.participants.contains(currentUserId)
 
-    // Tarih formatlama
     val displayDate = remember(event) {
         if (event.eventDate.isNotBlank()) {
             "${event.eventDate}, ${event.eventTime}"
@@ -106,7 +104,6 @@ private fun EventDetailsContent(
         item {
             Column(modifier = Modifier.padding(16.dp)) {
                 Text(text = event.title, style = MaterialTheme.typography.headlineLarge, fontWeight = FontWeight.Bold)
-                // creatorName eklendi (Admin isteğine göre)
                 Text(text = "Paylaşan: ${event.creatorName}", style = MaterialTheme.typography.labelMedium)
                 Text(text = "Düzenleyen: ${event.organizer}", color = MaterialTheme.colorScheme.primary)
 
@@ -126,7 +123,7 @@ private fun EventDetailsContent(
                 Button(onClick = onJoinLeaveClick, modifier = Modifier.weight(1f)) {
                     Text(if (isUserParticipant) "KATILIYORSUN" else "KATIL")
                 }
-                OutlinedButton(onClick = { /* Gelecek özellik */ }, modifier = Modifier.weight(1f)) {
+                OutlinedButton(onClick = { }, modifier = Modifier.weight(1f)) {
                     Text("SOHBET")
                 }
             }

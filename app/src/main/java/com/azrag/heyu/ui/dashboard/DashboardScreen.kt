@@ -9,19 +9,15 @@ import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.compose.*
 import com.azrag.heyu.ui.dashboard.messages.ChatListScreen
 import com.azrag.heyu.ui.dashboard.events.EventBoardScreen
-import com.azrag.heyu.ui.dashboard.discover.DiscoverScreen // PAKET YOLU GÜNCELLENDİ
+import com.azrag.heyu.ui.dashboard.discover.DiscoverScreen
 import com.azrag.heyu.ui.profile.MyProfileScreen
 import com.azrag.heyu.util.Screen
 
-/**
- * DashboardScreen, alt navigasyon (Bottom Bar) ve bu menülerin
- * iç sayfalarını yöneten ana konteynırdır.
- */
+
 @Composable
 fun DashboardScreen(mainNavController: NavController) {
     val dashboardNavController = rememberNavController()
 
-    // Bottom Navigation'da gösterilecek ana sayfalar
     val bottomNavItems = listOf(
         Screen.Discover,
         Screen.EventBoard,
@@ -40,7 +36,6 @@ fun DashboardScreen(mainNavController: NavController) {
                         selected = currentRoute == screen.route,
                         onClick = {
                             dashboardNavController.navigate(screen.route) {
-                                // Geri tuşuna basıldığında ana hedefe (Discover) dönmesi için
                                 popUpTo(dashboardNavController.graph.findStartDestination().id) {
                                     saveState = true
                                 }
@@ -49,7 +44,6 @@ fun DashboardScreen(mainNavController: NavController) {
                             }
                         },
                         icon = {
-                            // Icon null-safety kontrolü
                             screen.icon?.let {
                                 Icon(
                                     imageVector = it,
@@ -63,36 +57,29 @@ fun DashboardScreen(mainNavController: NavController) {
             }
         }
     ) { paddingValues ->
-        // Dashboard içindeki iç navigasyon (Bottom Nav içerikleri)
         NavHost(
             navController = dashboardNavController,
             startDestination = Screen.Discover.route,
             modifier = Modifier.padding(paddingValues)
         ) {
-            // KEŞFET (Discover) - Mühürlü
             composable(Screen.Discover.route) {
                 DiscoverScreen(mainNavController = mainNavController)
             }
 
-            // ETKİNLİKLER (Event Board) - Mühürlü
             composable(Screen.EventBoard.route) {
                 EventBoardScreen(navController = mainNavController)
             }
 
-            // MESAJ LİSTESİ (Chat List) - Mühürlü
             composable(Screen.MessageList.route) {
                 ChatListScreen(navController = mainNavController)
             }
 
-            // PROFİLİM (My Profile) - Mühürlü
             composable(Screen.ProfileView.route) {
                 MyProfileScreen(
                     onNavigateToEditProfile = {
-                        // Profil düzenleme (Onboarding akışına geri döner)
                         mainNavController.navigate(Screen.Onboarding1.route)
                     },
                     onNavigateToSettings = {
-                        // Ayarlar ekranı mühürlü rotası
                         mainNavController.navigate(Screen.Settings.route)
                     },
                     onLogoutSuccess = {

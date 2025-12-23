@@ -1,4 +1,4 @@
-// Dosya Yolu: ui/auth/SplashViewModel.kt
+
 package com.azrag.heyu.ui.auth
 
 import androidx.lifecycle.ViewModel
@@ -26,15 +26,14 @@ class SplashViewModel @Inject constructor(
 
     private fun checkUserStatus() {
         viewModelScope.launch {
-            // Şema [✓]: 2 saniye bekle
+
             delay(2000)
 
             val currentUser = firebaseAuth.currentUser
             if (currentUser != null) {
-                // Şema [✓]: Giriş yapmışsa Dashboard
+
                 _startDestination.value = Screen.Dashboard.route
             } else {
-                // Şema [✓]: Yapmamışsa Login
                 _startDestination.value = Screen.Login.route
             }
         }

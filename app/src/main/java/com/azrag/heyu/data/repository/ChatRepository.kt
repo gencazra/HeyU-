@@ -24,13 +24,10 @@ class ChatRepository @Inject constructor(
     private val chatsCollection = firestore.collection("chats")
     private val usersCollection = firestore.collection("users")
 
-    /**
-     * İki kullanıcı arasında benzersiz bir sohbet odası oluşturur veya mevcut olanı getirir.
-     */
+
     suspend fun createOrGetChatRoom(otherUserId: String): Result<String> {
         val currentUserId = auth.currentUser?.uid ?: return Result.Error("Oturum bulunamadı.")
 
-        // Benzersiz Chat ID Oluşturma (Küçük ID _ Büyük ID sıralamasıyla benzersizliği mühürlüyoruz)
         val chatRoomId = if (currentUserId < otherUserId) {
             "${currentUserId}_$otherUserId"
         } else {
@@ -48,7 +45,7 @@ class ChatRepository @Inject constructor(
                     "lastMessage" to "Hey! 👋",
                     "lastMessageSenderId" to currentUserId,
                     "lastMessageTimestamp" to Timestamp.now(),
-                    // Başlangıçta her iki kullanıcı için okunmamış sayısı 0
+
                     "unreadCount" to mapOf(currentUserId to 0, otherUserId to 0)
                 )
                 docRef.set(chatData).await()
@@ -59,9 +56,7 @@ class ChatRepository @Inject constructor(
         }
     }
 
-    /**
-     * Mesaj gönderir: Aynı anda hem mesajı kaydeder hem de alıcının okunmamış sayısını artırır.
-     */
+
     suspend fun sendTextMessageToRoom(chatRoomId: String, receiverId: String, text: String) {
         val currentUserId = auth.currentUser?.uid ?: return
 
@@ -76,10 +71,9 @@ class ChatRepository @Inject constructor(
             val chatDocRef = chatsCollection.document(chatRoomId)
             val messageDocRef = chatDocRef.collection("messages").document()
 
-            // 1. Mesajı 'messages' alt koleksiyonuna ekle
             batch.set(messageDocRef, message)
 
-            // 2. Chat dökümanını güncelle (Son mesaj ve Alıcının unreadCount'unu artır)
+
             batch.update(chatDocRef, mapOf(
                 "lastMessage" to text,
                 "lastMessageSenderId" to currentUserId,
@@ -93,9 +87,6 @@ class ChatRepository @Inject constructor(
         }
     }
 
-    /**
-     * Belirli bir odadaki mesajları zamana göre (en yeni en altta olacak şekilde) dinler.
-     */
     fun getMessagesFromRoom(chatRoomId: String): Flow<List<Message>> = callbackFlow {
         val subscription = chatsCollection.document(chatRoomId)
             .collection("messages")
@@ -108,9 +99,7 @@ class ChatRepository @Inject constructor(
         awaitClose { subscription.remove() }
     }
 
-    /**
-     * Kullanıcı odaya girdiğinde kendi okunmamış mesaj sayısını sıfırlar.
-     */
+
     suspend fun markMessagesAsRead(chatRoomId: String) {
         val currentUserId = auth.currentUser?.uid ?: return
         try {
@@ -122,9 +111,7 @@ class ChatRepository @Inject constructor(
         }
     }
 
-    /**
-     * Kullanıcının dahil olduğu tüm aktif sohbetleri dinler.
-     */
+
     fun getAllChatsForCurrentUser(): Flow<List<Chat>> = callbackFlow {
         val currentUserId = auth.currentUser?.uid ?: return@callbackFlow
 

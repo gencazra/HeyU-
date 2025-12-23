@@ -1,4 +1,3 @@
-// Dosya Yolu: app/src/main/java/com/azrag/heyu/ui/signup/OnboardingNameAgeScreen.kt
 package com.azrag.heyu.ui.signup
 
 import android.widget.Toast
@@ -17,10 +16,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import kotlinx.coroutines.flow.collectLatest
 
-/**
- * heyU! - Profil Tamamlama (Yaş Ekranı)
- * Onboarding sürecinin ilk adımıdır.
- */
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun OnboardingNameAgeScreen(
@@ -33,15 +29,13 @@ fun OnboardingNameAgeScreen(
     val isLoading by viewModel.isLoading
     val context = LocalContext.current
 
-    // Hata mesajlarını dinle ve Toast olarak göster
     LaunchedEffect(error) {
         error?.let {
             Toast.makeText(context, it, Toast.LENGTH_SHORT).show()
-            viewModel.error.value = null // Hatayı temizle
+            viewModel.error.value = null
         }
     }
 
-    // Navigasyon olaylarını dinle (ViewModel İLERİ dediğinde)
     LaunchedEffect(key1 = true) {
         viewModel.eventFlow.collectLatest { event ->
             if (event is OnboardingViewModel.UiEvent.NavigateToMajor) {
@@ -82,7 +76,6 @@ fun OnboardingNameAgeScreen(
 
             Spacer(Modifier.height(48.dp))
 
-            // Yaş Giriş Alanı
             OutlinedTextField(
                 value = age,
                 onValueChange = { newValue ->
@@ -100,7 +93,6 @@ fun OnboardingNameAgeScreen(
 
             Spacer(Modifier.height(32.dp))
 
-            // İLERİ Butonu
             Button(
                 onClick = { viewModel.onNameAgeNextClicked() },
                 modifier = Modifier

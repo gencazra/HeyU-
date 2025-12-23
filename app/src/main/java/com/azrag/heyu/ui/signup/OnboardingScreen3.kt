@@ -25,9 +25,8 @@ fun OnboardingScreen3(
     onNavigateToPicture: () -> Unit,
     onNavigateBack: () -> Unit
 ) {
-    // ÇÖZÜM: Değerleri 'by' delegesiyle alarak tip netleştiriliyor
     val bio by viewModel.bio
-    val selectedHobbies by viewModel.selectedHobbies // ViewModel'de List<String> olmalı
+    val selectedHobbies by viewModel.selectedHobbies
     val error by viewModel.error
     val isLoading by viewModel.isLoading
     val context = LocalContext.current
@@ -81,7 +80,6 @@ fun OnboardingScreen3(
                 crossAxisSpacing = 8.dp
             ) {
                 allHobbies.forEach { hobby ->
-                    // ÇÖZÜM: 'contains' artık doğru List tipinde çalışacak
                     val isSelected = selectedHobbies.contains(hobby)
 
                     FilterChip(
@@ -103,7 +101,6 @@ fun OnboardingScreen3(
 
             OutlinedTextField(
                 value = bio,
-                // ViewModel.bio bir MutableState<String> ise .value üzerinden güncellenmeli
                 onValueChange = { if (it.length <= 150) viewModel.bio.value = it },
                 label = { Text("Kısaca kendini anlat...") },
                 modifier = Modifier

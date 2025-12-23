@@ -34,7 +34,6 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 
-// DataStore Tanımı
 val Context.dataStore by preferencesDataStore(name = "settings")
 
 @AndroidEntryPoint
@@ -57,11 +56,9 @@ class MainActivity : ComponentActivity() {
 
             val currentUser = Firebase.auth.currentUser
 
-            // KRİTİK GÜNCELLEME: Yeditepe E-posta Doğrulama ve Onboarding Kontrolü
             startDestination = when {
                 currentUser != null -> {
                     if (!currentUser.isEmailVerified) {
-                        // Giriş yapmış ama mailini onaylamamışsa Login'e gönder (Login'de uyarı gösterilecek)
                         Screen.Login.route
                     } else if (!onboardingCompleted) {
                         Screen.Onboarding1.route
@@ -90,7 +87,6 @@ class MainActivity : ComponentActivity() {
                             navController = navController,
                             startDestination = startDestination
                         ) {
-                            // --- START & AUTH ---
                             composable(Screen.Start.route) {
                                 StartScreen(
                                     onLoginClicked = { navController.navigate(Screen.Login.route) },
@@ -101,7 +97,6 @@ class MainActivity : ComponentActivity() {
                             composable(Screen.Login.route) {
                                 LoginScreen(
                                     onLoginSuccess = { hasProfile ->
-                                        // Login başarılıysa ve mail onaylıysa yönlendir
                                         val user = Firebase.auth.currentUser
                                         if (user?.isEmailVerified == true) {
                                             val dest = if (hasProfile) Screen.Dashboard.route else Screen.Onboarding1.route
@@ -116,7 +111,6 @@ class MainActivity : ComponentActivity() {
                             composable(Screen.Signup.route) {
                                 SignupScreen(
                                     onSignupSuccess = {
-                                        // Kayıt sonrası doğrulama bekleniyor, Login'e yönlendirilir
                                         navController.navigate(Screen.Login.route) { popUpTo(0) }
                                     },
                                     onNavigateBack = { navController.popBackStack() }
@@ -127,7 +121,6 @@ class MainActivity : ComponentActivity() {
                                 ForgotPasswordScreen(onNavigateBack = { navController.popBackStack() })
                             }
 
-                            // --- ONBOARDING (Yeditepe Özel Akışı) ---
                             composable(Screen.Onboarding1.route) {
                                 OnboardingNameAgeScreen(
                                     onNavigateToMajor = { navController.navigate(Screen.Onboarding2.route) },
@@ -163,7 +156,6 @@ class MainActivity : ComponentActivity() {
                                 )
                             }
 
-                            // --- ANA EKRAN & DİĞERLERİ ---
                             composable(Screen.Dashboard.route) {
                                 DashboardScreen(mainNavController = navController)
                             }

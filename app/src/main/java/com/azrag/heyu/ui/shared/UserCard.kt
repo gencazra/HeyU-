@@ -1,4 +1,3 @@
-// Dosya Yolu: app/src/main/java/com/azrag/heyu/ui/shared/UserCard.kt
 package com.azrag.heyu.ui.shared
 
 import androidx.compose.foundation.Image
@@ -21,10 +20,7 @@ import coil.compose.rememberAsyncImagePainter
 import com.azrag.heyu.R
 import com.azrag.heyu.data.model.UserProfile
 
-/**
- * Uygulama genelinde (Mesaj listesi, katılımcı listesi vb.)
- * kullanıcıları yatay bir satırda göstermek için kullanılan kart bileşeni.
- */
+
 @Composable
 fun UserCard(
     user: UserProfile,
@@ -42,7 +38,6 @@ fun UserCard(
                 .padding(horizontal = 16.dp, vertical = 12.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            // Profil Fotoğrafı
             Image(
                 painter = rememberAsyncImagePainter(
                     model = user.photoUrl.ifEmpty { R.drawable.ic_default_profile }
@@ -57,7 +52,6 @@ fun UserCard(
 
             Spacer(modifier = Modifier.width(16.dp))
 
-            // Kullanıcı Bilgileri
             Column(
                 modifier = Modifier.weight(1f),
                 verticalArrangement = Arrangement.Center
@@ -73,7 +67,6 @@ fun UserCard(
 
                 Spacer(modifier = Modifier.height(2.dp))
 
-                // Bölüm/Departman Bilgisi
                 if (user.department.isNotBlank()) {
                     Text(
                         text = user.department,
@@ -85,7 +78,6 @@ fun UserCard(
                 }
             }
 
-            // Eğer kullanıcı online ise sağda küçük bir gösterge (Opsiyonel)
             if (user.isOnline) {
                 Box(
                     modifier = Modifier

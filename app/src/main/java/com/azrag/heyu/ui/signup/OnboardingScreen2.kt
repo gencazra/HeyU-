@@ -16,8 +16,8 @@ import com.azrag.heyu.data.YeditepeData
 @Composable
 fun OnboardingScreen2(
     viewModel: OnboardingViewModel = hiltViewModel(),
-    onNext: () -> Unit, // MainActivity ile uyumlu isim
-    onBack: () -> Unit  // MainActivity ile uyumlu isim
+    onNext: () -> Unit,
+    onBack: () -> Unit
 ) {
     val selectedFaculty by viewModel.selectedFaculty
     val selectedMajor by viewModel.major
@@ -29,7 +29,6 @@ fun OnboardingScreen2(
         Text("Eğitim Bilgilerin", style = MaterialTheme.typography.headlineMedium)
         Spacer(Modifier.height(32.dp))
 
-        // Fakülte Seçimi
         var facultyExpanded by remember { mutableStateOf(false) }
         ExposedDropdownMenuBox(expanded = facultyExpanded, onExpandedChange = { facultyExpanded = it }) {
             OutlinedTextField(
@@ -46,7 +45,6 @@ fun OnboardingScreen2(
         }
         Spacer(Modifier.height(16.dp))
 
-        // Bölüm Seçimi
         var majorExpanded by remember { mutableStateOf(false) }
         ExposedDropdownMenuBox(expanded = majorExpanded, onExpandedChange = { if (selectedFaculty.isNotEmpty()) majorExpanded = it }) {
             OutlinedTextField(
@@ -63,7 +61,6 @@ fun OnboardingScreen2(
         }
         Spacer(Modifier.height(16.dp))
 
-        // Sınıf Seçimi
         var classExpanded by remember { mutableStateOf(false) }
         ExposedDropdownMenuBox(expanded = classExpanded, onExpandedChange = { classExpanded = it }) {
             OutlinedTextField(
@@ -85,7 +82,6 @@ fun OnboardingScreen2(
         }
     }
 
-    // Navigasyon Olayını Dinle
     LaunchedEffect(Unit) {
         viewModel.eventFlow.collect { event ->
             if (event is OnboardingViewModel.UiEvent.NavigateToHobbies) { onNext() }

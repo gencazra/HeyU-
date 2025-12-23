@@ -19,7 +19,7 @@ data class DiscoverUiState(
     val errorMessage: String? = null,
     val newMatch: UserProfile? = null,
     val isCurrentUserAdmin: Boolean = false,
-    val selectedDepartment: String = "Hepsi" // MÜHÜRLENDİ: Fakülte Filtresi
+    val selectedDepartment: String = "Hepsi"
 )
 
 @HiltViewModel
@@ -35,7 +35,7 @@ class DiscoverViewModel @Inject constructor(
         loadPotentialMatches()
     }
 
-    // MÜHÜRLENDİ: Bölüm/Fakülte Değiştirme Fonksiyonu
+
     fun onDepartmentSelected(dept: String) {
         _uiState.update { it.copy(selectedDepartment = dept) }
         loadPotentialMatches()
@@ -51,13 +51,11 @@ class DiscoverViewModel @Inject constructor(
 
                 when (val result = matchRepository.getDiscoveryCandidates(currentUser)) {
                     is Result.Success -> {
-                        // 1. ADIM: Algoritma - Benzer Profil Skorlaması (% Uyum)
                         var filteredList = result.data?.map { candidate ->
                             val score = currentUser.calculateMatchScoreWith(candidate)
                             candidate.copy(matchScore = score)
                         }?.sortedByDescending { it.matchScore } ?: emptyList()
 
-                        // 2. ADIM: Fakülte/Bölüm Filtreleme
                         if (_uiState.value.selectedDepartment != "Hepsi") {
                             filteredList = filteredList.filter {
                                 it.department.contains(_uiState.value.selectedDepartment, ignoreCase = true)

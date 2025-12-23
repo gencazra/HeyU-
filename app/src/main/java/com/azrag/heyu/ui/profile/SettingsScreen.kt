@@ -30,10 +30,6 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 import java.util.Date
 
-/**
- * heyU! - Ayarlar Ekranı
- * Hesap silme, Geri bildirim ve Admin paneli erişimi mühürlenmiştir.
- */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SettingsScreen(
@@ -44,13 +40,11 @@ fun SettingsScreen(
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
 
-    // Diyalog Durumları
     var showFeedbackDialog by remember { mutableStateOf(false) }
     var showPrivacyDialog by remember { mutableStateOf(false) }
     var showDeleteAccountDialog by remember { mutableStateOf(false) }
     var isAdmin by remember { mutableStateOf(false) }
 
-    // Admin Yetki Kontrolü
     LaunchedEffect(Unit) {
         val uid = Firebase.auth.currentUser?.uid
         if (uid != null) {
@@ -77,7 +71,6 @@ fun SettingsScreen(
     ) { paddingValues ->
         LazyColumn(modifier = Modifier.padding(paddingValues).fillMaxSize()) {
 
-            // 1. Yönetici Paneli (Sadece isAdmin: true ise görünür)
             if (isAdmin) {
                 item {
                     ListItem(
@@ -90,7 +83,6 @@ fun SettingsScreen(
                 }
             }
 
-            // 2. Geri Bildirim
             item {
                 ListItem(
                     headlineContent = { Text("Geri Bildirim & Öneriler") },
@@ -99,7 +91,6 @@ fun SettingsScreen(
                 )
             }
 
-            // 3. Gizlilik Politikası (KVKK)
             item {
                 ListItem(
                     headlineContent = { Text("Gizlilik Politikası (KVKK)") },
@@ -108,7 +99,6 @@ fun SettingsScreen(
                 )
             }
 
-            // 4. Kullanım Koşulları
             item {
                 ListItem(
                     headlineContent = { Text("Kullanım Koşulları") },
@@ -121,7 +111,6 @@ fun SettingsScreen(
 
             item { Spacer(Modifier.height(16.dp)) }
 
-            // 5. Çıkış Yap
             item {
                 ListItem(
                     headlineContent = { Text("Çıkış Yap", color = Color.Red, fontWeight = FontWeight.SemiBold) },
@@ -133,7 +122,6 @@ fun SettingsScreen(
                 )
             }
 
-            // 6. Hesabı Sil (GDPR/KVKK Gereği)
             item {
                 ListItem(
                     headlineContent = { Text("Hesabı Sil", color = Color.Gray) },
@@ -144,9 +132,6 @@ fun SettingsScreen(
         }
     }
 
-    // --- DİYALOGLAR (MÜHÜRLENDİ) ---
-
-    // 1. KVKK / Gizlilik Diyaloğu
     if (showPrivacyDialog) {
         AlertDialog(
             onDismissRequest = { showPrivacyDialog = false },
@@ -166,7 +151,6 @@ fun SettingsScreen(
         )
     }
 
-    // 2. Geri Bildirim Gönderme Diyaloğu
     if (showFeedbackDialog) {
         var feedbackText by remember { mutableStateOf("") }
         var isSending by remember { mutableStateOf(false) }
@@ -219,7 +203,6 @@ fun SettingsScreen(
         )
     }
 
-    // 3. Hesap Silme Diyaloğu (MÜHÜRLENDİ: Teknik Veri Silme)
     if (showDeleteAccountDialog) {
         var isDeleting by remember { mutableStateOf(false) }
 
@@ -236,9 +219,8 @@ fun SettingsScreen(
                                 val user = Firebase.auth.currentUser
                                 val uid = user?.uid
                                 if (uid != null) {
-                                    // 1. Firestore Verilerini Sil
+
                                     Firebase.firestore.collection("users").document(uid).delete().await()
-                                    // 2. Auth Kaydını Sil
                                     user.delete().await()
                                     Toast.makeText(context, "Hoşçakalın! Hesabınız silindi.", Toast.LENGTH_SHORT).show()
                                     onLogout()

@@ -37,7 +37,6 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
-// 1. VIEWMODEL: UserRepository ve ChatRepository'yi ekrana bağlar
 @HiltViewModel
 class MatchViewModel @Inject constructor(
     val userRepository: UserRepository,
@@ -53,7 +52,6 @@ fun MatchAnimationScreen(
     val coroutineScope = rememberCoroutineScope()
     val currentUser = Firebase.auth.currentUser
 
-    // 2. STATE YÖNETİMİ: 'getUserProfileStream' veya 'getCurrentUserProfile' ile uyumlu mühürleme
     val userState: State<Result<UserProfile?>> = produceState<Result<UserProfile?>>(
         initialValue = Result.Loading,
         key1 = matchedUserId
@@ -62,9 +60,6 @@ fun MatchAnimationScreen(
             value = Result.Error("Kullanıcı bulunamadı.")
         } else {
             val result = withContext(Dispatchers.IO) {
-                // Not: UserRepository içinde 'getUserProfileStream' varsa onu,
-                // tek seferlik 'getCurrentUserProfile' varsa onu çağırın.
-                // Burada genel 'getCurrentUserProfile' referans alınmıştır.
                 viewModel.userRepository.getCurrentUserProfile()
             }
             value = result
@@ -74,7 +69,6 @@ fun MatchAnimationScreen(
     var isCreatingChat by remember { mutableStateOf(false) }
 
     Box(modifier = Modifier.fillMaxSize()) {
-        // TİP ÇIKARIMI HATASI ÇÖZÜMÜ: Tipi açıkça belirtiyoruz
         val currentState: Result<UserProfile?> = userState.value
 
         when (currentState) {
@@ -113,7 +107,7 @@ fun MatchAnimationScreen(
             is Result.Error -> {
                 LaunchedEffect(Unit) { navController.popBackStack() }
             }
-            else -> { /* Exhaustive else */ }
+            else -> { }
         }
     }
 }

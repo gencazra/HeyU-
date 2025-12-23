@@ -1,4 +1,3 @@
-// Dosya Yolu: HeyUApp.kt
 package com.azrag.heyu
 
 import android.app.Application

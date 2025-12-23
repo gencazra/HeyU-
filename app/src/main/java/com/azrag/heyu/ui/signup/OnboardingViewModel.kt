@@ -21,11 +21,11 @@ class OnboardingViewModel @Inject constructor(
     private val userRepository: UserRepository
 ) : ViewModel() {
 
-    // --- STATES ---
+
     var age = mutableStateOf("")
     var selectedFaculty = mutableStateOf("")
-    var major = mutableStateOf("")           // Bölüm (department)
-    var classLevel = mutableStateOf("")      // Sınıf
+    var major = mutableStateOf("")
+    var classLevel = mutableStateOf("")
     var selectedHobbies = mutableStateOf<List<String>>(emptyList())
     var bio = mutableStateOf("")
     var imageUri = mutableStateOf<Uri?>(null)
@@ -90,10 +90,8 @@ class OnboardingViewModel @Inject constructor(
                 bio = bio.value.ifBlank { "HeyU kullanıcısı!" }
             )
 
-            // DÜZELTME 1: saveUserProfile fonksiyonunun varlığı ve dönüş tipine göre Result<Unit> kontrolü
             val result: Result<Unit> = userRepository.saveUserProfile(profile, imageUri.value)
 
-            // DÜZELTME 2: Result.Success için <Unit> (veya <*>) eklenerek tip çıkarımı hatası giderildi
             when (result) {
                 is Result.Success<Unit> -> {
                     _eventFlow.emit(UiEvent.OnboardingComplete)
@@ -102,7 +100,6 @@ class OnboardingViewModel @Inject constructor(
                     error.value = result.message
                 }
                 is Result.Loading -> {
-                    // Yükleme durumu
                 }
             }
             isLoading.value = false

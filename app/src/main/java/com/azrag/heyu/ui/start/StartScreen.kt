@@ -1,4 +1,3 @@
-// Dosya Yolu: ui/start/StartScreen.kt
 package com.azrag.heyu.ui.start
 
 import androidx.compose.foundation.layout.*
@@ -25,7 +24,7 @@ fun StartScreen(
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Text(
-            text = "heyU!", // Uygulama Logosu/İsmi
+            text = "heyU!",
             style = MaterialTheme.typography.displayLarge,
             modifier = Modifier.padding(bottom = 64.dp)
         )

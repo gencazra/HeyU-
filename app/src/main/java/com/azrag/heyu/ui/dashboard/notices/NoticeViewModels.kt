@@ -12,9 +12,6 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
-//================================================================
-// 1. NOTICE BOARD (DUYURU LİSTESİ)
-//================================================================
 
 sealed interface NoticeBoardUiState {
     object Loading : NoticeBoardUiState
@@ -38,7 +35,6 @@ class NoticeBoardViewModel @Inject constructor(
         viewModelScope.launch {
             _uiState.value = NoticeBoardUiState.Loading
             when (val result = noticeRepository.getAllNotices()) {
-                // Result.Success<List<Notice>> yapısına uygun hale getirildi
                 is Result.Success -> _uiState.value = NoticeBoardUiState.Success(result.data ?: emptyList())
                 is Result.Error -> _uiState.value = NoticeBoardUiState.Error(result.message ?: "Hata oluştu.")
                 else -> {}
@@ -54,14 +50,11 @@ class NoticeBoardViewModel @Inject constructor(
     }
 }
 
-//================================================================
-// 2. ADD NOTICE (YENİ DUYURU EKLEME)
-//================================================================
 
 sealed interface AddNoticeUiState {
     object Idle : AddNoticeUiState
     object Loading : AddNoticeUiState
-    object Success : AddNoticeUiState // Değişiklik: Parametresiz yapıldı
+    object Success : AddNoticeUiState
     data class Error(val message: String) : AddNoticeUiState
 }
 
@@ -83,7 +76,6 @@ class AddNoticeViewModel @Inject constructor(
         viewModelScope.launch {
             _uiState.value = AddNoticeUiState.Loading
 
-            // DÜZELTME: UserRepository içindeki mühürlü fonksiyon çağrıldı
             when (val userResult = userRepository.getCurrentUserProfile()) {
                 is Result.Success -> {
                     val user = userResult.data ?: return@launch
@@ -97,7 +89,6 @@ class AddNoticeViewModel @Inject constructor(
                     )
 
                     when (noticeRepository.addNotice(newNotice)) {
-                        // DÜZELTME: Success tip argümanı hatası giderildi
                         is Result.Success -> _uiState.value = AddNoticeUiState.Success
                         is Result.Error -> _uiState.value = AddNoticeUiState.Error("Duyuru eklenemedi.")
                         else -> {}

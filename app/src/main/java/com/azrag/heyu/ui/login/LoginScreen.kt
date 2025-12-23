@@ -1,4 +1,3 @@
-// Dosya Yolu: ui/login/LoginScreen.kt
 package com.azrag.heyu.ui.login
 
 import android.widget.Toast
@@ -39,11 +38,10 @@ fun LoginScreen(
         viewModel.eventFlow.collectLatest { event ->
             when (event) {
                 is LoginEvent.LoginSuccess -> {
-                    // KRİTİK GÜNCELLEME: E-posta doğrulanmış mı kontrol et
                     val user = Firebase.auth.currentUser
                     if (user != null && !user.isEmailVerified) {
                         Toast.makeText(context, "Lütfen Yeditepe mailinize gelen linke tıklayarak hesabınızı onaylayın.", Toast.LENGTH_LONG).show()
-                        Firebase.auth.signOut() // Onaylı değilse oturumu kapat
+                        Firebase.auth.signOut()
                     } else {
                         onLoginSuccess(event.hasProfile)
                     }

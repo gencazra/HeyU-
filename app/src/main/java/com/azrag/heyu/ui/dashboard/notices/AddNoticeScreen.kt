@@ -1,4 +1,3 @@
-// Dosya Yolu: ui/dashboard/notices/AddNoticeScreen.kt
 package com.azrag.heyu.ui.dashboard.notices
 
 import android.widget.Toast
@@ -23,9 +22,6 @@ fun AddNoticeScreen(
     onNavigateBack: () -> Unit,
     viewModel: AddNoticeViewModel = hiltViewModel()
 ) {
-    // Bu dosya gönderdiğin haliyle büyük ölçüde doğruydu.
-    // Sadece birkaç küçük düzeltme ve viewModel'e uyum sağlama yeterli.
-    // Koddaki temel yapı aynı kalıyor.
     val context = LocalContext.current
     val uiState by viewModel.uiState.collectAsState()
 
@@ -48,7 +44,7 @@ fun AddNoticeScreen(
             is AddNoticeUiState.Error -> {
                 isLoading = false
                 Toast.makeText(context, state.message, Toast.LENGTH_LONG).show()
-                viewModel.onUiStateHandled() // Hata gösterildikten sonra state'i sıfırla.
+                viewModel.onUiStateHandled()
             }
             is AddNoticeUiState.Idle -> {
                 isLoading = false
@@ -68,7 +64,6 @@ fun AddNoticeScreen(
             )
         }
     ) { paddingValues ->
-        // LazyColumn yerine Column + verticalScroll kullanmak bu form için daha verimli.
         Column(
             modifier = Modifier
                 .padding(paddingValues)
@@ -97,7 +92,6 @@ fun AddNoticeScreen(
             )
 
             Text("Kategori Seç", style = MaterialTheme.typography.titleMedium)
-            // Google Accompanist FlowRow, kategoriler satıra sığmazsa alta geçer.
             FlowRow(
                 modifier = Modifier.fillMaxWidth(),
                 mainAxisSpacing = 8.dp,
@@ -112,11 +106,10 @@ fun AddNoticeScreen(
                 }
             }
 
-            Spacer(modifier = Modifier.weight(1f)) // Butonu en alta itmek için
+            Spacer(modifier = Modifier.weight(1f))
 
             Button(
                 onClick = {
-                    // ViewModel'deki fonksiyonu çağır
                     viewModel.createNotice(title, description, selectedCategory)
                 },
                 modifier = Modifier

@@ -35,14 +35,11 @@ class LoginViewModel @Inject constructor(
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true) }
 
-            // UserRepository içindeki loginUser çağrılır
             when (val result = userRepository.loginUser(email, password)) {
                 is Result.Success -> {
-                    // result.data (Boolean) değerini doğrudan emit ediyoruz
                     _eventFlow.emit(LoginEvent.LoginSuccess(result.data))
                 }
                 is Result.Error -> {
-                    // Hata mesajını emit ediyoruz
                     _eventFlow.emit(LoginEvent.LoginError(result.message))
                 }
                 else -> {}

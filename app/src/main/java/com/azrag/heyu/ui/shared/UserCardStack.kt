@@ -34,14 +34,9 @@ import kotlinx.coroutines.launch
 import java.util.Calendar
 import kotlin.math.abs
 
-// Kaydırma yönlerini yöneten dahili enum
 private enum class SwipeDirection { LEFT, RIGHT, NONE }
 
-/**
- * Discover sayfasındaki kart yığınını yönetir.
- * [users] gösterilecek kullanıcı listesi.
- * [onSwipe] kullanıcı kaydırıldığında (sağa veya sola) tetiklenen callback.
- */
+
 @Composable
 fun UserCardStack(
     users: List<UserProfile>,
@@ -50,7 +45,6 @@ fun UserCardStack(
     val coroutineScope = rememberCoroutineScope()
     val density = LocalDensity.current
 
-    // Görünen kullanıcı listesini yönet (Üstteki kart gittikçe bir sonrakine geçer)
     var visibleUsers by remember(users) { mutableStateOf(users) }
 
     val screenWidth = LocalConfiguration.current.screenWidthDp.dp
@@ -70,9 +64,7 @@ fun UserCardStack(
             )
         }
 
-        // Performans için sadece en üstteki 4 kartı render et
         visibleUsers.take(4).reversed().forEachIndexed { index, user ->
-            // reversed() sayesinde listenin başındaki eleman en üstte görünür
             val currentQueueIndex = (visibleUsers.take(4).size - 1) - index
             val isTopCard = currentQueueIndex == 0
 
@@ -88,7 +80,6 @@ fun UserCardStack(
                 label = "rotation"
             )
 
-            // Derinlik efekti: Alttaki kartlar biraz daha küçük ve aşağıda durur
             val cardScale by animateFloatAsState(
                 targetValue = if (isTopCard) 1f else (1f - (currentQueueIndex * 0.05f)).coerceAtLeast(0.8f),
                 label = "cardScale"
@@ -103,7 +94,6 @@ fun UserCardStack(
                     val endX = screenWidth.value * 1.5f * if (liked) 1f else -1f
                     offsetX = endX
                     onSwipe(user, liked)
-                    // Animasyon tamamlanmış gibi davranıp kartı listeden çıkar
                     visibleUsers = visibleUsers.filterNot { it.id == user.id }
                 }
             }
@@ -167,7 +157,6 @@ private fun UserProfileCard(
         elevation = CardDefaults.cardElevation(defaultElevation = 6.dp)
     ) {
         Box {
-            // Profil Fotoğrafı
             Image(
                 painter = rememberAsyncImagePainter(
                     model = user.photoUrl.ifEmpty { R.drawable.ic_default_profile }
@@ -177,7 +166,6 @@ private fun UserProfileCard(
                 contentScale = ContentScale.Crop
             )
 
-            // Okunabilirlik için alt gradyan
             Box(
                 modifier = Modifier
                     .fillMaxSize()
@@ -189,7 +177,6 @@ private fun UserProfileCard(
                     )
             )
 
-            // Kaydırma geri bildirimi (Like/Dislike ikonları)
             Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                 if (likeStatusAlpha > 0f) {
                     Icon(
@@ -209,14 +196,12 @@ private fun UserProfileCard(
                 }
             }
 
-            // Kullanıcı Bilgileri Katmanı
             Column(
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(20.dp),
                 verticalArrangement = Arrangement.Bottom
             ) {
-                // Yaş Hesaplama
                 val displayAge = user.age ?: user.birthYear?.let { Calendar.getInstance().get(Calendar.YEAR) - it }
                 val titleText = if (displayAge != null) "${user.displayName}, $displayAge" else user.displayName
 
@@ -247,7 +232,6 @@ private fun UserProfileCard(
                     )
                 }
 
-                // Hobiler (Chip tarzı görünüm)
                 if (user.hobbies.isNotEmpty()) {
                     Spacer(Modifier.height(12.dp))
                     Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {

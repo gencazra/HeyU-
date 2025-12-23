@@ -16,10 +16,7 @@ import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
-/**
- * heyU! - Etkinlik Yönetimi ViewModel
- * Admin kısıtlamaları, Katılımcı yönetimi ve Moderasyon mühürlenmiştir.
- */
+
 data class EventsUiState(
     val isLoadingList: Boolean = false,
     val isLoadingDetail: Boolean = false,
@@ -44,7 +41,6 @@ class EventsViewModel @Inject constructor(
     private val _uiState = MutableStateFlow(EventsUiState())
     val uiState = _uiState.asStateFlow()
 
-    // Etkinlik Oluşturma Form State'leri
     var title = mutableStateOf("")
     var description = mutableStateOf("")
     var organizer = mutableStateOf("")
@@ -63,9 +59,6 @@ class EventsViewModel @Inject constructor(
         fetchCurrentProfileAndAdmin()
     }
 
-    /**
-     * Kullanıcının Admin olup olmadığını kontrol eder.
-     */
     private fun fetchCurrentProfileAndAdmin() {
         viewModelScope.launch {
             val res = userRepository.getCurrentUserProfile()
@@ -78,9 +71,6 @@ class EventsViewModel @Inject constructor(
         }
     }
 
-    /**
-     * Tüm etkinlikleri listeler.
-     */
     fun loadEvents() {
         viewModelScope.launch {
             _uiState.update { it.copy(isLoadingList = true) }
@@ -101,9 +91,6 @@ class EventsViewModel @Inject constructor(
         }
     }
 
-    /**
-     * Yeni etkinlik ekler (Sadece Admin yetkisi ve Temiz içerik ile).
-     */
     fun onSaveClick() {
         // 1. Admin Kontrolü
         if (!_uiState.value.isCurrentUserAdmin) {
@@ -111,13 +98,11 @@ class EventsViewModel @Inject constructor(
             return
         }
 
-        // 2. Moderasyon Botu Kontrolü (Küfür/Cinsel İçerik)
         if (!ModerationManager.isSafe(title.value) || !ModerationManager.isSafe(description.value)) {
             formError.value = "Uygunsuz içerik tespit edildi! Lütfen topluluk kurallarına uyun."
             return
         }
 
-        // 3. Boş Alan Kontrolü
         if (title.value.isBlank() || description.value.isBlank()) {
             formError.value = "Lütfen başlık ve açıklama alanlarını doldurun."
             return
@@ -127,7 +112,7 @@ class EventsViewModel @Inject constructor(
             isSaving.value = true
             val event = Event(
                 title = title.value,
-                description = ModerationManager.filterText(description.value), // Filtrelenmiş metin
+                description = ModerationManager.filterText(description.value),
                 organizer = organizer.value,
                 creatorName = _uiState.value.currentUserProfile?.displayName ?: "Admin",
                 location = location.value,
@@ -149,14 +134,11 @@ class EventsViewModel @Inject constructor(
         }
     }
 
-    /**
-     * Etkinliğe katılma veya ayrılma işlemi.
-     */
+
     fun onJoinLeaveClick(id: String) {
         viewModelScope.launch {
             val result = eventRepository.toggleUserAttendance(id)
             if (result is Result.Success) {
-                // Katılım sonrası hem listeyi hem detayı yenile
                 loadEventDetails(id)
                 loadEvents()
             }
@@ -173,7 +155,6 @@ class EventsViewModel @Inject constructor(
                         isLoadingDetail = false,
                         selectedEvent = event
                     ) }
-                    // Katılımcıların profillerini yükle
                     loadParticipantProfiles(event?.participants ?: emptyList())
                 }
                 is Result.Error -> {

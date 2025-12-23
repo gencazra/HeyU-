@@ -27,6 +27,4 @@ object AppModule {
     @Singleton
     fun provideFirebaseStorage(): FirebaseStorage = FirebaseStorage.getInstance()
 
-    // Sadece manuel Context gereken veya @Inject barındırmayan sınıfları burada tutuyoruz
-    // SettingRepository context gerektirdiği için burada kalmalı
 }

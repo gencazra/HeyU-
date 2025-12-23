@@ -19,10 +19,6 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 
-/**
- * heyU! - Kayıt Ekranı
- * Bu ekran, kullanıcıyı oluşturur ve ardından Onboarding akışına yönlendirir.
- */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SignupScreen(
@@ -32,12 +28,10 @@ fun SignupScreen(
 ) {
     val uiState by viewModel.uiState.collectAsState()
 
-    // TextField State'leri
     var fullName by remember { mutableStateOf("") }
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
 
-    // BAŞARI TAKİBİ: Kayıt başarılıysa Onboarding'e (onSignupSuccess) geç
     LaunchedEffect(uiState.isSignupSuccess) {
         if (uiState.isSignupSuccess) {
             onSignupSuccess()
@@ -65,7 +59,6 @@ fun SignupScreen(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
-            // Başlık
             Text(
                 text = "heyU!",
                 style = MaterialTheme.typography.displayMedium,
@@ -81,7 +74,6 @@ fun SignupScreen(
 
             Spacer(Modifier.height(32.dp))
 
-            // 1. Ad Soyad Girişi (Türkçe Karakter Destekli)
             OutlinedTextField(
                 value = fullName,
                 onValueChange = { fullName = it },
@@ -93,7 +85,6 @@ fun SignupScreen(
 
             Spacer(Modifier.height(16.dp))
 
-            // 2. Üniversite E-posta Girişi
             OutlinedTextField(
                 value = email,
                 onValueChange = { email = it.lowercase().trim() },
@@ -107,7 +98,6 @@ fun SignupScreen(
 
             Spacer(Modifier.height(16.dp))
 
-            // 3. Şifre Girişi
             OutlinedTextField(
                 value = password,
                 onValueChange = { password = it },
@@ -119,7 +109,6 @@ fun SignupScreen(
                 shape = MaterialTheme.shapes.medium
             )
 
-            // Hata Mesajı Gösterimi
             uiState.errorMessage?.let { error ->
                 Text(
                     text = error,
@@ -131,7 +120,6 @@ fun SignupScreen(
 
             Spacer(Modifier.height(32.dp))
 
-            // 4. Kayıt Butonu (Logic Mühürlendi)
             val isEmailValid = email.endsWith("@std.yeditepe.edu.tr") || email.endsWith("@yeditepe.edu.tr")
             val isFormValid = isEmailValid && fullName.isNotBlank() && password.length >= 6
 

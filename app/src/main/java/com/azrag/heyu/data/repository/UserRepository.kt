@@ -16,10 +16,7 @@ import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
 import javax.inject.Singleton
 
-/**
- * heyU - Kullanıcı Veri Yönetimi
- * Giriş, Profil, Moderasyon ve Güvenlik işlemleri mühürlenmiştir.
- */
+
 @Singleton
 class UserRepository @Inject constructor(
     private val auth: FirebaseAuth,
@@ -29,16 +26,12 @@ class UserRepository @Inject constructor(
     private val usersCollection = firestore.collection("users")
     private val TAG = "DEBUG_HEYU"
 
-    /**
-     * Firebase Auth ile giriş yapar ve Firestore profil dökümanını kontrol eder.
-     */
     suspend fun loginUser(email: String, password: String): Result<Boolean> {
         return try {
             val authResult = auth.signInWithEmailAndPassword(email, password).await()
             val uid = authResult.user?.uid ?: return Result.Error("Kullanıcı kimliği alınamadı.")
 
             val profileDoc = usersCollection.document(uid).get().await()
-            // Profil dökümanı varsa true döner, Onboarding'e gerek kalmaz.
             Result.Success(profileDoc.exists())
         } catch (e: Exception) {
             Log.e(TAG, "loginUser error: ${e.message}")
@@ -46,15 +39,12 @@ class UserRepository @Inject constructor(
         }
     }
 
-    /**
-     * Kullanıcı profilini ve avatar görselini kaydeder.
-     */
+
     suspend fun saveUserProfile(profile: UserProfile, imageUri: Uri?): Result<Unit> {
         val uid = auth.currentUser?.uid ?: return Result.Error("Oturum açılmamış.")
         return try {
             var finalProfile = profile.copy(id = uid)
 
-            // Görsel seçilmişse Storage'a yükle ve URL'i profile ekle
             imageUri?.let { uri ->
                 val storageRef = storage.reference.child("avatars/$uid.jpg")
                 storageRef.putFile(uri).await()
@@ -69,9 +59,7 @@ class UserRepository @Inject constructor(
         }
     }
 
-    /**
-     * Kullanıcıyı engellenenler listesine mühürler.
-     */
+
     suspend fun blockUser(targetUserId: String): Result<Unit> {
         val uid = auth.currentUser?.uid ?: return Result.Error("Oturum yok.")
         return try {
@@ -82,9 +70,7 @@ class UserRepository @Inject constructor(
         }
     }
 
-    /**
-     * Uygunsuz içeriği raporlama sistemine ekler.
-     */
+
     suspend fun reportUser(targetUserId: String, reason: String): Result<Unit> {
         val uid = auth.currentUser?.uid ?: return Result.Error("Oturum yok.")
         return try {
@@ -115,9 +101,7 @@ class UserRepository @Inject constructor(
         return getUserProfile(uid)
     }
 
-    /**
-     * Profil değişikliklerini anlık olarak dinleyen akış (Flow).
-     */
+
     fun getUserProfileStream(uid: String): Flow<UserProfile?> = callbackFlow {
         val listener = usersCollection.document(uid).addSnapshotListener { snapshot, error ->
             if (error != null) {

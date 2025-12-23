@@ -35,7 +35,6 @@ fun EventCard(
         )
     ) {
         Column {
-            // Görsel yükleme (imageUrl boşsa ic_default_profile gösterir)
             Image(
                 painter = rememberAsyncImagePainter(
                     model = if (event.imageUrl.isBlank()) R.drawable.ic_default_profile else event.imageUrl
@@ -48,7 +47,6 @@ fun EventCard(
             )
 
             Column(modifier = Modifier.padding(16.dp)) {
-                // Başlık
                 Text(
                     text = event.title,
                     style = MaterialTheme.typography.titleLarge,
@@ -57,7 +55,6 @@ fun EventCard(
                     overflow = TextOverflow.Ellipsis
                 )
 
-                // Düzenleyen
                 if (event.organizer.isNotBlank()) {
                     Text(
                         text = "Düzenleyen: ${event.organizer}",
@@ -69,8 +66,7 @@ fun EventCard(
 
                 Spacer(modifier = Modifier.height(12.dp))
 
-                // MÜHÜRLENDİ: Modelindeki eventDate ve eventTime alanlarını öncelikli kullanır
-                // Eğer bunlar boşsa serverTimestamp'ten formatlama yapar.
+
                 val displayDate = remember(event) {
                     if (event.eventDate.isNotBlank()) {
                         "${event.eventDate}, ${event.eventTime}"
@@ -91,7 +87,6 @@ fun EventCard(
 
                 Spacer(modifier = Modifier.height(4.dp))
 
-                // Konum
                 Text(
                     text = "📍 ${event.location}",
                     style = MaterialTheme.typography.bodySmall,

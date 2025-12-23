@@ -30,7 +30,6 @@ fun DiscoverScreen(
 
     Scaffold(
         topBar = {
-            // MÜHÜRLENDİ: Fakülte Filtreleme Satırı
             Column(modifier = Modifier.background(MaterialTheme.colorScheme.surface)) {
                 Text(
                     text = "Keşfet",

@@ -64,7 +64,6 @@ fun ChatListScreen(
                 .fillMaxSize()
                 .background(MaterialTheme.colorScheme.background)
         ) {
-            // MÜHÜRLENDİ: Material3 1.2.1 uyumlu arama çubuğu
             OutlinedTextField(
                 value = searchQuery,
                 onValueChange = { searchQuery = it },
@@ -88,10 +87,8 @@ fun ChatListScreen(
                     CircularProgressIndicator()
                 }
             } else {
-                // Burada uiState.messages listenizi gösteriyorsunuz
                 LazyColumn(modifier = Modifier.fillMaxSize()) {
                     items(uiState.messages) { message ->
-                        // Liste elemanları buraya gelecek
                     }
                 }
             }

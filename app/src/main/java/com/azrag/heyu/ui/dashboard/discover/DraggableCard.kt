@@ -1,4 +1,3 @@
-// Dosya Yolu: ui/dashboard/discover/DraggableCard.kt
 package com.azrag.heyu.ui.dashboard.discover
 
 import androidx.compose.animation.core.animateFloatAsState
@@ -67,22 +66,18 @@ fun DraggableCard(
             .pointerInput(Unit) {
                 detectDragGestures(
                     onDragEnd = {
-                        // Belirli bir eşiği geçerse kartı at
                         if (abs(offset.x) > (screenWidth.value / 4)) {
                             val swipeDirection =
                                 if (offset.x > 0) SwipeDirection.RIGHT else SwipeDirection.LEFT
                             onSwipe(swipeDirection)
                         } else {
-                            // Kartı yavaşça eski pozisyonuna döndür
                             coroutineScope.launch {
-                                // <<< HATA BURADA DÜZELTİLDİ >>>
                                 offset = Offset.Zero
                             }
                         }
                     },
                     onDrag = { change, dragAmount ->
                         change.consume()
-                        // Sürükleme sırasında offset'i direkt güncelle
                         offset += dragAmount
                     }
                 )
@@ -100,7 +95,6 @@ fun DraggableCard(
                 contentScale = ContentScale.Crop
             )
 
-            // Bilgilerin okunabilir olması için alta gölge efekti
             Box(
                 modifier = Modifier
                     .fillMaxSize()
@@ -112,7 +106,6 @@ fun DraggableCard(
                     )
             )
 
-            // Kullanıcı bilgileri
             Column(
                 modifier = Modifier
                     .align(Alignment.BottomStart)

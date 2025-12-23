@@ -1,4 +1,3 @@
-// Dosya Yolu: ui/shared/NoticeCard.kt
 package com.azrag.heyu.ui.shared
 
 import androidx.compose.foundation.Image
@@ -21,12 +20,7 @@ import com.google.firebase.ktx.Firebase
 import java.text.SimpleDateFormat
 import java.util.*
 
-/**
- * Duyuruları liste halinde göstermek için kullanılan, yeniden kullanılabilir kart component'i.
- *
- * @param notice Gösterilecek Notice veri modeli.
- * @param onImInClicked "Ben de Varım!" butonuna tıklandığında tetiklenecek fonksiyon.
- */
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun NoticeCard(
@@ -36,7 +30,6 @@ fun NoticeCard(
     val currentUserId = Firebase.auth.currentUser?.uid
     val isCurrentUserAttending = notice.attendees.contains(currentUserId)
 
-    // Zaman formatı için SimpleDateFormat
     val dateFormat = SimpleDateFormat("dd MMM, HH:mm", Locale("tr"))
 
     Card(
@@ -47,7 +40,6 @@ fun NoticeCard(
             modifier = Modifier.padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            // 1. Üst Kısım: Profil Fotoğrafı, İsim ve Tarih
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically,
@@ -80,14 +72,12 @@ fun NoticeCard(
                         )
                     }
                 }
-                // Kategori Çipi
                 SuggestionChip(
-                    onClick = { /* Tıklama aksiyonu yok */ },
+                    onClick = {  },
                     label = { Text(notice.category) }
                 )
             }
 
-            // 2. Orta Kısım: Başlık ve Açıklama
             Column {
                 Text(
                     text = notice.title,
@@ -102,7 +92,6 @@ fun NoticeCard(
                 )
             }
 
-            // 3. Alt Kısım: Katılımcı Sayısı ve "Ben de Varım" Butonu
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically,
@@ -116,7 +105,6 @@ fun NoticeCard(
                 Button(
                     onClick = onImInClicked,
                     colors = if (isCurrentUserAttending) {
-                        // Eğer kullanıcı katılıyorsa, butonun rengini değiştir.
                         ButtonDefaults.buttonColors(
                             containerColor = MaterialTheme.colorScheme.secondary,
                             contentColor = MaterialTheme.colorScheme.onSecondary

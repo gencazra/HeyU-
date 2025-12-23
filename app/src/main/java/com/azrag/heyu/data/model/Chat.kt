@@ -10,6 +10,6 @@ data class Chat(
     val lastMessage: String? = null,
     val lastMessageSenderId: String? = null,
     val lastMessageTimestamp: Timestamp? = null,
-    // DÜZELTME: Her kullanıcı için ayrı okunmamış sayısı tutan Map yapısı
+
     val unreadCount: Map<String, Int> = emptyMap()
 )

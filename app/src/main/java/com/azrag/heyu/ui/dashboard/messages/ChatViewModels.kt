@@ -73,18 +73,15 @@ class ChatViewModel @Inject constructor(
         }
     }
 
-    // MÜHÜRLENDİ: Cinsel İçerik ve Küfür Engelleyici Gelişmiş Gönderim
     fun sendTextMessage(textOverride: String? = null) {
         val rawText = textOverride ?: messageText.value
         if (rawText.isBlank() || chatRoomId.isEmpty() || otherUserId.isEmpty()) return
 
-        // 1. GÜVENLİK KONTROLÜ (Spam, Küfür, Cinsel İçerik)
         if (!ModerationManager.isSafe(rawText)) {
             _uiState.update { it.copy(errorMessage = "Mesajınız topluluk kurallarına aykırı içerik barındırıyor!") }
             return
         }
 
-        // 2. MODERASYON FİLTRESİ (Yumuşatma)
         val cleanText = ModerationManager.filterText(rawText)
         if (textOverride == null) messageText.value = ""
 

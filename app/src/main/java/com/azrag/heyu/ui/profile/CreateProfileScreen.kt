@@ -51,7 +51,6 @@ class CreateProfileViewModel @Inject constructor(
         initialProfileLoaded = true
         viewModelScope.launch {
             if (editMode) {
-                // DÜZELTİLDİ: Result.Success için tip parametresi eklendi ve exhaustive when sağlandı
                 _uiState.value = when (val result = userRepository.getCurrentUserProfile()) {
                     is Result.Success<UserProfile?> -> ProfileEditUiState.Success(result.data ?: UserProfile())
                     is Result.Error -> ProfileEditUiState.Error(result.message ?: "Bilinmeyen hata")
@@ -66,7 +65,6 @@ class CreateProfileViewModel @Inject constructor(
     fun saveProfile(profileData: UserProfile, newImageUri: Uri?) {
         viewModelScope.launch {
             _uiState.value = ProfileEditUiState.Loading
-            // DÜZELTİLDİ: UserRepository'deki saveUserProfile fonksiyonuna Result tipi eklendi
             val result = userRepository.saveUserProfile(profileData, newImageUri)
             _uiState.value = when (result) {
                 is Result.Success<*> -> ProfileEditUiState.SaveSuccess
@@ -137,7 +135,7 @@ fun CreateProfileScreen(
                         }
                     )
                 }
-                else -> { /* SaveSuccess durumunda UI değişmez, Toast gösterilir */ }
+                else -> { }
             }
         }
     }

@@ -11,10 +11,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 
-/**
- * MÜHÜRLENDİ: Ekranın ortasında standart bir yükleme göstergesi.
- * Uygulama ana rengini (primary) otomatik kullanır.
- */
+
 @Composable
 fun LoadingSpinner(
     modifier: Modifier = Modifier,
@@ -41,10 +38,7 @@ fun LoadingSpinner(
     }
 }
 
-/**
- * MÜHÜRLENDİ: Hata durumlarını görselleştirmek için kullanılır.
- * @param message Kullanıcıya gösterilecek hata metni.
- */
+
 @Composable
 fun ErrorMessage(
     message: String,
@@ -65,10 +59,6 @@ fun ErrorMessage(
     }
 }
 
-/**
- * MÜHÜRLENDİ: Liste veya veri bulunmadığında gösterilen bilgi mesajı.
- * "onSurfaceVariant" rengini kullanarak daha yumuşak bir görünüm sağlar.
- */
 @Composable
 fun EmptyStateMessage(
     text: String,

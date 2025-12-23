@@ -1,4 +1,4 @@
-// Dosya Yolu: app/src/main/java/com/azrag/heyu/ui/dashboard/events/AddEventScreen.kt
+
 package com.azrag.heyu.ui.dashboard.events
 
 import android.app.DatePickerDialog
@@ -11,7 +11,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
-// MÜHÜRLENDİ: 'by' delegesinin tip çıkarımı yapabilmesi için gerekli importlar
+
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -24,10 +24,7 @@ import androidx.navigation.NavController
 import kotlinx.coroutines.flow.collectLatest
 import java.util.*
 
-/**
- * HeyU - Yeni Etkinlik Oluşturma Ekranı.
- * Moderasyon filtresi ve Yeditepe topluluk standartlarına göre mühürlenmiştir.
- */
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AddEventScreen(
@@ -37,7 +34,7 @@ fun AddEventScreen(
     val context = LocalContext.current
     val calendar = Calendar.getInstance()
 
-    // ViewModel State'leri - 'by' kullanımı artık hata vermeyecektir
+
     val title by viewModel.title
     val description by viewModel.description
     val organizer by viewModel.organizer
@@ -48,7 +45,7 @@ fun AddEventScreen(
     val isSaving by viewModel.isSaving
     val formError by viewModel.formError
 
-    // Tarih Seçici Diyaloğu
+
     val datePickerDialog = DatePickerDialog(
         context,
         { _: DatePicker, year: Int, month: Int, dayOfMonth: Int ->
@@ -59,7 +56,7 @@ fun AddEventScreen(
         calendar.get(Calendar.DAY_OF_MONTH)
     )
 
-    // Saat Seçici Diyaloğu
+
     val timePickerDialog = TimePickerDialog(
         context,
         { _, hourOfDay: Int, minute: Int ->
@@ -70,7 +67,7 @@ fun AddEventScreen(
         true
     )
 
-    // Başarılı kayıt sonrası tetiklenecek efekt
+
     LaunchedEffect(key1 = true) {
         viewModel.eventFlow.collectLatest { event ->
             when (event) {
@@ -105,7 +102,7 @@ fun AddEventScreen(
                 .verticalScroll(rememberScrollState()),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            // Bilgilendirme Kartı
+
             Card(
                 colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.4f)),
                 modifier = Modifier.fillMaxWidth()
@@ -118,7 +115,7 @@ fun AddEventScreen(
                 )
             }
 
-            // Etkinlik Başlığı
+
             OutlinedTextField(
                 value = title,
                 onValueChange = { viewModel.title.value = it },
@@ -128,7 +125,7 @@ fun AddEventScreen(
                 placeholder = { Text("Örn: Kulüp Tanışma Toplantısı") }
             )
 
-            // Organizatör
+
             OutlinedTextField(
                 value = organizer,
                 onValueChange = { viewModel.organizer.value = it },
@@ -137,7 +134,7 @@ fun AddEventScreen(
                 singleLine = true
             )
 
-            // Detaylar
+
             OutlinedTextField(
                 value = description,
                 onValueChange = { viewModel.description.value = it },
@@ -148,7 +145,7 @@ fun AddEventScreen(
                 placeholder = { Text("Öğrencilere etkinliğinizden bahsedin...") }
             )
 
-            // Konum
+
             OutlinedTextField(
                 value = location,
                 onValueChange = { viewModel.location.value = it },
@@ -158,7 +155,7 @@ fun AddEventScreen(
                 placeholder = { Text("Örn: Rektörlük Binası Mavi Salon") }
             )
 
-            // Görsel
+
             OutlinedTextField(
                 value = imageUrl,
                 onValueChange = { viewModel.imageUrl.value = it },
@@ -167,7 +164,7 @@ fun AddEventScreen(
                 singleLine = true
             )
 
-            // Tarih ve Saat Seçimi
+
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(12.dp)
@@ -188,7 +185,7 @@ fun AddEventScreen(
                 }
             }
 
-            // Hata Mesajı Alanı
+
             formError?.let { error ->
                 Surface(
                     color = MaterialTheme.colorScheme.errorContainer,
@@ -206,7 +203,6 @@ fun AddEventScreen(
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            // Kaydet Butonu
             Button(
                 onClick = { viewModel.onSaveClick() },
                 modifier = Modifier

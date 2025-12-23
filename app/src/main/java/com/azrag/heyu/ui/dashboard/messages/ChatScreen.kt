@@ -70,7 +70,6 @@ fun ChatScreen(
                         DropdownMenuItem(
                             text = { Text("Rapor Et (Uygunsuz İçerik)") },
                             onClick = {
-                                // ViewModel'e raporlama fonksiyonu eklenebilir
                                 showMenu = false
                             },
                             leadingIcon = { Icon(Icons.Default.Flag, contentDescription = null) }
@@ -83,7 +82,6 @@ fun ChatScreen(
             Surface(tonalElevation = 8.dp) {
                 Column(modifier = Modifier.navigationBarsPadding()) {
 
-                    // MÜHÜRLENDİ: Güvenlik için ilk mesajda Hey! önerisi
                     AnimatedVisibility(
                         visible = uiState.messages.isEmpty() && !uiState.isLoading,
                         enter = fadeIn() + expandVertically()
@@ -96,7 +94,6 @@ fun ChatScreen(
                         )
                     }
 
-                    // Moderasyon Hatası Gösterimi
                     uiState.errorMessage?.let {
                         Text(
                             text = it,
