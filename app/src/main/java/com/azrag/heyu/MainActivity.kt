@@ -58,9 +58,7 @@ class MainActivity : ComponentActivity() {
 
             startDestination = when {
                 currentUser != null -> {
-                    if (!currentUser.isEmailVerified) {
-                        Screen.Login.route
-                    } else if (!onboardingCompleted) {
+                     if (!onboardingCompleted) {
                         Screen.Onboarding1.route
                     } else {
                         Screen.Dashboard.route
@@ -97,11 +95,8 @@ class MainActivity : ComponentActivity() {
                             composable(Screen.Login.route) {
                                 LoginScreen(
                                     onLoginSuccess = { hasProfile ->
-                                        val user = Firebase.auth.currentUser
-                                        if (user?.isEmailVerified == true) {
-                                            val dest = if (hasProfile) Screen.Dashboard.route else Screen.Onboarding1.route
-                                            navController.navigate(dest) { popUpTo(0) }
-                                        }
+                                        val dest = if (hasProfile) Screen.Dashboard.route else Screen.Onboarding1.route
+                                        navController.navigate(dest) { popUpTo(0) }
                                     },
                                     onNavigateToSignUp = { navController.navigate(Screen.Signup.route) },
                                     onNavigateToForgotPassword = { navController.navigate(Screen.ForgotPassword.route) }

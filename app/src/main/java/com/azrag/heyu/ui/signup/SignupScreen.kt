@@ -6,6 +6,9 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Email
+import androidx.compose.material.icons.filled.Lock
+import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.getValue
@@ -17,7 +20,8 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.navigation.NavController
+import com.azrag.heyu.ui.common.AuthButton
+import com.azrag.heyu.ui.common.AuthTextField
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -74,39 +78,32 @@ fun SignupScreen(
 
             Spacer(Modifier.height(32.dp))
 
-            OutlinedTextField(
+            AuthTextField(
                 value = fullName,
                 onValueChange = { fullName = it },
-                label = { Text("Ad Soyad") },
-                modifier = Modifier.fillMaxWidth(),
-                singleLine = true,
-                shape = MaterialTheme.shapes.medium
+                label = "Ad Soyad",
+                leadingIcon = Icons.Default.Person
             )
 
             Spacer(Modifier.height(16.dp))
 
-            OutlinedTextField(
+            AuthTextField(
                 value = email,
                 onValueChange = { email = it.lowercase().trim() },
-                label = { Text("E-posta (@std.yeditepe.edu.tr)") },
-                modifier = Modifier.fillMaxWidth(),
-                isError = email.isNotEmpty() && !email.endsWith("@std.yeditepe.edu.tr") && !email.endsWith("@yeditepe.edu.tr"),
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
-                singleLine = true,
-                shape = MaterialTheme.shapes.medium
+                label = "E-posta (@std.yeditepe.edu.tr)",
+                leadingIcon = Icons.Default.Email,
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email)
             )
 
             Spacer(Modifier.height(16.dp))
 
-            OutlinedTextField(
+            AuthTextField(
                 value = password,
                 onValueChange = { password = it },
-                label = { Text("Şifre") },
-                modifier = Modifier.fillMaxWidth(),
+                label = "Şifre",
+                leadingIcon = Icons.Default.Lock,
                 visualTransformation = PasswordVisualTransformation(),
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
-                singleLine = true,
-                shape = MaterialTheme.shapes.medium
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password)
             )
 
             uiState.errorMessage?.let { error ->
@@ -123,24 +120,12 @@ fun SignupScreen(
             val isEmailValid = email.endsWith("@std.yeditepe.edu.tr") || email.endsWith("@yeditepe.edu.tr")
             val isFormValid = isEmailValid && fullName.isNotBlank() && password.length >= 6
 
-            Button(
+            AuthButton(
+                text = "KAYIT OL",
                 onClick = { viewModel.onSignupClick(email, password, fullName) },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(56.dp),
                 enabled = !uiState.isLoading && isFormValid,
-                shape = MaterialTheme.shapes.large
-            ) {
-                if (uiState.isLoading) {
-                    CircularProgressIndicator(
-                        modifier = Modifier.size(24.dp),
-                        color = MaterialTheme.colorScheme.onPrimary,
-                        strokeWidth = 2.dp
-                    )
-                } else {
-                    Text("KAYIT OL", fontWeight = FontWeight.Bold)
-                }
-            }
+                isLoading = uiState.isLoading
+            )
 
             Spacer(Modifier.height(16.dp))
 

@@ -1,21 +1,37 @@
 package com.azrag.heyu.ui.login
 
 import android.widget.Toast
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material.icons.filled.Email
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
+import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.azrag.heyu.data.repository.UserRepository
+import com.azrag.heyu.ui.common.AuthButton
+import com.azrag.heyu.ui.common.AuthTextField
 import com.azrag.heyu.util.Result
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
@@ -62,35 +78,39 @@ fun ForgotPasswordScreen(
         }
     ) { paddingValues ->
         Column(
-            modifier = Modifier.padding(paddingValues).fillMaxSize().padding(24.dp),
+            modifier = Modifier
+                .padding(paddingValues)
+                .fillMaxSize()
+                .padding(24.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Text("Şifrenizi sıfırlamak için kayıtlı e-posta adresinizi giriniz.")
             Spacer(Modifier.height(24.dp))
-            OutlinedTextField(
+            AuthTextField(
                 value = email,
                 onValueChange = { email = it },
-                label = { Text("E-posta Adresi") },
-                modifier = Modifier.fillMaxWidth(),
+                label = "E-posta Adresi",
+                leadingIcon = Icons.Default.Email,
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
                 enabled = !isLoading
             )
             Spacer(Modifier.height(32.dp))
-            Button(
+            AuthButton(
+                text = "BAĞLANTI GÖNDER",
                 onClick = {
                     viewModel.resetPassword(email.trim()) { result ->
                         if (result is Result.Success) {
-                            Toast.makeText(context, "Bağlantı gönderildi.", Toast.LENGTH_LONG).show()
+                            Toast.makeText(context, "Sıfırlama bağlantısı e-posta adresinize gönderildi.", Toast.LENGTH_LONG).show()
                             onNavigateBack()
                         } else {
-                            Toast.makeText(context, (result as Result.Error).message, Toast.LENGTH_LONG).show()
+                            val errorMsg = (result as? Result.Error)?.message ?: "Bilinmeyen bir hata oluştu."
+                            Toast.makeText(context, errorMsg, Toast.LENGTH_LONG).show()
                         }
                     }
                 },
-                modifier = Modifier.fillMaxWidth().height(50.dp),
-                enabled = !isLoading && email.isNotBlank()
-            ) {
-                if (isLoading) CircularProgressIndicator(modifier = Modifier.size(24.dp)) else Text("BAĞLANTI GÖNDER")
-            }
+                enabled = !isLoading && email.isNotBlank(),
+                isLoading = isLoading
+            )
         }
     }
 }
