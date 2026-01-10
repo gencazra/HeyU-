@@ -1,16 +1,19 @@
 package com.azrag.heyu.ui.start
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
-import androidx.compose.material3.Button
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import com.azrag.heyu.ui.theme.HeyUTheme
+import androidx.compose.ui.unit.sp
+import com.azrag.heyu.R
+import com.azrag.heyu.ui.theme.LogoFontFamily
 
 @Composable
 fun StartScreen(
@@ -18,48 +21,74 @@ fun StartScreen(
     onSignUpClicked: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    Column(
-        modifier = modifier.fillMaxSize(),
-        verticalArrangement = Arrangement.Center,
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        Text(
-            text = "heyU!",
-            style = MaterialTheme.typography.displayLarge,
-            modifier = Modifier.padding(bottom = 64.dp)
+    Box(modifier = Modifier.fillMaxSize()) {
+        Image(
+            painter = painterResource(id = R.drawable.heyu_logo),
+            contentDescription = null,
+            modifier = Modifier.fillMaxSize(),
+            contentScale = ContentScale.Crop,
+            alpha = 0.6f
         )
 
-        Button(
-            onClick = onLoginClicked,
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 32.dp)
+        Column(
+            modifier = modifier
+                .fillMaxSize()
+                .padding(24.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Text("LOG IN")
-        }
+            Spacer(modifier = Modifier.height(60.dp))
 
-        Spacer(modifier = Modifier.height(16.dp))
-
-        Button(
-            onClick = onSignUpClicked,
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 32.dp)
-        ) {
-            Text("SIGN UP")
-        }
-    }
-}
-
-@Preview(showBackground = true)
-@Composable
-private fun StartScreenPreview() {
-    HeyUTheme {
-        Surface(modifier = Modifier.fillMaxSize()) {
-            StartScreen(
-                onLoginClicked = {},
-                onSignUpClicked = {}
+            Text(
+                text = "heyU!",
+                style = MaterialTheme.typography.displayLarge.copy(
+                    fontFamily = LogoFontFamily,
+                    fontSize = 64.sp,
+                    color = MaterialTheme.colorScheme.primary
+                )
             )
+
+            Spacer(modifier = Modifier.weight(1f))
+
+            Button(
+                onClick = onSignUpClicked,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(56.dp),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = MaterialTheme.colorScheme.primary,
+                    contentColor = MaterialTheme.colorScheme.onPrimary
+                ),
+                shape = RoundedCornerShape(28.dp)
+            ) {
+                Text(
+                    text = "Hesap oluştur",
+                    style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold)
+                )
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            OutlinedButton(
+                onClick = onLoginClicked,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(56.dp),
+                border = ButtonDefaults.outlinedButtonBorder.copy(
+                    width = 2.dp,
+                    brush = androidx.compose.ui.graphics.SolidColor(MaterialTheme.colorScheme.secondary)
+                ),
+                shape = RoundedCornerShape(28.dp),
+                colors = ButtonDefaults.outlinedButtonColors(
+                    contentColor = MaterialTheme.colorScheme.secondary
+                )
+            ) {
+                Text(
+                    text = "Zaten hesabım var",
+                    style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold)
+                )
+            }
+            
+            Spacer(modifier = Modifier.height(40.dp))
         }
     }
 }

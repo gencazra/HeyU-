@@ -5,9 +5,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
+import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -20,7 +18,6 @@ import coil.compose.rememberAsyncImagePainter
 import com.azrag.heyu.R
 import com.azrag.heyu.data.model.UserProfile
 
-
 @Composable
 fun UserCard(
     user: UserProfile,
@@ -31,7 +28,8 @@ fun UserCard(
         modifier = modifier
             .fillMaxWidth()
             .clickable(onClick = onClick),
-        color = MaterialTheme.colorScheme.surface
+        color = MaterialTheme.colorScheme.surface,
+        contentColor = MaterialTheme.colorScheme.onSurface
     ) {
         Row(
             modifier = Modifier
@@ -42,7 +40,7 @@ fun UserCard(
                 painter = rememberAsyncImagePainter(
                     model = user.photoUrl.ifEmpty { R.drawable.ic_default_profile }
                 ),
-                contentDescription = "${user.displayName} profil fotoğrafı",
+                contentDescription = null,
                 modifier = Modifier
                     .size(56.dp)
                     .clip(CircleShape)

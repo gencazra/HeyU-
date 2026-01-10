@@ -12,6 +12,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -51,14 +52,28 @@ fun OnboardingScreen3(
     }
 
     Scaffold(
+        containerColor = MaterialTheme.colorScheme.background,
         topBar = {
-            TopAppBar(
-                title = { Text("Profil Oluştur (3/4)") },
+            CenterAlignedTopAppBar(
+                title = { 
+                    Text(
+                        "Profil Oluştur (3/4)", 
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onBackground
+                    ) 
+                },
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Geri")
+                        Icon(
+                            Icons.AutoMirrored.Filled.ArrowBack, 
+                            contentDescription = "Geri",
+                            tint = MaterialTheme.colorScheme.onBackground
+                        )
                     }
-                }
+                },
+                colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.background
+                )
             )
         }
     ) { paddingValues ->
@@ -66,13 +81,22 @@ fun OnboardingScreen3(
             modifier = Modifier
                 .padding(paddingValues)
                 .fillMaxSize()
-                .padding(16.dp)
+                .padding(24.dp)
                 .verticalScroll(rememberScrollState()),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Text("İlgi Alanların", style = MaterialTheme.typography.titleLarge)
-            Text("(En fazla 5 tane seçebilirsin)", style = MaterialTheme.typography.bodySmall)
-            Spacer(Modifier.height(16.dp))
+            Text(
+                "İlgi Alanların", 
+                style = MaterialTheme.typography.headlineSmall,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.onBackground
+            )
+            Text(
+                "(En fazla 5 tane seçebilirsin)", 
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+            Spacer(Modifier.height(24.dp))
 
             FlowRow(
                 modifier = Modifier.fillMaxWidth(),
@@ -87,16 +111,27 @@ fun OnboardingScreen3(
                         onClick = { viewModel.onHobbyClicked(hobby) },
                         label = { Text(hobby) },
                         leadingIcon = if (isSelected) {
-                            { Icon(Icons.Default.Done, contentDescription = "Seçildi") }
+                            { Icon(Icons.Default.Done, contentDescription = "Seçildi", modifier = Modifier.size(FilterChipDefaults.IconSize)) }
                         } else {
                             null
-                        }
+                        },
+                        colors = FilterChipDefaults.filterChipColors(
+                            selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
+                            selectedLabelColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                            selectedLeadingIconColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                            labelColor = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
                     )
                 }
             }
             Spacer(Modifier.height(32.dp))
 
-            Text("Kendinden Bahset", style = MaterialTheme.typography.titleLarge)
+            Text(
+                "Kendinden Bahset", 
+                style = MaterialTheme.typography.headlineSmall,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.onBackground
+            )
             Spacer(Modifier.height(16.dp))
 
             OutlinedTextField(
@@ -105,12 +140,22 @@ fun OnboardingScreen3(
                 label = { Text("Kısaca kendini anlat...") },
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(120.dp),
+                    .height(150.dp),
+                shape = MaterialTheme.shapes.medium,
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedBorderColor = MaterialTheme.colorScheme.primary,
+                    unfocusedBorderColor = MaterialTheme.colorScheme.outline,
+                    focusedLabelColor = MaterialTheme.colorScheme.primary,
+                    unfocusedLabelColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                    focusedTextColor = MaterialTheme.colorScheme.onBackground,
+                    unfocusedTextColor = MaterialTheme.colorScheme.onBackground
+                ),
                 supportingText = {
                     Text(
                         text = "${bio.length} / 150",
                         modifier = Modifier.fillMaxWidth(),
                         textAlign = TextAlign.End,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
             )
@@ -120,13 +165,24 @@ fun OnboardingScreen3(
                 onClick = { viewModel.onHobbiesBioNextClicked() },
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(50.dp),
-                enabled = !isLoading
+                    .height(56.dp),
+                enabled = !isLoading,
+                shape = MaterialTheme.shapes.large,
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = MaterialTheme.colorScheme.primary,
+                    contentColor = MaterialTheme.colorScheme.onPrimary,
+                    disabledContainerColor = MaterialTheme.colorScheme.surfaceVariant,
+                    disabledContentColor = MaterialTheme.colorScheme.onSurfaceVariant
+                )
             ) {
                 if (isLoading) {
-                    CircularProgressIndicator(modifier = Modifier.size(24.dp), color = MaterialTheme.colorScheme.onPrimary)
+                    CircularProgressIndicator(
+                        modifier = Modifier.size(24.dp), 
+                        color = MaterialTheme.colorScheme.onPrimary,
+                        strokeWidth = 2.dp
+                    )
                 } else {
-                    Text("İLERİ")
+                    Text("İLERİ", fontWeight = FontWeight.Bold)
                 }
             }
         }

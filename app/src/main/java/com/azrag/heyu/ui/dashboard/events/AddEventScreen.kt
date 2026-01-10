@@ -1,9 +1,9 @@
-
 package com.azrag.heyu.ui.dashboard.events
 
 import android.app.DatePickerDialog
 import android.app.TimePickerDialog
 import android.widget.DatePicker
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -11,9 +11,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
-
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -24,7 +21,6 @@ import androidx.navigation.NavController
 import kotlinx.coroutines.flow.collectLatest
 import java.util.*
 
-
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AddEventScreen(
@@ -34,6 +30,12 @@ fun AddEventScreen(
     val context = LocalContext.current
     val calendar = Calendar.getInstance()
 
+    // Tema renklerini merkezi olarak alıyoruz
+    val primaryColor = MaterialTheme.colorScheme.primary
+    val backgroundColor = MaterialTheme.colorScheme.background
+    val surfaceColor = MaterialTheme.colorScheme.surface
+    val onSurfaceColor = MaterialTheme.colorScheme.onSurface
+    val onPrimaryColor = MaterialTheme.colorScheme.onPrimary
 
     val title by viewModel.title
     val description by viewModel.description
@@ -45,7 +47,6 @@ fun AddEventScreen(
     val isSaving by viewModel.isSaving
     val formError by viewModel.formError
 
-
     val datePickerDialog = DatePickerDialog(
         context,
         { _: DatePicker, year: Int, month: Int, dayOfMonth: Int ->
@@ -56,7 +57,6 @@ fun AddEventScreen(
         calendar.get(Calendar.DAY_OF_MONTH)
     )
 
-
     val timePickerDialog = TimePickerDialog(
         context,
         { _, hourOfDay: Int, minute: Int ->
@@ -66,7 +66,6 @@ fun AddEventScreen(
         calendar.get(Calendar.MINUTE),
         true
     )
-
 
     LaunchedEffect(key1 = true) {
         viewModel.eventFlow.collectLatest { event ->
@@ -79,17 +78,22 @@ fun AddEventScreen(
     }
 
     Scaffold(
+        containerColor = backgroundColor, // Sayfa arka planı
         topBar = {
             TopAppBar(
                 title = { Text("Etkinlik Oluştur", fontWeight = FontWeight.Bold) },
                 navigationIcon = {
                     IconButton(onClick = { navController.popBackStack() }) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Geri")
+                        Icon(
+                            Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = "Geri",
+                            tint = onSurfaceColor
+                        )
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.surface,
-                    titleContentColor = MaterialTheme.colorScheme.onSurface
+                    containerColor = surfaceColor,
+                    titleContentColor = onSurfaceColor
                 )
             )
         }
@@ -104,7 +108,9 @@ fun AddEventScreen(
         ) {
 
             Card(
-                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.4f)),
+                colors = CardDefaults.cardColors(
+                    containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.4f)
+                ),
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Text(
@@ -115,6 +121,13 @@ fun AddEventScreen(
                 )
             }
 
+            // Textfield renkleri tema primary rengine sabitlendi
+            val textFieldColors = OutlinedTextFieldDefaults.colors(
+                focusedBorderColor = primaryColor,
+                unfocusedBorderColor = primaryColor.copy(alpha = 0.5f),
+                focusedLabelColor = primaryColor,
+                cursorColor = primaryColor
+            )
 
             OutlinedTextField(
                 value = title,
@@ -122,18 +135,18 @@ fun AddEventScreen(
                 label = { Text("Etkinlik Başlığı") },
                 modifier = Modifier.fillMaxWidth(),
                 singleLine = true,
-                placeholder = { Text("Örn: Kulüp Tanışma Toplantısı") }
+                placeholder = { Text("Örn: Kulüp Tanışma Toplantısı") },
+                colors = textFieldColors
             )
-
 
             OutlinedTextField(
                 value = organizer,
                 onValueChange = { viewModel.organizer.value = it },
                 label = { Text("Düzenleyen Kulüp / Kişi") },
                 modifier = Modifier.fillMaxWidth(),
-                singleLine = true
+                singleLine = true,
+                colors = textFieldColors
             )
-
 
             OutlinedTextField(
                 value = description,
@@ -142,9 +155,9 @@ fun AddEventScreen(
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(150.dp),
-                placeholder = { Text("Öğrencilere etkinliğinizden bahsedin...") }
+                placeholder = { Text("Öğrencilere etkinliğinizden bahsedin...") },
+                colors = textFieldColors
             )
-
 
             OutlinedTextField(
                 value = location,
@@ -152,18 +165,18 @@ fun AddEventScreen(
                 label = { Text("Konum / Salon") },
                 modifier = Modifier.fillMaxWidth(),
                 singleLine = true,
-                placeholder = { Text("Örn: Rektörlük Binası Mavi Salon") }
+                placeholder = { Text("Örn: Rektörlük Binası Mavi Salon") },
+                colors = textFieldColors
             )
-
 
             OutlinedTextField(
                 value = imageUrl,
                 onValueChange = { viewModel.imageUrl.value = it },
                 label = { Text("Afiş Görsel URL (Opsiyonel)") },
                 modifier = Modifier.fillMaxWidth(),
-                singleLine = true
+                singleLine = true,
+                colors = textFieldColors
             )
-
 
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -172,19 +185,20 @@ fun AddEventScreen(
                 Button(
                     onClick = { datePickerDialog.show() },
                     modifier = Modifier.weight(1f),
-                    shape = MaterialTheme.shapes.medium
+                    shape = MaterialTheme.shapes.medium,
+                    colors = ButtonDefaults.buttonColors(containerColor = primaryColor)
                 ) {
-                    Text(if (dateText.isEmpty()) "Tarih Seç" else dateText)
+                    Text(if (dateText.isEmpty()) "Tarih Seç" else dateText, color = onPrimaryColor)
                 }
                 Button(
                     onClick = { timePickerDialog.show() },
                     modifier = Modifier.weight(1f),
-                    shape = MaterialTheme.shapes.medium
+                    shape = MaterialTheme.shapes.medium,
+                    colors = ButtonDefaults.buttonColors(containerColor = primaryColor)
                 ) {
-                    Text(if (timeText.isEmpty()) "Saat Seç" else timeText)
+                    Text(if (timeText.isEmpty()) "Saat Seç" else timeText, color = onPrimaryColor)
                 }
             }
-
 
             formError?.let { error ->
                 Surface(
@@ -209,12 +223,16 @@ fun AddEventScreen(
                     .fillMaxWidth()
                     .height(56.dp),
                 enabled = !isSaving,
-                shape = MaterialTheme.shapes.large
+                shape = MaterialTheme.shapes.large,
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = primaryColor,
+                    contentColor = onPrimaryColor
+                )
             ) {
                 if (isSaving) {
                     CircularProgressIndicator(
                         modifier = Modifier.size(24.dp),
-                        color = MaterialTheme.colorScheme.onPrimary,
+                        color = onPrimaryColor,
                         strokeWidth = 2.dp
                     )
                 } else {

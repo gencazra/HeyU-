@@ -49,17 +49,33 @@ fun EventDetailScreen(
                 title = { Text(uiState.selectedEvent?.title ?: "Etkinlik Detayı") },
                 navigationIcon = {
                     IconButton(onClick = { navController.popBackStack() }) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Geri")
+                        Icon(
+                            Icons.AutoMirrored.Filled.ArrowBack, 
+                            contentDescription = "Geri"
+                        )
                     }
-                }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.primary,
+                    titleContentColor = MaterialTheme.colorScheme.onPrimary,
+                    navigationIconContentColor = MaterialTheme.colorScheme.onPrimary
+                )
             )
-        }
+        },
+        containerColor = MaterialTheme.colorScheme.background
     ) { paddingValues ->
         Box(modifier = Modifier.padding(paddingValues).fillMaxSize()) {
             if (uiState.isLoadingDetail) {
-                CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
+                CircularProgressIndicator(
+                    modifier = Modifier.align(Alignment.Center),
+                    color = MaterialTheme.colorScheme.primary
+                )
             } else if (uiState.detailError != null) {
-                Text(text = uiState.detailError!!, modifier = Modifier.align(Alignment.Center))
+                Text(
+                    text = uiState.detailError!!, 
+                    modifier = Modifier.align(Alignment.Center),
+                    color = MaterialTheme.colorScheme.onBackground
+                )
             } else if (uiState.selectedEvent != null) {
                 EventDetailsContent(
                     event = uiState.selectedEvent!!,
@@ -90,7 +106,10 @@ private fun EventDetailsContent(
         }
     }
 
-    LazyColumn(contentPadding = PaddingValues(bottom = 24.dp)) {
+    LazyColumn(
+        contentPadding = PaddingValues(bottom = 24.dp),
+        modifier = Modifier.fillMaxSize()
+    ) {
         item {
             Image(
                 painter = rememberAsyncImagePainter(
@@ -103,9 +122,22 @@ private fun EventDetailsContent(
         }
         item {
             Column(modifier = Modifier.padding(16.dp)) {
-                Text(text = event.title, style = MaterialTheme.typography.headlineLarge, fontWeight = FontWeight.Bold)
-                Text(text = "Paylaşan: ${event.creatorName}", style = MaterialTheme.typography.labelMedium)
-                Text(text = "Düzenleyen: ${event.organizer}", color = MaterialTheme.colorScheme.primary)
+                Text(
+                    text = event.title, 
+                    style = MaterialTheme.typography.headlineLarge, 
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onBackground
+                )
+                Text(
+                    text = "Paylaşan: ${event.creatorName}", 
+                    style = MaterialTheme.typography.labelMedium,
+                    color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.7f)
+                )
+                Text(
+                    text = "Düzenleyen: ${event.organizer}", 
+                    color = MaterialTheme.colorScheme.primary,
+                    style = MaterialTheme.typography.bodyMedium
+                )
 
                 Spacer(modifier = Modifier.height(16.dp))
 
@@ -114,25 +146,55 @@ private fun EventDetailsContent(
 
                 Spacer(modifier = Modifier.height(16.dp))
 
-                Text(text = "Açıklama", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
-                Text(text = event.description, style = MaterialTheme.typography.bodyMedium)
+                Text(
+                    text = "Açıklama", 
+                    style = MaterialTheme.typography.titleMedium, 
+                    fontWeight = FontWeight.SemiBold,
+                    color = MaterialTheme.colorScheme.onBackground
+                )
+                Text(
+                    text = event.description, 
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onBackground
+                )
             }
         }
         item {
             Row(modifier = Modifier.padding(16.dp), horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-                Button(onClick = onJoinLeaveClick, modifier = Modifier.weight(1f)) {
+                Button(
+                    onClick = onJoinLeaveClick, 
+                    modifier = Modifier.weight(1f),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.primary,
+                        contentColor = MaterialTheme.colorScheme.onPrimary
+                    )
+                ) {
                     Text(if (isUserParticipant) "KATILIYORSUN" else "KATIL")
                 }
-                OutlinedButton(onClick = { }, modifier = Modifier.weight(1f)) {
+                OutlinedButton(
+                    onClick = { }, 
+                    modifier = Modifier.weight(1f),
+                    colors = ButtonDefaults.outlinedButtonColors(
+                        contentColor = MaterialTheme.colorScheme.primary
+                    )
+                ) {
                     Text("SOHBET")
                 }
             }
         }
         item {
             Column(modifier = Modifier.padding(16.dp)) {
-                Text("Katılımcılar (${participants.size})", style = MaterialTheme.typography.titleLarge)
+                Text(
+                    "Katılımcılar (${participants.size})", 
+                    style = MaterialTheme.typography.titleLarge,
+                    color = MaterialTheme.colorScheme.onBackground
+                )
                 if (participants.isEmpty()) {
-                    Text("Henüz katılan yok.", modifier = Modifier.padding(top = 8.dp))
+                    Text(
+                        "Henüz katılan yok.", 
+                        modifier = Modifier.padding(top = 8.dp),
+                        color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f)
+                    )
                 } else {
                     LazyRow(
                         contentPadding = PaddingValues(top = 12.dp),
@@ -162,7 +224,8 @@ private fun ParticipantAvatar(userProfile: UserProfile) {
         Text(
             text = userProfile.displayName.split(" ").firstOrNull() ?: "",
             style = MaterialTheme.typography.labelSmall,
-            modifier = Modifier.padding(top = 4.dp)
+            modifier = Modifier.padding(top = 4.dp),
+            color = MaterialTheme.colorScheme.onBackground
         )
     }
 }
@@ -170,8 +233,16 @@ private fun ParticipantAvatar(userProfile: UserProfile) {
 @Composable
 private fun InfoRow(icon: ImageVector, text: String) {
     Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(vertical = 4.dp)) {
-        Icon(imageVector = icon, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
+        Icon(
+            imageVector = icon, 
+            contentDescription = null, 
+            tint = MaterialTheme.colorScheme.primary
+        )
         Spacer(modifier = Modifier.width(8.dp))
-        Text(text = text, style = MaterialTheme.typography.bodyLarge)
+        Text(
+            text = text, 
+            style = MaterialTheme.typography.bodyLarge,
+            color = MaterialTheme.colorScheme.onBackground
+        )
     }
 }

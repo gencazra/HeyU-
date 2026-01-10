@@ -24,6 +24,12 @@ fun EventCard(
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val containerColor = MaterialTheme.colorScheme.surface
+    val contentColor = MaterialTheme.colorScheme.onSurface
+    val primaryColor = MaterialTheme.colorScheme.primary
+    val secondaryColor = MaterialTheme.colorScheme.secondary
+    val onSurfaceVariant = MaterialTheme.colorScheme.onSurfaceVariant
+
     Card(
         modifier = modifier
             .fillMaxWidth()
@@ -31,7 +37,7 @@ fun EventCard(
         onClick = onClick,
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surface
+            containerColor = containerColor
         )
     ) {
         Column {
@@ -52,20 +58,20 @@ fun EventCard(
                     style = MaterialTheme.typography.titleLarge,
                     fontWeight = FontWeight.Bold,
                     maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
+                    overflow = TextOverflow.Ellipsis,
+                    color = contentColor
                 )
 
                 if (event.organizer.isNotBlank()) {
                     Text(
                         text = "Düzenleyen: ${event.organizer}",
                         style = MaterialTheme.typography.labelMedium,
-                        color = MaterialTheme.colorScheme.primary,
+                        color = primaryColor,
                         modifier = Modifier.padding(top = 2.dp)
                     )
                 }
 
                 Spacer(modifier = Modifier.height(12.dp))
-
 
                 val displayDate = remember(event) {
                     if (event.eventDate.isNotBlank()) {
@@ -81,7 +87,7 @@ fun EventCard(
                     Text(
                         text = "📅 $displayDate",
                         style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                        color = onSurfaceVariant
                     )
                 }
 
@@ -92,7 +98,7 @@ fun EventCard(
                     style = MaterialTheme.typography.bodySmall,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
-                    color = MaterialTheme.colorScheme.secondary
+                    color = secondaryColor
                 )
             }
         }

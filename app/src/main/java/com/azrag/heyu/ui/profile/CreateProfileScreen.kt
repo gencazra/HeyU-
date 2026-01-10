@@ -10,27 +10,29 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.AddAPhoto
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import coil.compose.rememberAsyncImagePainter
-import com.azrag.heyu.R
 import com.azrag.heyu.data.model.UserProfile
 import com.azrag.heyu.data.repository.UserRepository
+import com.azrag.heyu.ui.theme.LogoFontFamily
 import com.azrag.heyu.util.Result
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -82,7 +84,6 @@ sealed class ProfileEditUiState {
     object SaveSuccess : ProfileEditUiState()
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CreateProfileScreen(
     editMode: Boolean,
@@ -107,36 +108,30 @@ fun CreateProfileScreen(
         }
     }
 
-    Scaffold(
-        topBar = {
-            TopAppBar(title = { Text(if (editMode) "Profili Düzenle" else "Profil Oluştur") })
-        }
-    ) { paddingValues ->
-        Box(modifier = Modifier.padding(paddingValues).fillMaxSize()) {
-            when (val state = uiState) {
-                is ProfileEditUiState.Loading -> {
-                    Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                        CircularProgressIndicator()
-                    }
+    Surface(modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
+        when (val state = uiState) {
+            is ProfileEditUiState.Loading -> {
+                Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                    CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
                 }
-                is ProfileEditUiState.Success -> {
-                    ProfileEditForm(
-                        initialProfile = state.profile,
-                        onSaveClicked = { updatedProfile, newImageUri ->
-                            viewModel.saveProfile(updatedProfile, newImageUri)
-                        }
-                    )
-                }
-                is ProfileEditUiState.Error -> {
-                    ProfileEditForm(
-                        initialProfile = UserProfile(),
-                        onSaveClicked = { updatedProfile, newImageUri ->
-                            viewModel.saveProfile(updatedProfile, newImageUri)
-                        }
-                    )
-                }
-                else -> { }
             }
+            is ProfileEditUiState.Success -> {
+                ProfileEditForm(
+                    initialProfile = state.profile,
+                    onSaveClicked = { updatedProfile, newImageUri ->
+                        viewModel.saveProfile(updatedProfile, newImageUri)
+                    }
+                )
+            }
+            is ProfileEditUiState.Error -> {
+                ProfileEditForm(
+                    initialProfile = UserProfile(),
+                    onSaveClicked = { updatedProfile, newImageUri ->
+                        viewModel.saveProfile(updatedProfile, newImageUri)
+                    }
+                )
+            }
+            else -> {}
         }
     }
 }
@@ -150,6 +145,9 @@ private fun ProfileEditForm(
     var department by remember { mutableStateOf(initialProfile.department ?: "") }
     var bio by remember { mutableStateOf(initialProfile.bio ?: "") }
     var imageUri by remember { mutableStateOf<Uri?>(null) }
+    
+    val primaryColor = MaterialTheme.colorScheme.primary
+    val onPrimaryColor = MaterialTheme.colorScheme.onPrimary
 
     val imagePickerLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent()
@@ -159,42 +157,69 @@ private fun ProfileEditForm(
         modifier = Modifier
             .fillMaxSize()
             .verticalScroll(rememberScrollState())
-            .padding(16.dp),
+            .padding(24.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Box(modifier = Modifier.size(120.dp), contentAlignment = Alignment.Center) {
-            val imageModel = imageUri ?: initialProfile.photoUrl.ifEmpty { R.drawable.ic_default_profile }
-
-            Image(
-                painter = rememberAsyncImagePainter(model = imageModel),
-                contentDescription = "Profil Fotoğrafı",
-                modifier = Modifier
-                    .fillMaxSize()
-                    .clip(CircleShape)
-                    .background(MaterialTheme.colorScheme.surfaceVariant),
-                contentScale = ContentScale.Crop
+        Text(
+            text = "heyU!",
+            style = MaterialTheme.typography.displayLarge.copy(
+                fontFamily = LogoFontFamily,
+                fontSize = 52.sp,
+                color = primaryColor
             )
+        )
 
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .clip(CircleShape)
-                    .clickable { imagePickerLauncher.launch("image/*") }
-                    .background(Color.Black.copy(alpha = 0.3f)),
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(Icons.Default.AddAPhoto, "Fotoğraf Seç", tint = Color.White, modifier = Modifier.size(36.dp))
+        Spacer(Modifier.height(24.dp))
+
+        Box(
+            modifier = Modifier
+                .size(140.dp)
+                .clip(CircleShape)
+                .background(primaryColor)
+                .clickable { imagePickerLauncher.launch("image/*") },
+            contentAlignment = Alignment.Center
+        ) {
+            if (imageUri != null || initialProfile.photoUrl.isNotEmpty()) {
+                Image(
+                    painter = rememberAsyncImagePainter(model = imageUri ?: initialProfile.photoUrl),
+                    contentDescription = null,
+                    modifier = Modifier.fillMaxSize(),
+                    contentScale = ContentScale.Crop
+                )
+            } else {
+                Icon(
+                    imageVector = Icons.Default.Person,
+                    contentDescription = null,
+                    modifier = Modifier.size(80.dp),
+                    tint = onPrimaryColor
+                )
             }
         }
 
-        Spacer(Modifier.height(24.dp))
-        OutlinedTextField(value = displayName, onValueChange = { displayName = it }, label = { Text("İsim Soyisim") }, modifier = Modifier.fillMaxWidth())
-        Spacer(Modifier.height(16.dp))
-        OutlinedTextField(value = department, onValueChange = { department = it }, label = { Text("Bölüm") }, modifier = Modifier.fillMaxWidth())
-        Spacer(Modifier.height(16.dp))
-        OutlinedTextField(value = bio, onValueChange = { bio = it }, label = { Text("Hakkında") }, modifier = Modifier.fillMaxWidth().height(120.dp))
+        Spacer(Modifier.height(8.dp))
+
+        Text(
+            text = "Resimleri veya avatar ekle",
+            color = primaryColor,
+            fontSize = 14.sp,
+            fontWeight = FontWeight.Medium
+        )
 
         Spacer(Modifier.height(32.dp))
+
+        ProfileInputField(value = displayName, onValueChange = { displayName = it }, label = "Adı Soyadı")
+        Spacer(Modifier.height(12.dp))
+        ProfileInputField(value = department, onValueChange = { department = it }, label = "Bölüm")
+        Spacer(Modifier.height(12.dp))
+        ProfileInputField(value = bio, onValueChange = { bio = it }, label = "Bio")
+        Spacer(Modifier.height(12.dp))
+        ProfileInputField(value = "", onValueChange = {}, label = "Favorilerini ekle", isStatic = true)
+        Spacer(Modifier.height(12.dp))
+        ProfileInputField(value = "", onValueChange = {}, label = "İlgi alanlarını ekle", isStatic = true)
+        Spacer(Modifier.height(12.dp))
+        ProfileInputField(value = "", onValueChange = {}, label = "Hakkında kısmını ekle", isStatic = true)
+
+        Spacer(Modifier.height(40.dp))
 
         Button(
             onClick = {
@@ -205,9 +230,49 @@ private fun ProfileEditForm(
                 )
                 onSaveClicked(updatedProfile, imageUri)
             },
-            modifier = Modifier.fillMaxWidth().height(50.dp)
+            modifier = Modifier
+                .width(200.dp)
+                .height(50.dp),
+            colors = ButtonDefaults.buttonColors(containerColor = primaryColor),
+            shape = RoundedCornerShape(12.dp)
         ) {
-            Text("KAYDET")
+            Text("Bilgileri Kaydet", fontWeight = FontWeight.Bold, color = onPrimaryColor)
         }
+        
+        Spacer(Modifier.height(24.dp))
     }
+}
+
+@Composable
+fun ProfileInputField(
+    value: String,
+    onValueChange: (String) -> Unit,
+    label: String,
+    isStatic: Boolean = false
+) {
+    val primaryColor = MaterialTheme.colorScheme.primary
+    val onPrimaryColor = MaterialTheme.colorScheme.onPrimary
+    
+    TextField(
+        value = value,
+        onValueChange = onValueChange,
+        placeholder = { Text(label, color = onPrimaryColor.copy(alpha = 0.8f), fontSize = 14.sp) },
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(50.dp),
+        colors = TextFieldDefaults.colors(
+            focusedContainerColor = primaryColor,
+            unfocusedContainerColor = primaryColor,
+            focusedIndicatorColor = Color.Transparent,
+            unfocusedIndicatorColor = Color.Transparent,
+            focusedTextColor = onPrimaryColor,
+            unfocusedTextColor = onPrimaryColor
+        ),
+        shape = RoundedCornerShape(10.dp),
+        singleLine = true,
+        readOnly = isStatic,
+        trailingIcon = {
+            Icon(Icons.Default.Add, null, tint = onPrimaryColor, modifier = Modifier.size(20.dp))
+        }
+    )
 }

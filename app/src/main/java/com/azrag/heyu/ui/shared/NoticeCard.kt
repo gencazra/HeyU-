@@ -20,7 +20,6 @@ import com.google.firebase.ktx.Firebase
 import java.text.SimpleDateFormat
 import java.util.*
 
-
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun NoticeCard(
@@ -29,12 +28,15 @@ fun NoticeCard(
 ) {
     val currentUserId = Firebase.auth.currentUser?.uid
     val isCurrentUserAttending = notice.attendees.contains(currentUserId)
-
     val dateFormat = SimpleDateFormat("dd MMM, HH:mm", Locale("tr"))
 
     Card(
         modifier = Modifier.fillMaxWidth(),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surface,
+            contentColor = MaterialTheme.colorScheme.onSurface
+        )
     ) {
         Column(
             modifier = Modifier.padding(16.dp),
@@ -63,7 +65,8 @@ fun NoticeCard(
                         Text(
                             text = notice.creatorName,
                             style = MaterialTheme.typography.titleMedium,
-                            fontWeight = FontWeight.Bold
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.onSurface
                         )
                         Text(
                             text = notice.timestamp?.let { dateFormat.format(it) } ?: "Şimdi",
@@ -74,7 +77,15 @@ fun NoticeCard(
                 }
                 SuggestionChip(
                     onClick = {  },
-                    label = { Text(notice.category) }
+                    label = { 
+                        Text(
+                            text = notice.category,
+                            color = MaterialTheme.colorScheme.primary
+                        ) 
+                    },
+                    border = SuggestionChipDefaults.suggestionChipBorder(
+                        borderColor = MaterialTheme.colorScheme.primary
+                    )
                 )
             }
 
@@ -82,7 +93,8 @@ fun NoticeCard(
                 Text(
                     text = notice.title,
                     style = MaterialTheme.typography.titleLarge,
-                    fontWeight = FontWeight.SemiBold
+                    fontWeight = FontWeight.SemiBold,
+                    color = MaterialTheme.colorScheme.primary
                 )
                 Spacer(modifier = Modifier.height(4.dp))
                 Text(
@@ -100,7 +112,8 @@ fun NoticeCard(
                 Text(
                     text = "${notice.attendees.size} kişi katılıyor",
                     style = MaterialTheme.typography.bodyMedium,
-                    fontWeight = FontWeight.Medium
+                    fontWeight = FontWeight.Medium,
+                    color = MaterialTheme.colorScheme.onSurface
                 )
                 Button(
                     onClick = onImInClicked,
@@ -110,10 +123,17 @@ fun NoticeCard(
                             contentColor = MaterialTheme.colorScheme.onSecondary
                         )
                     } else {
-                        ButtonDefaults.buttonColors()
-                    }
+                        ButtonDefaults.buttonColors(
+                            containerColor = MaterialTheme.colorScheme.primary,
+                            contentColor = MaterialTheme.colorScheme.onPrimary
+                        )
+                    },
+                    shape = androidx.compose.foundation.shape.RoundedCornerShape(20.dp)
                 ) {
-                    Text(if (isCurrentUserAttending) "KATILIYORSUN" else "BEN DE VARIM!")
+                    Text(
+                        text = if (isCurrentUserAttending) "KATILIYORSUN" else "BEN DE VARIM!",
+                        fontWeight = FontWeight.Bold
+                    )
                 }
             }
         }

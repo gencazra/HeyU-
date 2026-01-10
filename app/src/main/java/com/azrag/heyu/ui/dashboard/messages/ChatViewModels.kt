@@ -20,6 +20,7 @@ import javax.inject.Inject
 
 data class ChatUiState(
     val isLoading: Boolean = true,
+    val chats: List<Chat> = emptyList(),
     val messages: List<Message> = emptyList(),
     val otherUser: UserProfile? = null,
     val currentUserProfile: UserProfile? = null,
@@ -42,7 +43,26 @@ class ChatViewModel @Inject constructor(
     private var otherUserId: String = ""
 
     init {
-        if (chatRoomId.isNotEmpty()) loadChatData()
+        if (chatRoomId.isNotEmpty()) {
+            loadChatData()
+        } else {
+            loadAllChats()
+        }
+    }
+
+    private fun loadAllChats() {
+        viewModelScope.launch {
+            val currentUid = Firebase.auth.currentUser?.uid ?: return@launch
+            chatRepository.getAllChatsForCurrentUser().collect { chats ->
+                val enrichedChats = chats.map { chat ->
+                    val otherId = chat.participants.find { it != currentUid } ?: ""
+                    val otherUserRes = userRepository.getUserProfile(otherId)
+                    val otherUser = if (otherUserRes is Result.Success) otherUserRes.data ?: UserProfile() else UserProfile()
+                    chat.copy(otherUser = otherUser)
+                }
+                _uiState.update { it.copy(isLoading = false, chats = enrichedChats) }
+            }
+        }
     }
 
     private fun loadChatData() {

@@ -14,8 +14,6 @@ import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Send
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -75,11 +73,20 @@ fun ChatScreen(
                             leadingIcon = { Icon(Icons.Default.Flag, contentDescription = null) }
                         )
                     }
-                }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.surface,
+                    titleContentColor = MaterialTheme.colorScheme.onSurface,
+                    actionIconContentColor = MaterialTheme.colorScheme.onSurface
+                )
             )
         },
         bottomBar = {
-            Surface(tonalElevation = 8.dp) {
+            Surface(
+                tonalElevation = 8.dp,
+                color = MaterialTheme.colorScheme.surface,
+                contentColor = MaterialTheme.colorScheme.onSurface
+            ) {
                 Column(modifier = Modifier.navigationBarsPadding()) {
 
                     AnimatedVisibility(
@@ -90,7 +97,10 @@ fun ChatScreen(
                             onClick = { viewModel.sendTextMessage("Hey! 👋") },
                             label = { Text("Selam ver: Hey! 👋", fontSize = 12.sp) },
                             modifier = Modifier.padding(start = 16.dp, top = 8.dp),
-                            shape = CircleShape
+                            shape = CircleShape,
+                            colors = SuggestionChipDefaults.suggestionChipColors(
+                                labelColor = MaterialTheme.colorScheme.primary
+                            )
                         )
                     }
 
@@ -110,7 +120,8 @@ fun ChatScreen(
                     )
                 }
             }
-        }
+        },
+        containerColor = MaterialTheme.colorScheme.background
     ) { padding ->
         LazyColumn(
             modifier = Modifier.padding(padding).fillMaxSize(),
@@ -131,7 +142,7 @@ fun ChatScreen(
 fun MessageBubble(message: Message, isMine: Boolean) {
     val alignment = if (isMine) Alignment.CenterEnd else Alignment.CenterStart
     val color = if (isMine) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant
-    val textColor = if (isMine) Color.White else MaterialTheme.colorScheme.onSurface
+    val textColor = if (isMine) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant
 
     Box(modifier = Modifier.fillMaxWidth(), contentAlignment = alignment) {
         Surface(
@@ -164,11 +175,15 @@ fun ChatInputArea(text: String, onValueChange: (String) -> Unit, onSend: () -> U
             value = text,
             onValueChange = onValueChange,
             modifier = Modifier.weight(1f),
-            placeholder = { Text("Mesaj yazın...") },
+            placeholder = { Text("Mesaj yazın...", color = MaterialTheme.colorScheme.onSurfaceVariant) },
             shape = CircleShape,
             colors = TextFieldDefaults.colors(
+                focusedContainerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
+                unfocusedContainerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
                 focusedIndicatorColor = Color.Transparent,
-                unfocusedIndicatorColor = Color.Transparent
+                unfocusedIndicatorColor = Color.Transparent,
+                focusedTextColor = MaterialTheme.colorScheme.onSurface,
+                unfocusedTextColor = MaterialTheme.colorScheme.onSurface
             )
         )
         Spacer(Modifier.width(8.dp))
@@ -176,9 +191,10 @@ fun ChatInputArea(text: String, onValueChange: (String) -> Unit, onSend: () -> U
             onClick = onSend,
             modifier = Modifier.size(48.dp),
             shape = CircleShape,
-            containerColor = MaterialTheme.colorScheme.primary
+            containerColor = MaterialTheme.colorScheme.primary,
+            contentColor = MaterialTheme.colorScheme.onPrimary
         ) {
-            Icon(Icons.Default.Send, contentDescription = "Gönder", tint = Color.White)
+            Icon(Icons.Default.Send, contentDescription = "Gönder")
         }
     }
 }

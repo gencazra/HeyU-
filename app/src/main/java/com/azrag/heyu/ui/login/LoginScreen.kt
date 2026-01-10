@@ -1,29 +1,28 @@
 package com.azrag.heyu.ui.login
 
 import android.widget.Toast
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Email
-import androidx.compose.material.icons.filled.Lock
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
+import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
-import com.azrag.heyu.ui.common.AuthButton
-import com.azrag.heyu.ui.common.AuthTextField
+import com.azrag.heyu.ui.theme.LogoFontFamily
 import kotlinx.coroutines.flow.collectLatest
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun LoginScreen(
     onLoginSuccess: (Boolean) -> Unit,
@@ -40,82 +39,131 @@ fun LoginScreen(
     LaunchedEffect(Unit) {
         viewModel.eventFlow.collectLatest { event ->
             when (event) {
-                is LoginEvent.LoginSuccess -> {
-                    onLoginSuccess(event.hasProfile)
-                }
-                is LoginEvent.LoginError -> {
-                    Toast.makeText(context, event.message, Toast.LENGTH_SHORT).show()
-                }
+                is LoginEvent.LoginSuccess -> onLoginSuccess(event.hasProfile)
+                is LoginEvent.LoginError -> Toast.makeText(context, event.message, Toast.LENGTH_SHORT).show()
             }
         }
     }
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(24.dp)
-            .verticalScroll(rememberScrollState()),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
-    ) {
-        Text(
-            text = "heyU!",
-            style = MaterialTheme.typography.displayMedium,
-            color = MaterialTheme.colorScheme.primary,
-            fontWeight = FontWeight.ExtraBold
-        )
+    Box(modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)) {
+        Column(modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState())) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(200.dp)
+                    .background(MaterialTheme.colorScheme.background),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center
+            ) {
+                Text(
+                    text = "heyU!",
+                    style = MaterialTheme.typography.displayLarge.copy(
+                        fontFamily = LogoFontFamily,
+                        fontSize = 72.sp,
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                )
+            }
 
-        Text(
-            text = "Yeditepe\'ye tekrar hoş geldin!",
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.secondary
-        )
+            Surface(
+                modifier = Modifier.fillMaxSize(),
+                color = MaterialTheme.colorScheme.primary,
+                shape = RoundedCornerShape(topStart = 80.dp)
+            ) {
+                Column(
+                    modifier = Modifier
+                        .padding(horizontal = 32.dp, vertical = 48.dp)
+                        .fillMaxWidth(),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    LoginInputField(
+                        value = email,
+                        onValueChange = { email = it },
+                        label = "E-posta Adresi",
+                        keyboardType = KeyboardType.Email
+                    )
 
-        Spacer(Modifier.height(32.dp))
+                    Spacer(modifier = Modifier.height(16.dp))
 
-        AuthTextField(
-            value = email,
-            onValueChange = { email = it.lowercase().trim() },
-            label = "E-posta",
-            leadingIcon = Icons.Default.Email,
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email)
-        )
+                    LoginInputField(
+                        value = password,
+                        onValueChange = { password = it },
+                        label = "Şifre",
+                        isPassword = true
+                    )
 
-        Spacer(Modifier.height(16.dp))
+                    Spacer(modifier = Modifier.height(32.dp))
 
-        AuthTextField(
-            value = password,
-            onValueChange = { password = it },
-            label = "Şifre",
-            leadingIcon = Icons.Default.Lock,
-            visualTransformation = PasswordVisualTransformation(),
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password)
-        )
+                    Button(
+                        onClick = { viewModel.loginUser(email, password) },
+                        modifier = Modifier
+                            .width(180.dp)
+                            .height(50.dp),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = MaterialTheme.colorScheme.onPrimary,
+                            contentColor = MaterialTheme.colorScheme.primary
+                        ),
+                        shape = RoundedCornerShape(12.dp),
+                        enabled = !uiState.isLoading
+                    ) {
+                        if (uiState.isLoading) {
+                            CircularProgressIndicator(
+                                modifier = Modifier.size(20.dp),
+                                color = MaterialTheme.colorScheme.primary,
+                                strokeWidth = 2.dp
+                            )
+                        } else {
+                            Text("Giriş Yap", fontWeight = FontWeight.Bold, fontSize = 18.sp)
+                        }
+                    }
 
-        Spacer(Modifier.height(8.dp))
+                    Spacer(modifier = Modifier.height(24.dp))
 
-        TextButton(
-            onClick = onNavigateToForgotPassword,
-            modifier = Modifier.align(Alignment.End)
-        ) {
-            Text("Şifremi Unuttum")
-        }
+                    TextButton(onClick = onNavigateToForgotPassword) {
+                        Text("Şifreni mi unuttun ?", color = MaterialTheme.colorScheme.onPrimary)
+                    }
 
-        Spacer(Modifier.height(24.dp))
+                    TextButton(onClick = onNavigateToSignUp) {
+                        Text(
+                            "Hesabın yok mu? Kaydol",
+                            color = MaterialTheme.colorScheme.onPrimary,
+                            fontWeight = FontWeight.Medium
+                        )
+                    }
 
-        val isFormValid = email.isNotBlank() && password.isNotBlank()
-
-        AuthButton(
-            text = "GİRİŞ YAP",
-            onClick = { viewModel.loginUser(email, password) },
-            enabled = !uiState.isLoading && isFormValid,
-            isLoading = uiState.isLoading
-        )
-
-        Spacer(Modifier.height(16.dp))
-
-        TextButton(onClick = onNavigateToSignUp) {
-            Text("Hesabın yok mu? Kayıt Ol")
+                    Spacer(modifier = Modifier.height(40.dp))
+                }
+            }
         }
     }
+}
+
+@Composable
+fun LoginInputField(
+    value: String,
+    onValueChange: (String) -> Unit,
+    label: String,
+    keyboardType: KeyboardType = KeyboardType.Text,
+    isPassword: Boolean = false
+) {
+    TextField(
+        value = value,
+        onValueChange = onValueChange,
+        placeholder = { Text(label, color = MaterialTheme.colorScheme.onSurfaceVariant) },
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(56.dp),
+        colors = TextFieldDefaults.colors(
+            focusedContainerColor = MaterialTheme.colorScheme.surface,
+            unfocusedContainerColor = MaterialTheme.colorScheme.surface,
+            focusedIndicatorColor = Color.Transparent,
+            unfocusedIndicatorColor = Color.Transparent,
+            focusedTextColor = MaterialTheme.colorScheme.onSurface,
+            unfocusedTextColor = MaterialTheme.colorScheme.onSurface
+        ),
+        shape = RoundedCornerShape(12.dp),
+        singleLine = true,
+        keyboardOptions = KeyboardOptions(keyboardType = keyboardType),
+        visualTransformation = if (isPassword) PasswordVisualTransformation() else androidx.compose.ui.text.input.VisualTransformation.None
+    )
 }

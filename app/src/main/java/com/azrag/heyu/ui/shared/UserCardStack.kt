@@ -36,7 +36,6 @@ import kotlin.math.abs
 
 private enum class SwipeDirection { LEFT, RIGHT, NONE }
 
-
 @Composable
 fun UserCardStack(
     users: List<UserProfile>,
@@ -44,9 +43,7 @@ fun UserCardStack(
 ) {
     val coroutineScope = rememberCoroutineScope()
     val density = LocalDensity.current
-
     var visibleUsers by remember(users) { mutableStateOf(users) }
-
     val screenWidth = LocalConfiguration.current.screenWidthDp.dp
     val swipeThreshold = screenWidth * 0.4f
 
@@ -67,19 +64,15 @@ fun UserCardStack(
         visibleUsers.take(4).reversed().forEachIndexed { index, user ->
             val currentQueueIndex = (visibleUsers.take(4).size - 1) - index
             val isTopCard = currentQueueIndex == 0
-
             var offsetX by remember(user.id) { mutableStateOf(0f) }
             var offsetY by remember(user.id) { mutableStateOf(0f) }
             var swipeDir by remember(user.id) { mutableStateOf(SwipeDirection.NONE) }
-
             val animatedOffsetX by animateFloatAsState(targetValue = offsetX, label = "offsetX")
             val animatedOffsetY by animateFloatAsState(targetValue = offsetY, label = "offsetY")
-
             val rotationZ by animateFloatAsState(
                 targetValue = (animatedOffsetX / screenWidth.value) * 15f,
                 label = "rotation"
             )
-
             val cardScale by animateFloatAsState(
                 targetValue = if (isTopCard) 1f else (1f - (currentQueueIndex * 0.05f)).coerceAtLeast(0.8f),
                 label = "cardScale"
@@ -149,12 +142,15 @@ private fun UserProfileCard(
     likeStatusAlpha: Float,
     dislikeStatusAlpha: Float,
 ) {
+    val colorScheme = MaterialTheme.colorScheme
+    
     Card(
         modifier = Modifier
             .fillMaxWidth()
             .aspectRatio(0.75f),
         shape = RoundedCornerShape(24.dp),
-        elevation = CardDefaults.cardElevation(defaultElevation = 6.dp)
+        elevation = CardDefaults.cardElevation(defaultElevation = 6.dp),
+        colors = CardDefaults.cardColors(containerColor = colorScheme.surface)
     ) {
         Box {
             Image(
@@ -171,7 +167,7 @@ private fun UserProfileCard(
                     .fillMaxSize()
                     .background(
                         Brush.verticalGradient(
-                            colors = listOf(Color.Transparent, Color.Black.copy(alpha = 0.85f)),
+                            colors = listOf(Color.Transparent, colorScheme.surface.copy(alpha = 0.8f)),
                             startY = 400f
                         )
                     )
@@ -190,7 +186,7 @@ private fun UserProfileCard(
                     Icon(
                         imageVector = Icons.Default.Close,
                         contentDescription = "Dislike",
-                        tint = Color(0xFFF44336).copy(alpha = dislikeStatusAlpha),
+                        tint = colorScheme.error.copy(alpha = dislikeStatusAlpha),
                         modifier = Modifier.size(100.dp).graphicsLayer(scaleX = 0.8f + dislikeStatusAlpha, scaleY = 0.8f + dislikeStatusAlpha)
                     )
                 }
@@ -208,7 +204,7 @@ private fun UserProfileCard(
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Text(
                         text = titleText,
-                        color = Color.White,
+                        color = colorScheme.onSurface,
                         fontSize = 28.sp,
                         fontWeight = FontWeight.ExtraBold
                     )
@@ -217,8 +213,8 @@ private fun UserProfileCard(
                         Box(
                             modifier = Modifier
                                 .size(12.dp)
-                                .background(Color(0xFF4CAF50), CircleShape)
-                                .border(1.5.dp, Color.White, CircleShape)
+                                .background(colorScheme.primary, CircleShape)
+                                .border(1.5.dp, colorScheme.surface, CircleShape)
                         )
                     }
                 }
@@ -226,7 +222,7 @@ private fun UserProfileCard(
                 if (user.department.isNotBlank()) {
                     Text(
                         text = user.department,
-                        color = Color.White.copy(alpha = 0.9f),
+                        color = colorScheme.onSurfaceVariant,
                         fontSize = 18.sp,
                         fontWeight = FontWeight.Medium
                     )
@@ -238,8 +234,8 @@ private fun UserProfileCard(
                         user.hobbies.take(3).forEach { hobby ->
                             Surface(
                                 shape = RoundedCornerShape(8.dp),
-                                color = Color.White.copy(alpha = 0.2f),
-                                contentColor = Color.White
+                                color = colorScheme.primaryContainer.copy(alpha = 0.6f),
+                                contentColor = colorScheme.onPrimaryContainer
                             ) {
                                 Text(
                                     text = hobby,
