@@ -75,7 +75,7 @@ fun SignupScreen(
                     SignupInputField(
                         value = email,
                         onValueChange = { email = it },
-                        label = "E-posta Adresi",
+                        label = "Email Address",
                         keyboardType = KeyboardType.Email
                     )
 
@@ -84,7 +84,7 @@ fun SignupScreen(
                     SignupInputField(
                         value = fullName,
                         onValueChange = { fullName = it },
-                        label = "Adı Soyadı"
+                        label = "Full Name"
                     )
 
                     Spacer(modifier = Modifier.height(16.dp))
@@ -92,7 +92,7 @@ fun SignupScreen(
                     SignupInputField(
                         value = password,
                         onValueChange = { password = it },
-                        label = "Şifre",
+                        label = "Password",
                         isPassword = true
                     )
 
@@ -117,7 +117,7 @@ fun SignupScreen(
                                 strokeWidth = 2.dp
                             )
                         } else {
-                            Text("Kaydol", fontWeight = FontWeight.Bold, fontSize = 18.sp)
+                            Text("Sign Up", fontWeight = FontWeight.Bold, fontSize = 18.sp)
                         }
                     }
 
@@ -125,7 +125,7 @@ fun SignupScreen(
 
                     TextButton(onClick = onNavigateBack) {
                         Text(
-                            "Hesabın Var mı? Giriş Yap",
+                            "Already have an account? Login",
                             color = MaterialTheme.colorScheme.onPrimary,
                             fontWeight = FontWeight.Medium
                         )

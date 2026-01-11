@@ -63,12 +63,12 @@ fun ForgotPasswordScreen(
         containerColor = MaterialTheme.colorScheme.background,
         topBar = {
             TopAppBar(
-                title = { Text("Şifre Sıfırla") },
+                title = { Text("Reset Password") },
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
                         Icon(
                             Icons.AutoMirrored.Filled.ArrowBack, 
-                            contentDescription = "Geri",
+                            contentDescription = "Back",
                             tint = MaterialTheme.colorScheme.onBackground
                         )
                     }
@@ -88,28 +88,28 @@ fun ForgotPasswordScreen(
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Text(
-                "Şifrenizi sıfırlamak için kayıtlı e-posta adresinizi giriniz.",
+                "Enter your registered email address to reset your password.",
                 color = MaterialTheme.colorScheme.onBackground
             )
             Spacer(Modifier.height(24.dp))
             AuthTextField(
                 value = email,
                 onValueChange = { email = it },
-                label = "E-posta Adresi",
+                label = "Email Address",
                 leadingIcon = Icons.Default.Email,
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
                 enabled = !isLoading
             )
             Spacer(Modifier.height(32.dp))
             AuthButton(
-                text = "BAĞLANTI GÖNDER",
+                text = "SEND RESET LINK",
                 onClick = {
                     viewModel.resetPassword(email.trim()) { result ->
                         if (result is Result.Success) {
-                            Toast.makeText(context, "Sıfırlama bağlantısı e-posta adresinize gönderildi.", Toast.LENGTH_LONG).show()
+                            Toast.makeText(context, "A reset link has been sent to your email address.", Toast.LENGTH_LONG).show()
                             onNavigateBack()
                         } else {
-                            val errorMsg = (result as? Result.Error)?.message ?: "Bilinmeyen bir hata oluştu."
+                            val errorMsg = (result as? Result.Error)?.message ?: "An unknown error occurred."
                             Toast.makeText(context, errorMsg, Toast.LENGTH_LONG).show()
                         }
                     }

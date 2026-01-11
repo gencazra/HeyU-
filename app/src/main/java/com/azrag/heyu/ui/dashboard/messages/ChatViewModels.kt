@@ -98,7 +98,7 @@ class ChatViewModel @Inject constructor(
         if (rawText.isBlank() || chatRoomId.isEmpty() || otherUserId.isEmpty()) return
 
         if (!ModerationManager.isSafe(rawText)) {
-            _uiState.update { it.copy(errorMessage = "Mesajınız topluluk kurallarına aykırı içerik barındırıyor!") }
+            _uiState.update { it.copy(errorMessage = "Your message contains content that violates community guidelines!") }
             return
         }
 
@@ -118,7 +118,7 @@ class ChatViewModel @Inject constructor(
         viewModelScope.launch {
             val result = userRepository.blockUser(otherUserId)
             if (result is Result.Success) {
-                _uiState.update { it.copy(errorMessage = "Kullanıcı engellendi.", isUserBlocked = true) }
+                _uiState.update { it.copy(errorMessage = "User blocked.", isUserBlocked = true) }
             }
         }
     }

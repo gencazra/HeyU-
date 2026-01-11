@@ -64,7 +64,7 @@ fun EventCard(
 
                 if (event.organizer.isNotBlank()) {
                     Text(
-                        text = "Düzenleyen: ${event.organizer}",
+                        text = "Organizer: ${event.organizer}",
                         style = MaterialTheme.typography.labelMedium,
                         color = primaryColor,
                         modifier = Modifier.padding(top = 2.dp)
@@ -78,8 +78,8 @@ fun EventCard(
                         "${event.eventDate}, ${event.eventTime}"
                     } else {
                         event.serverTimestamp?.let {
-                            SimpleDateFormat("dd MMMM yyyy, HH:mm", Locale("tr")).format(it)
-                        } ?: "Tarih belirtilmemiş"
+                            SimpleDateFormat("dd MMMM yyyy, HH:mm", Locale.getDefault()).format(it)
+                        } ?: "Date not specified"
                     }
                 }
 

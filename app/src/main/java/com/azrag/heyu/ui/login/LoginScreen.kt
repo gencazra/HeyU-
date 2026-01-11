@@ -79,7 +79,7 @@ fun LoginScreen(
                     LoginInputField(
                         value = email,
                         onValueChange = { email = it },
-                        label = "E-posta Adresi",
+                        label = "Email Address",
                         keyboardType = KeyboardType.Email
                     )
 
@@ -88,7 +88,7 @@ fun LoginScreen(
                     LoginInputField(
                         value = password,
                         onValueChange = { password = it },
-                        label = "Şifre",
+                        label = "Password",
                         isPassword = true
                     )
 
@@ -113,19 +113,19 @@ fun LoginScreen(
                                 strokeWidth = 2.dp
                             )
                         } else {
-                            Text("Giriş Yap", fontWeight = FontWeight.Bold, fontSize = 18.sp)
+                            Text("Login", fontWeight = FontWeight.Bold, fontSize = 18.sp)
                         }
                     }
 
                     Spacer(modifier = Modifier.height(24.dp))
 
                     TextButton(onClick = onNavigateToForgotPassword) {
-                        Text("Şifreni mi unuttun ?", color = MaterialTheme.colorScheme.onPrimary)
+                        Text("Forgot password?", color = MaterialTheme.colorScheme.onPrimary)
                     }
 
                     TextButton(onClick = onNavigateToSignUp) {
                         Text(
-                            "Hesabın yok mu? Kaydol",
+                            "Don't have an account? Sign up",
                             color = MaterialTheme.colorScheme.onPrimary,
                             fontWeight = FontWeight.Medium
                         )

@@ -1,11 +1,11 @@
 package com.azrag.heyu
 
-import android.content.Context
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.background
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
@@ -17,33 +17,28 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
-import androidx.datastore.preferences.core.booleanPreferencesKey
-import androidx.datastore.preferences.core.edit
-import androidx.datastore.preferences.preferencesDataStore
-import androidx.lifecycle.lifecycleScope
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavType
 import androidx.navigation.compose.*
 import androidx.navigation.navArgument
+import com.azrag.heyu.data.repository.ThemeSetting
 import com.azrag.heyu.ui.dashboard.DashboardScreen
 import com.azrag.heyu.ui.dashboard.discover.MatchAnimationScreen
 import com.azrag.heyu.ui.dashboard.events.AddEventScreen
 import com.azrag.heyu.ui.dashboard.events.EventDetailScreen
 import com.azrag.heyu.ui.dashboard.messages.ChatScreen
 import com.azrag.heyu.ui.login.*
+import com.azrag.heyu.ui.profile.CreateProfileScreen
 import com.azrag.heyu.ui.profile.SettingsScreen
+import com.azrag.heyu.ui.profile.SettingsViewModel
 import com.azrag.heyu.ui.signup.*
 import com.azrag.heyu.ui.start.StartScreen
 import com.azrag.heyu.ui.theme.HeyUTheme
 import com.azrag.heyu.util.Screen
-import com.google.firebase.auth.ktx.auth
-import com.google.firebase.ktx.Firebase
+import com.google.firebase.auth.FirebaseAuth
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.launch
-
-val Context.dataStore by preferencesDataStore(name = "settings")
+import javax.inject.Inject
 
 @Composable
 fun AnimatedSplashScreen(onAnimationEnd: () -> Unit) {
@@ -82,31 +77,32 @@ fun AnimatedSplashScreen(onAnimationEnd: () -> Unit) {
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
 
+    @Inject
+    lateinit var auth: FirebaseAuth
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
         setContent {
-            HeyUTheme {
+            val settingsViewModel: SettingsViewModel = hiltViewModel()
+            val themeSetting by settingsViewModel.themeSetting.collectAsState()
+            
+            val isDarkTheme = when (themeSetting) {
+                ThemeSetting.DARK -> true
+                ThemeSetting.LIGHT -> false
+                ThemeSetting.SYSTEM -> isSystemInDarkTheme()
+            }
+
+            HeyUTheme(darkTheme = isDarkTheme) {
                 var showAnimatedSplash by remember { mutableStateOf(true) }
                 var startDestination by remember { mutableStateOf<String?>(null) }
 
                 LaunchedEffect(Unit) {
-                    val onboardingCompleted = dataStore.data.map {
-                        it[booleanPreferencesKey("onboarding_completed")] ?: false
-                    }.first()
-
-                    val currentUser = Firebase.auth.currentUser
-
-                    startDestination = when {
-                        currentUser != null -> {
-                            if (!onboardingCompleted) {
-                                Screen.Onboarding1.route
-                            } else {
-                                Screen.Dashboard.route
-                            }
-                        }
-                        !onboardingCompleted && currentUser == null -> Screen.Start.route
-                        else -> Screen.Login.route
+                    val currentUser = auth.currentUser
+                    startDestination = if (currentUser != null) {
+                        Screen.Dashboard.route
+                    } else {
+                        Screen.Start.route
                     }
                 }
 
@@ -119,7 +115,6 @@ class MainActivity : ComponentActivity() {
                     } else {
                         startDestination?.let { dest ->
                             val navController = rememberNavController()
-                            val scope = rememberCoroutineScope()
 
                             NavHost(
                                 navController = navController,
@@ -141,8 +136,16 @@ class MainActivity : ComponentActivity() {
                                             }
                                         },
                                         onEditProfileClick = {
-                                            navController.navigate(Screen.Onboarding1.route)
+                                            navController.navigate(Screen.EditProfile.route)
                                         }
+                                    )
+                                }
+
+                                composable(Screen.EditProfile.route) {
+                                    CreateProfileScreen(
+                                        editMode = true,
+                                        onProfileSaved = { navController.popBackStack() },
+                                        onBackClick = { navController.popBackStack() }
                                     )
                                 }
 
@@ -194,11 +197,8 @@ class MainActivity : ComponentActivity() {
                                 composable(Screen.Onboarding4.route) {
                                     OnboardingScreen4(
                                         onOnboardingComplete = {
-                                            scope.launch {
-                                                dataStore.edit { it[booleanPreferencesKey("onboarding_completed")] = true }
-                                                navController.navigate(Screen.Dashboard.route) {
-                                                    popUpTo(0) { inclusive = true }
-                                                }
+                                            navController.navigate(Screen.Dashboard.route) {
+                                                popUpTo(0) { inclusive = true }
                                             }
                                         },
                                         onNavigateBack = { navController.popBackStack() }

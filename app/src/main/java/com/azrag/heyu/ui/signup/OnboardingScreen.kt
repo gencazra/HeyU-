@@ -50,7 +50,7 @@ fun OnboardingNameAgeScreen(
             CenterAlignedTopAppBar(
                 title = { 
                     Text(
-                        text = "Profilini Tamamla (1/4)", 
+                        text = "Complete Your Profile (1/4)", 
                         fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.onBackground
                     ) 
@@ -71,7 +71,7 @@ fun OnboardingNameAgeScreen(
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Text(
-                text = "Harika! Seni biraz daha tanıyalım.",
+                text = "Great! Let's get to know you a bit more.",
                 style = MaterialTheme.typography.headlineSmall,
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.onBackground
@@ -80,7 +80,7 @@ fun OnboardingNameAgeScreen(
             Spacer(Modifier.height(8.dp))
 
             Text(
-                text = "Diğer öğrencilerle eşleşmek için yaşına ihtiyacımız var.",
+                text = "We need your age to match you with other students.",
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
@@ -94,8 +94,8 @@ fun OnboardingNameAgeScreen(
                         viewModel.age.value = newValue.filter { it.isDigit() }
                     }
                 },
-                label = { Text("Yaşın") },
-                placeholder = { Text("Örn: 21") },
+                label = { Text("Your Age") },
+                placeholder = { Text("E.g.: 21") },
                 modifier = Modifier.fillMaxWidth(),
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                 singleLine = true,
@@ -133,7 +133,7 @@ fun OnboardingNameAgeScreen(
                         strokeWidth = 2.dp
                     )
                 } else {
-                    Text("İLERİ", fontWeight = FontWeight.Bold)
+                    Text("NEXT", fontWeight = FontWeight.Bold)
                 }
             }
         }

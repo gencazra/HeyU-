@@ -13,6 +13,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.*
@@ -55,7 +56,7 @@ class CreateProfileViewModel @Inject constructor(
             if (editMode) {
                 _uiState.value = when (val result = userRepository.getCurrentUserProfile()) {
                     is Result.Success<UserProfile?> -> ProfileEditUiState.Success(result.data ?: UserProfile())
-                    is Result.Error -> ProfileEditUiState.Error(result.message ?: "Bilinmeyen hata")
+                    is Result.Error -> ProfileEditUiState.Error(result.message ?: "Unknown error")
                     is Result.Loading -> ProfileEditUiState.Loading
                 }
             } else {
@@ -70,7 +71,7 @@ class CreateProfileViewModel @Inject constructor(
             val result = userRepository.saveUserProfile(profileData, newImageUri)
             _uiState.value = when (result) {
                 is Result.Success<*> -> ProfileEditUiState.SaveSuccess
-                is Result.Error -> ProfileEditUiState.Error(result.message ?: "Kayıt hatası")
+                is Result.Error -> ProfileEditUiState.Error(result.message ?: "Save error")
                 is Result.Loading -> ProfileEditUiState.Loading
             }
         }
@@ -88,6 +89,7 @@ sealed class ProfileEditUiState {
 fun CreateProfileScreen(
     editMode: Boolean,
     onProfileSaved: () -> Unit,
+    onBackClick: () -> Unit,
     viewModel: CreateProfileViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
@@ -98,7 +100,7 @@ fun CreateProfileScreen(
     LaunchedEffect(uiState) {
         when (uiState) {
             is ProfileEditUiState.SaveSuccess -> {
-                Toast.makeText(context, "Profil kaydedildi!", Toast.LENGTH_SHORT).show()
+                Toast.makeText(context, "Profile saved!", Toast.LENGTH_SHORT).show()
                 onProfileSaved()
             }
             is ProfileEditUiState.Error -> {
@@ -118,40 +120,53 @@ fun CreateProfileScreen(
             is ProfileEditUiState.Success -> {
                 ProfileEditForm(
                     initialProfile = state.profile,
+                    onBackClick = onBackClick,
                     onSaveClicked = { updatedProfile, newImageUri ->
                         viewModel.saveProfile(updatedProfile, newImageUri)
                     }
                 )
             }
             is ProfileEditUiState.Error -> {
-                ProfileEditForm(
-                    initialProfile = UserProfile(),
-                    onSaveClicked = { updatedProfile, newImageUri ->
-                        viewModel.saveProfile(updatedProfile, newImageUri)
-                    }
-                )
+                Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                    Text("An error occurred: ${state.message}")
+                }
             }
             else -> {}
         }
     }
 }
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun ProfileEditForm(
     initialProfile: UserProfile,
+    onBackClick: () -> Unit,
     onSaveClicked: (profile: UserProfile, newImageUri: Uri?) -> Unit
 ) {
-    var displayName by remember { mutableStateOf(initialProfile.displayName ?: "") }
-    var department by remember { mutableStateOf(initialProfile.department ?: "") }
-    var bio by remember { mutableStateOf(initialProfile.bio ?: "") }
-    var imageUri by remember { mutableStateOf<Uri?>(null) }
-    
-    val primaryColor = MaterialTheme.colorScheme.primary
-    val onPrimaryColor = MaterialTheme.colorScheme.onPrimary
+    val context = LocalContext.current
+    var displayName by remember { mutableStateOf(initialProfile.displayName) }
+    var bio by remember { mutableStateOf(initialProfile.bio) }
 
+    var hobbies by remember { mutableStateOf(initialProfile.hobbies) }
+    var interests by remember { mutableStateOf(initialProfile.interests) }
+    var aboutTags by remember { mutableStateOf(initialProfile.aboutTags) }
+
+    var currentHobby by remember { mutableStateOf("") }
+    var currentInterest by remember { mutableStateOf("") }
+    var currentTag by remember { mutableStateOf("") }
+    
+    var imageUri by remember { mutableStateOf<Uri?>(null) }
+
+    val primaryColor = MaterialTheme.colorScheme.primary
     val imagePickerLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent()
     ) { uri: Uri? -> imageUri = uri }
+
+    val handleAddItem = { item: String, type: String ->
+        if (item.isNotBlank()) {
+            Toast.makeText(context, "$type added: $item", Toast.LENGTH_SHORT).show()
+        }
+    }
 
     Column(
         modifier = Modifier
@@ -160,14 +175,21 @@ private fun ProfileEditForm(
             .padding(24.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Text(
-            text = "heyU!",
-            style = MaterialTheme.typography.displayLarge.copy(
-                fontFamily = LogoFontFamily,
-                fontSize = 52.sp,
-                color = primaryColor
+        Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+            IconButton(onClick = onBackClick) {
+                Icon(Icons.AutoMirrored.Filled.ArrowBack, null, tint = primaryColor)
+            }
+            Spacer(Modifier.weight(1f))
+            Text(
+                text = "heyU!",
+                style = MaterialTheme.typography.displayLarge.copy(
+                    fontFamily = LogoFontFamily,
+                    fontSize = 42.sp,
+                    color = primaryColor
+                )
             )
-        )
+            Spacer(Modifier.weight(1.3f))
+        }
 
         Spacer(Modifier.height(24.dp))
 
@@ -175,49 +197,77 @@ private fun ProfileEditForm(
             modifier = Modifier
                 .size(140.dp)
                 .clip(CircleShape)
-                .background(primaryColor)
+                .background(primaryColor.copy(alpha = 0.1f))
                 .clickable { imagePickerLauncher.launch("image/*") },
             contentAlignment = Alignment.Center
         ) {
             if (imageUri != null || initialProfile.photoUrl.isNotEmpty()) {
                 Image(
-                    painter = rememberAsyncImagePainter(model = imageUri ?: initialProfile.photoUrl),
+                    painter = rememberAsyncImagePainter(imageUri ?: initialProfile.photoUrl),
                     contentDescription = null,
                     modifier = Modifier.fillMaxSize(),
                     contentScale = ContentScale.Crop
                 )
             } else {
-                Icon(
-                    imageVector = Icons.Default.Person,
-                    contentDescription = null,
-                    modifier = Modifier.size(80.dp),
-                    tint = onPrimaryColor
-                )
+                Icon(Icons.Default.Person, null, modifier = Modifier.size(80.dp), tint = primaryColor)
             }
         }
 
         Spacer(Modifier.height(8.dp))
-
-        Text(
-            text = "Resimleri veya avatar ekle",
-            color = primaryColor,
-            fontSize = 14.sp,
-            fontWeight = FontWeight.Medium
-        )
-
+        Text("Edit pictures or avatar", color = primaryColor, fontSize = 14.sp, fontWeight = FontWeight.Medium)
         Spacer(Modifier.height(32.dp))
 
-        ProfileInputField(value = displayName, onValueChange = { displayName = it }, label = "Adı Soyadı")
+        ProfileInputField(value = displayName, onValueChange = { displayName = it }, label = "Full Name")
         Spacer(Modifier.height(12.dp))
-        ProfileInputField(value = department, onValueChange = { department = it }, label = "Bölüm")
+        ProfileInputField(value = bio, onValueChange = { bio = it }, label = "Change bio")
+
+        Spacer(Modifier.height(24.dp))
+
+        ProfileInputField(
+            value = currentHobby,
+            onValueChange = { currentHobby = it },
+            label = "Add your favorites (Movie, Music...)",
+            onAddClick = {
+                if (currentHobby.isNotBlank()) {
+                    handleAddItem(currentHobby, "Hobby")
+                    hobbies = hobbies + currentHobby
+                    currentHobby = ""
+                }
+            }
+        )
+        TagChipGroup(tags = hobbies) { hobbies = hobbies - it }
+
         Spacer(Modifier.height(12.dp))
-        ProfileInputField(value = bio, onValueChange = { bio = it }, label = "Bio")
+
+        ProfileInputField(
+            value = currentInterest,
+            onValueChange = { currentInterest = it },
+            label = "Add your interests (Swimming, Yoga...)",
+            onAddClick = {
+                if (currentInterest.isNotBlank()) {
+                    handleAddItem(currentInterest, "Interest")
+                    interests = interests + currentInterest
+                    currentInterest = ""
+                }
+            }
+        )
+        TagChipGroup(tags = interests) { interests = interests - it }
+
         Spacer(Modifier.height(12.dp))
-        ProfileInputField(value = "", onValueChange = {}, label = "Favorilerini ekle", isStatic = true)
-        Spacer(Modifier.height(12.dp))
-        ProfileInputField(value = "", onValueChange = {}, label = "İlgi alanlarını ekle", isStatic = true)
-        Spacer(Modifier.height(12.dp))
-        ProfileInputField(value = "", onValueChange = {}, label = "Hakkında kısmını ekle", isStatic = true)
+
+        ProfileInputField(
+            value = currentTag,
+            onValueChange = { currentTag = it },
+            label = "Add about section (Vegan, Animal lover...)",
+            onAddClick = {
+                if (currentTag.isNotBlank()) {
+                    handleAddItem(currentTag, "About")
+                    aboutTags = aboutTags + currentTag
+                    currentTag = ""
+                }
+            }
+        )
+        TagChipGroup(tags = aboutTags) { aboutTags = aboutTags - it }
 
         Spacer(Modifier.height(40.dp))
 
@@ -225,21 +275,41 @@ private fun ProfileEditForm(
             onClick = {
                 val updatedProfile = initialProfile.copy(
                     displayName = displayName,
-                    department = department,
-                    bio = bio
+                    bio = bio,
+                    hobbies = hobbies,
+                    interests = interests,
+                    aboutTags = aboutTags
                 )
                 onSaveClicked(updatedProfile, imageUri)
             },
-            modifier = Modifier
-                .width(200.dp)
-                .height(50.dp),
+            modifier = Modifier.fillMaxWidth().height(50.dp),
             colors = ButtonDefaults.buttonColors(containerColor = primaryColor),
             shape = RoundedCornerShape(12.dp)
         ) {
-            Text("Bilgileri Kaydet", fontWeight = FontWeight.Bold, color = onPrimaryColor)
+            Text("Save Information", fontWeight = FontWeight.Bold, color = Color.White)
         }
-        
         Spacer(Modifier.height(24.dp))
+    }
+}
+
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+fun TagChipGroup(tags: List<String>, onRemove: (String) -> Unit) {
+    FlowRow(
+        modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        tags.forEach { tag ->
+            AssistChip(
+                onClick = { onRemove(tag) },
+                label = { Text("*$tag", color = Color.White) },
+                colors = AssistChipDefaults.assistChipColors(
+                    containerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.7f)
+                ),
+                border = null
+            )
+        }
     }
 }
 
@@ -248,18 +318,16 @@ fun ProfileInputField(
     value: String,
     onValueChange: (String) -> Unit,
     label: String,
-    isStatic: Boolean = false
+    onAddClick: (() -> Unit)? = null
 ) {
     val primaryColor = MaterialTheme.colorScheme.primary
-    val onPrimaryColor = MaterialTheme.colorScheme.onPrimary
-    
+    val onPrimaryColor = Color.White
+
     TextField(
         value = value,
         onValueChange = onValueChange,
         placeholder = { Text(label, color = onPrimaryColor.copy(alpha = 0.8f), fontSize = 14.sp) },
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(50.dp),
+        modifier = Modifier.fillMaxWidth().height(52.dp),
         colors = TextFieldDefaults.colors(
             focusedContainerColor = primaryColor,
             unfocusedContainerColor = primaryColor,
@@ -270,9 +338,12 @@ fun ProfileInputField(
         ),
         shape = RoundedCornerShape(10.dp),
         singleLine = true,
-        readOnly = isStatic,
         trailingIcon = {
-            Icon(Icons.Default.Add, null, tint = onPrimaryColor, modifier = Modifier.size(20.dp))
+            if (onAddClick != null) {
+                IconButton(onClick = onAddClick) {
+                    Icon(Icons.Default.Add, null, tint = onPrimaryColor)
+                }
+            }
         }
     )
 }

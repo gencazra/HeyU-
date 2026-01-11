@@ -49,12 +49,12 @@ fun ChatListScreen(
         containerColor = MaterialTheme.colorScheme.background,
         topBar = {
             CenterAlignedTopAppBar(
-                title = { Text("Mesajlar", fontWeight = FontWeight.ExtraBold) },
+                title = { Text("Messages", fontWeight = FontWeight.ExtraBold) },
                 actions = {
                     IconButton(onClick = { navController.navigate("events") }) {
                         Icon(
                             Icons.Default.Event,
-                            contentDescription = "Etkinlikler",
+                            contentDescription = "Events",
                             tint = MaterialTheme.colorScheme.primary
                         )
                     }
@@ -79,7 +79,7 @@ fun ChatListScreen(
                     .padding(horizontal = 16.dp, vertical = 8.dp),
                 placeholder = { 
                     Text(
-                        "Sohbetlerde Ara...", 
+                        "Search in chats...", 
                         fontSize = 14.sp,
                         color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
                     ) 
@@ -199,12 +199,12 @@ private fun EmptyChatsPlaceholder() {
         )
         Spacer(Modifier.height(16.dp))
         Text(
-            "Henüz mesaj yok", 
+            "No messages yet", 
             fontWeight = FontWeight.Bold,
             color = MaterialTheme.colorScheme.onBackground
         )
         Text(
-            "Keşfet'e giderek yeni insanlarla tanışabilirsin!", 
+            "Go to Discover to meet new people!", 
             textAlign = TextAlign.Center,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             modifier = Modifier.padding(horizontal = 32.dp)

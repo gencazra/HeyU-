@@ -99,7 +99,6 @@ fun DraggableCard(
                 contentScale = ContentScale.Crop
             )
 
-            // Kararma efekti (Gradient) artık tema yüzey rengini kullanıyor
             Box(
                 modifier = Modifier
                     .fillMaxSize()

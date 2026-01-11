@@ -61,7 +61,7 @@ fun StartScreen(
                 shape = RoundedCornerShape(28.dp)
             ) {
                 Text(
-                    text = "Hesap oluştur",
+                    text = "Create an account",
                     style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold)
                 )
             }
@@ -83,7 +83,7 @@ fun StartScreen(
                 )
             ) {
                 Text(
-                    text = "Zaten hesabım var",
+                    text = "I already have an account",
                     style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold)
                 )
             }

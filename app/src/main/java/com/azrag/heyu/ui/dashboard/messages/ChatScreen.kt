@@ -39,9 +39,9 @@ fun ChatScreen(
             TopAppBar(
                 title = {
                     Column {
-                        Text(uiState.otherUser?.displayName ?: "Sohbet", fontWeight = FontWeight.Bold)
+                        Text(uiState.otherUser?.displayName ?: "Chat", fontWeight = FontWeight.Bold)
                         Text(
-                            text = uiState.otherUser?.department ?: "Yeditepe Üniversitesi",
+                            text = uiState.otherUser?.department ?: "Yeditepe University",
                             style = MaterialTheme.typography.labelSmall,
                             color = MaterialTheme.colorScheme.primary
                         )
@@ -49,16 +49,16 @@ fun ChatScreen(
                 },
                 navigationIcon = {
                     IconButton(onClick = { navController.popBackStack() }) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Geri")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
                     }
                 },
                 actions = {
                     IconButton(onClick = { showMenu = true }) {
-                        Icon(Icons.Default.MoreVert, contentDescription = "Menü")
+                        Icon(Icons.Default.MoreVert, contentDescription = "Menu")
                     }
                     DropdownMenu(expanded = showMenu, onDismissRequest = { showMenu = false }) {
                         DropdownMenuItem(
-                            text = { Text("Kullanıcıyı Engelle") },
+                            text = { Text("Block User") },
                             onClick = {
                                 viewModel.toggleBlockUser()
                                 showMenu = false
@@ -66,7 +66,7 @@ fun ChatScreen(
                             leadingIcon = { Icon(Icons.Default.Block, contentDescription = null) }
                         )
                         DropdownMenuItem(
-                            text = { Text("Rapor Et (Uygunsuz İçerik)") },
+                            text = { Text("Report (Inappropriate Content)") },
                             onClick = {
                                 showMenu = false
                             },
@@ -95,7 +95,7 @@ fun ChatScreen(
                     ) {
                         SuggestionChip(
                             onClick = { viewModel.sendTextMessage("Hey! 👋") },
-                            label = { Text("Selam ver: Hey! 👋", fontSize = 12.sp) },
+                            label = { Text("Say hi: Hey! 👋", fontSize = 12.sp) },
                             modifier = Modifier.padding(start = 16.dp, top = 8.dp),
                             shape = CircleShape,
                             colors = SuggestionChipDefaults.suggestionChipColors(
@@ -175,7 +175,7 @@ fun ChatInputArea(text: String, onValueChange: (String) -> Unit, onSend: () -> U
             value = text,
             onValueChange = onValueChange,
             modifier = Modifier.weight(1f),
-            placeholder = { Text("Mesaj yazın...", color = MaterialTheme.colorScheme.onSurfaceVariant) },
+            placeholder = { Text("Type a message...", color = MaterialTheme.colorScheme.onSurfaceVariant) },
             shape = CircleShape,
             colors = TextFieldDefaults.colors(
                 focusedContainerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
@@ -194,7 +194,7 @@ fun ChatInputArea(text: String, onValueChange: (String) -> Unit, onSend: () -> U
             containerColor = MaterialTheme.colorScheme.primary,
             contentColor = MaterialTheme.colorScheme.onPrimary
         ) {
-            Icon(Icons.Default.Send, contentDescription = "Gönder")
+            Icon(Icons.Default.Send, contentDescription = "Send")
         }
     }
 }

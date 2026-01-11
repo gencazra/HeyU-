@@ -21,7 +21,6 @@ class OnboardingViewModel @Inject constructor(
     private val userRepository: UserRepository
 ) : ViewModel() {
 
-
     var age = mutableStateOf("")
     var selectedFaculty = mutableStateOf("")
     var major = mutableStateOf("")
@@ -50,7 +49,7 @@ class OnboardingViewModel @Inject constructor(
 
     fun onNameAgeNextClicked() {
         if (age.value.isBlank()) {
-            error.value = "Yaş gerekli"
+            error.value = "Age is required"
         } else {
             viewModelScope.launch { _eventFlow.emit(UiEvent.NavigateToMajor) }
         }
@@ -58,7 +57,7 @@ class OnboardingViewModel @Inject constructor(
 
     fun onMajorNextClicked() {
         if (major.value.isBlank() || classLevel.value.isBlank()) {
-            error.value = "Lütfen bölüm ve sınıf seçiniz."
+            error.value = "Please select major and class level."
         } else {
             viewModelScope.launch { _eventFlow.emit(UiEvent.NavigateToHobbies) }
         }
@@ -66,7 +65,7 @@ class OnboardingViewModel @Inject constructor(
 
     fun onHobbiesBioNextClicked() {
         if (selectedHobbies.value.isEmpty()) {
-            error.value = "En az bir hobi seçin"
+            error.value = "Select at least one hobby"
         } else {
             viewModelScope.launch { _eventFlow.emit(UiEvent.NavigateToPicture) }
         }
@@ -75,7 +74,7 @@ class OnboardingViewModel @Inject constructor(
     fun onCompleteClicked() {
         val user = Firebase.auth.currentUser
         if (user == null) {
-            error.value = "Oturum bulunamadı."
+            error.value = "Session not found."
             return
         }
 
@@ -83,11 +82,11 @@ class OnboardingViewModel @Inject constructor(
             isLoading.value = true
             val profile = UserProfile(
                 id = user.uid,
-                displayName = user.displayName ?: "Öğrenci",
+                displayName = user.displayName ?: "Student",
                 age = age.value.toIntOrNull() ?: 0,
-                department = "${major.value} (${classLevel.value}. Sınıf)",
+                department = "${major.value} (Class ${classLevel.value})",
                 hobbies = selectedHobbies.value,
-                bio = bio.value.ifBlank { "HeyU kullanıcısı!" }
+                bio = bio.value.ifBlank { "HeyU user!" }
             )
 
             val result: Result<Unit> = userRepository.saveUserProfile(profile, imageUri.value)
@@ -113,7 +112,7 @@ class OnboardingViewModel @Inject constructor(
         } else if (current.size < 5) {
             current.add(hobby)
         } else {
-            error.value = "En fazla 5 hobi seçebilirsiniz."
+            error.value = "You can select up to 5 hobbies."
         }
         selectedHobbies.value = current
     }

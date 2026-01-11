@@ -29,7 +29,7 @@ fun OnboardingScreen2(
             CenterAlignedTopAppBar(
                 title = { 
                     Text(
-                        text = "Profilini Tamamla (2/4)", 
+                        text = "Complete Your Profile (2/4)", 
                         fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.onBackground
                     ) 
@@ -48,7 +48,7 @@ fun OnboardingScreen2(
                 .verticalScroll(rememberScrollState())
         ) {
             Text(
-                "Eğitim Bilgilerin", 
+                "Education Information", 
                 style = MaterialTheme.typography.headlineMedium,
                 color = MaterialTheme.colorScheme.onBackground,
                 fontWeight = FontWeight.Bold
@@ -57,7 +57,7 @@ fun OnboardingScreen2(
             Spacer(Modifier.height(8.dp))
             
             Text(
-                "Üniversite hayatına dair detayları paylaş.",
+                "Share details about your university life.",
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
@@ -70,7 +70,7 @@ fun OnboardingScreen2(
                     value = selectedFaculty, 
                     onValueChange = {}, 
                     readOnly = true,
-                    label = { Text("Fakülte Seçin") },
+                    label = { Text("Select Faculty") },
                     trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = facultyExpanded) },
                     modifier = Modifier.fillMaxWidth().menuAnchor(),
                     shape = MaterialTheme.shapes.medium,
@@ -109,7 +109,7 @@ fun OnboardingScreen2(
                     onValueChange = {}, 
                     readOnly = true, 
                     enabled = selectedFaculty.isNotEmpty(),
-                    label = { Text("Bölüm Seçin") },
+                    label = { Text("Select Major") },
                     trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = majorExpanded) },
                     modifier = Modifier.fillMaxWidth().menuAnchor(),
                     shape = MaterialTheme.shapes.medium,
@@ -148,7 +148,7 @@ fun OnboardingScreen2(
                     value = selectedClass, 
                     onValueChange = {}, 
                     readOnly = true,
-                    label = { Text("Kaçıncı Sınıfsın?") },
+                    label = { Text("What class are you in?") },
                     trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = classExpanded) },
                     modifier = Modifier.fillMaxWidth().menuAnchor(),
                     shape = MaterialTheme.shapes.medium,
@@ -192,7 +192,7 @@ fun OnboardingScreen2(
                 ),
                 enabled = selectedFaculty.isNotEmpty() && selectedMajor.isNotEmpty() && selectedClass.isNotEmpty()
             ) {
-                Text("İLERİ", fontWeight = FontWeight.Bold)
+                Text("NEXT", fontWeight = FontWeight.Bold)
             }
         }
     }

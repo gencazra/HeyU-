@@ -39,7 +39,7 @@ class ProfileViewModel @Inject constructor(
                     _uiState.value = MyProfileUiState.Success(profile)
                 }
                 is Result.Error -> {
-                    _uiState.value = MyProfileUiState.Error(result.message ?: "Profil yüklenemedi.")
+                    _uiState.value = MyProfileUiState.Error(result.message ?: "Failed to load profile.")
                 }
                 else -> {}
             }

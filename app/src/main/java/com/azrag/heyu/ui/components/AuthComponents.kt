@@ -37,18 +37,18 @@ fun AuthTextField(
             .height(60.dp),
         label = { Text(label, style = MaterialTheme.typography.bodyLarge) },
         leadingIcon = { Icon(imageVector = leadingIcon, contentDescription = null) },
-        shape = RoundedCornerShape(16.dp), // Köşeleri daha belirgin yuvarlak yapıyoruz
+        shape = RoundedCornerShape(16.dp),
         colors = OutlinedTextFieldDefaults.colors(
-            focusedTextColor = MaterialTheme.colorScheme.onBackground, // Yazı rengi: Beyaz
+            focusedTextColor = MaterialTheme.colorScheme.onBackground,
             unfocusedTextColor = MaterialTheme.colorScheme.onBackground,
-            cursorColor = MaterialTheme.colorScheme.primary, // İmleç rengi: Sarı
-            focusedBorderColor = MaterialTheme.colorScheme.primary, // Seçiliyken çerçeve: Sarı
-            unfocusedBorderColor = MaterialTheme.colorScheme.tertiary.copy(alpha = 0.5f), // Seçili değilken çerçeve: Gri
+            cursorColor = MaterialTheme.colorScheme.primary,
+            focusedBorderColor = MaterialTheme.colorScheme.primary,
+            unfocusedBorderColor = MaterialTheme.colorScheme.tertiary.copy(alpha = 0.5f),
             focusedLeadingIconColor = MaterialTheme.colorScheme.primary,
             unfocusedLeadingIconColor = MaterialTheme.colorScheme.tertiary,
             focusedLabelColor = MaterialTheme.colorScheme.primary,
             unfocusedLabelColor = MaterialTheme.colorScheme.tertiary,
-            unfocusedContainerColor = Color.Transparent, // Arka planı şeffaf
+            unfocusedContainerColor = Color.Transparent,
             focusedContainerColor = Color.Transparent
         ),
         visualTransformation = visualTransformation,
@@ -71,8 +71,8 @@ fun AuthButton(
             .height(56.dp),
         shape = RoundedCornerShape(16.dp),
         colors = ButtonDefaults.buttonColors(
-            containerColor = MaterialTheme.colorScheme.primary, // Buton rengi: Sarı
-            contentColor = MaterialTheme.colorScheme.onPrimary // İçindeki yazı rengi: Lacivert
+            containerColor = MaterialTheme.colorScheme.primary,
+            contentColor = MaterialTheme.colorScheme.onPrimary
         )
     ) {
         Text(text = text, style = MaterialTheme.typography.titleMedium)

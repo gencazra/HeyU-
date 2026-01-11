@@ -51,11 +51,9 @@ fun MatchAnimationScreen(
     var matchedUser by remember { mutableStateOf<UserProfile?>(null) }
     var showMatchContent by remember { mutableStateOf(true) }
 
-    // Tema renklerini alıyoruz
     val primaryColor = MaterialTheme.colorScheme.primary
     val backgroundColor = MaterialTheme.colorScheme.background
     val onPrimaryColor = MaterialTheme.colorScheme.onPrimary
-    val onBackgroundColor = MaterialTheme.colorScheme.onBackground
 
     LaunchedEffect(matchedUserId) {
         if (matchedUserId != null) {
@@ -101,7 +99,7 @@ fun MatchAnimationScreen(
 
                 Spacer(Modifier.height(40.dp))
                 Text(
-                    text = "hey, ${currentUser?.displayName?.split(" ")?.firstOrNull() ?: "Selin"} !",
+                    text = "Hi, ${currentUser?.displayName?.split(" ")?.firstOrNull() ?: "Selin"}!",
                     fontSize = 18.sp,
                     color = primaryColor,
                     fontWeight = FontWeight.Bold
@@ -132,7 +130,7 @@ fun MatchAnimationScreen(
 
                 Spacer(Modifier.height(40.dp))
                 Text(
-                    text = "${matchedUser?.displayName ?: "Birisi"} \nile arkadaş oldun !",
+                    text = "${matchedUser?.displayName ?: "Someone"} \nis now your friend!",
                     color = onPrimaryColor,
                     fontSize = 22.sp,
                     fontWeight = FontWeight.Bold,
@@ -148,7 +146,7 @@ fun MatchAnimationScreen(
                         modifier = Modifier.size(60.dp)
                     )
                     Text("hey!", color = onPrimaryColor, fontWeight = FontWeight.Bold)
-                    Text("gönder", color = onPrimaryColor, fontSize = 12.sp)
+                    Text("send", color = onPrimaryColor, fontSize = 12.sp)
                 }
                 Spacer(Modifier.height(60.dp))
             }

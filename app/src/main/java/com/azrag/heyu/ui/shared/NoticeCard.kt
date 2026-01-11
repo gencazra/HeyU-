@@ -13,6 +13,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import coil.compose.rememberAsyncImagePainter
 import com.azrag.heyu.R
 import com.azrag.heyu.data.model.Notice
@@ -28,7 +29,7 @@ fun NoticeCard(
 ) {
     val currentUserId = Firebase.auth.currentUser?.uid
     val isCurrentUserAttending = notice.attendees.contains(currentUserId)
-    val dateFormat = SimpleDateFormat("dd MMM, HH:mm", Locale("tr"))
+    val dateFormat = SimpleDateFormat("dd MMM, HH:mm", Locale.getDefault())
 
     Card(
         modifier = Modifier.fillMaxWidth(),
@@ -54,7 +55,7 @@ fun NoticeCard(
                         } else {
                             painterResource(id = R.drawable.ic_default_profile)
                         },
-                        contentDescription = "Profil Fotoğrafı",
+                        contentDescription = "Profile Picture",
                         modifier = Modifier
                             .size(40.dp)
                             .clip(CircleShape),
@@ -69,7 +70,7 @@ fun NoticeCard(
                             color = MaterialTheme.colorScheme.onSurface
                         )
                         Text(
-                            text = notice.timestamp?.let { dateFormat.format(it) } ?: "Şimdi",
+                            text = notice.timestamp?.let { dateFormat.format(it) } ?: "Now",
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
@@ -111,7 +112,7 @@ fun NoticeCard(
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 Text(
-                    text = "${notice.attendees.size} kişi katılıyor",
+                    text = "${notice.attendees.size} attending",
                     style = MaterialTheme.typography.bodyMedium,
                     fontWeight = FontWeight.Medium,
                     color = MaterialTheme.colorScheme.onSurface
@@ -132,7 +133,7 @@ fun NoticeCard(
                     shape = androidx.compose.foundation.shape.RoundedCornerShape(20.dp)
                 ) {
                     Text(
-                        text = if (isCurrentUserAttending) "KATILIYORSUN" else "BEN DE VARIM!",
+                        text = if (isCurrentUserAttending) "ATTENDING" else "I'M IN!",
                         fontWeight = FontWeight.Bold
                     )
                 }

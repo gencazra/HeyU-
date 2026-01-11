@@ -4,7 +4,6 @@ import com.google.firebase.Timestamp
 import com.google.firebase.firestore.Exclude
 import com.google.firebase.firestore.ServerTimestamp
 
-
 data class UserProfile(
     val id: String = "",
     val displayName: String = "",
@@ -12,11 +11,11 @@ data class UserProfile(
     val photoUrl: String = "",
     val department: String = "",
     val bio: String = "",
-    val hobbies: List<String> = emptyList(),
-
+    val hobbies: List<String> = emptyList(),   // Favoriler
+    val interests: List<String> = emptyList(), // İlgi Alanları
+    val aboutTags: List<String> = emptyList(), // Hakkında etiketleri
     val age: Int = 0,
     val birthYear: Int? = null,
-
 
     val likedUsers: List<String> = emptyList(),
     val passedUsers: List<String> = emptyList(),
@@ -39,7 +38,6 @@ data class UserProfile(
     @Exclude
     fun isValidAge(): Boolean = age >= 18
 
-
     @Exclude
     fun isOnboardingComplete(): Boolean {
         return displayName.isNotBlank() &&
@@ -47,7 +45,6 @@ data class UserProfile(
                 photoUrl.isNotBlank() &&
                 isValidAge()
     }
-
 
     @Exclude
     fun isYeditepeEmail(): Boolean {

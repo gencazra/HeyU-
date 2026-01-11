@@ -14,9 +14,9 @@ import androidx.compose.ui.unit.dp
 @Composable
 fun TextContentViewerScreen(contentType: String, onNavigateBack: () -> Unit) {
     val (title, content) = when (contentType) {
-        "terms" -> "Kullanım Koşulları" to "1. Uygulamayı etik kurallar çerçevesinde kullanın...\n2. Diğer kullanıcılara saygılı olun..."
-        "privacy" -> "Gizlilik Politikası" to "Verileriniz Yeditepe Üniversitesi standartlarında korunmaktadır..."
-        else -> "Bilgi" to "İçerik bulunamadı."
+        "terms" -> "Terms of Use" to "1. Use the application within ethical rules...\n2. Be respectful to other users..."
+        "privacy" -> "Privacy Policy" to "Your data is protected under Yeditepe University standards..."
+        else -> "Information" to "Content not found."
     }
 
     Scaffold(
@@ -34,7 +34,7 @@ fun TextContentViewerScreen(contentType: String, onNavigateBack: () -> Unit) {
                     IconButton(onClick = onNavigateBack) { 
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack, 
-                            contentDescription = null,
+                            contentDescription = "Back",
                             tint = MaterialTheme.colorScheme.primary
                         ) 
                     } 

@@ -53,7 +53,7 @@ fun MyProfileScreen(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                IconButton(onClick = { /* Geri */ }) {
+                IconButton(onClick = { }) {
                     Icon(Icons.AutoMirrored.Filled.ArrowBack, null, tint = MaterialTheme.colorScheme.primary)
                 }
                 Text(
@@ -110,21 +110,21 @@ fun MyProfileScreen(
             }
 
             Spacer(Modifier.height(16.dp))
-            Text("Resimleri veya avatarı düzenle", color = MaterialTheme.colorScheme.primary, fontSize = 14.sp)
+            Text("Edit pictures or avatar", color = MaterialTheme.colorScheme.primary, fontSize = 14.sp)
             Spacer(Modifier.height(24.dp))
 
             if (uiState is MyProfileUiState.Success) {
                 val profile = (uiState as MyProfileUiState.Success).profile
                 
-                ProfileDisplayItem(label = "Adı", value = profile.displayName)
+                ProfileDisplayItem(label = "Name", value = profile.displayName)
                 Spacer(Modifier.height(12.dp))
-                ProfileDisplayItem(label = "Bio değiştir", value = profile.bio)
+                ProfileDisplayItem(label = "Change bio", value = profile.bio)
                 Spacer(Modifier.height(12.dp))
-                ProfileDisplayItem(label = "Favorilerini ekle", value = "*Film  *Dizi  *Müzik", hasAdd = true)
+                ProfileDisplayItem(label = "Add your favorites", value = "*Movie  *TV Series  *Music", hasAdd = true)
                 Spacer(Modifier.height(12.dp))
-                ProfileDisplayItem(label = "İlgi alanlarını ekle", value = "*Kokteyl  *Yüzme  *Yoga", hasAdd = true)
+                ProfileDisplayItem(label = "Add your interests", value = "*Cocktail  *Swimming  *Yoga", hasAdd = true)
                 Spacer(Modifier.height(12.dp))
-                ProfileDisplayItem(label = "Hakkında kısmını ekle", value = "*Vegan  *Tatlıya düşkün  *Hayvansever", hasAdd = true)
+                ProfileDisplayItem(label = "Add about section", value = "*Vegan  *Sweet tooth  *Animal lover", hasAdd = true)
             }
 
             Spacer(Modifier.height(40.dp))

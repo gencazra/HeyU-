@@ -34,7 +34,7 @@ fun SplashScreen(
     var showU by remember { mutableStateOf(false) }
     var showFullLogo by remember { mutableStateOf(false) }
 
-    // U harfi için özel animasyonlar
+
     val uAlpha by animateFloatAsState(
         targetValue = if (showU) 1f else 0f,
         animationSpec = tween(durationMillis = 800),
@@ -58,11 +58,11 @@ fun SplashScreen(
 
     LaunchedEffect(Unit) {
         delay(500)
-        showHey = true // "hey" aniden (tüm şekilde) gelir
+        showHey = true
         delay(800)
-        showU = true // "u!" fotoğraftaki gibi süzülerek/büyüyerek gelir
+        showU = true
         delay(1500)
-        showFullLogo = true // Arka planlı tam logoya geçiş
+        showFullLogo = true
         delay(2000)
         
         startDestination?.let { destination ->
@@ -75,7 +75,7 @@ fun SplashScreen(
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color(0xFFFFE082)), // Görseldeki sarımtırak arka plan rengi
+            .background(Color(0xFFFFE082)),
         contentAlignment = Alignment.Center
     ) {
         if (!showFullLogo) {
@@ -89,7 +89,7 @@ fun SplashScreen(
                         fontSize = 72.sp,
                         fontFamily = LogoFontFamily,
                         fontWeight = FontWeight.Bold,
-                        color = Color(0xFFE57373) // Görseldeki kırmızımtırak renk
+                        color = Color(0xFFE57373)
                     )
                 }
                 if (showU) {

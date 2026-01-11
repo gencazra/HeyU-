@@ -51,7 +51,7 @@ fun DiscoverScreen(
                 )
                 Spacer(modifier = Modifier.height(16.dp))
                 Text(
-                    text = "hey, Selin!", 
+                    text = "Hi, Selin!", 
                     fontSize = 28.sp,
                     fontWeight = FontWeight.Bold,
                     color = primaryColor
@@ -68,7 +68,7 @@ fun DiscoverScreen(
                 ProfileCard(profile = currentProfile, primaryColor = primaryColor)
             } else {
                 Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    Text(text = uiState.errorMessage ?: "Yeni aday bulunamadı.", color = primaryColor)
+                    Text(text = uiState.errorMessage ?: "No new candidates found.", color = primaryColor)
                 }
             }
         }
@@ -135,9 +135,9 @@ fun ProfileCard(profile: UserProfile, primaryColor: Color) {
                 .padding(horizontal = 24.dp),
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
-            TabButton(text = "Favorileri", isSelected = selectedTab == 0, primaryColor = primaryColor, onClick = { selectedTab = 0 })
-            TabButton(text = "İlgi Alanları", isSelected = selectedTab == 1, primaryColor = primaryColor, onClick = { selectedTab = 1 })
-            TabButton(text = "Hakkında", isSelected = selectedTab == 2, primaryColor = primaryColor, onClick = { selectedTab = 2 })
+            TabButton(text = "Hobbies", isSelected = selectedTab == 0, primaryColor = primaryColor, onClick = { selectedTab = 0 })
+            TabButton(text = "Interests", isSelected = selectedTab == 1, primaryColor = primaryColor, onClick = { selectedTab = 1 })
+            TabButton(text = "About", isSelected = selectedTab == 2, primaryColor = primaryColor, onClick = { selectedTab = 2 })
         }
 
         Spacer(modifier = Modifier.height(24.dp))
@@ -155,7 +155,7 @@ fun ProfileCard(profile: UserProfile, primaryColor: Color) {
                     }
                 }
                 1 -> {
-                   Text(text = "İlgi alanları listesi...", color = primaryColor, fontSize = 18.sp)
+                   Text(text = "Interests list...", color = primaryColor, fontSize = 18.sp)
                 }
                 2 -> {
                     Text(text = profile.bio, color = primaryColor, fontSize = 16.sp)

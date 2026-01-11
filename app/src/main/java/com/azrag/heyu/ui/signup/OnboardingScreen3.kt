@@ -33,8 +33,8 @@ fun OnboardingScreen3(
     val context = LocalContext.current
 
     val allHobbies = listOf(
-        "Müzik", "Spor", "Film", "Kitap", "Gezi", "Oyun",
-        "Yemek", "Sanat", "Dans", "Teknoloji", "Doğa", "Moda"
+        "Music", "Sport", "Movie", "Book", "Travel", "Game",
+        "Food", "Art", "Dance", "Technology", "Nature", "Fashion"
     )
 
     LaunchedEffect(error) {
@@ -57,7 +57,7 @@ fun OnboardingScreen3(
             CenterAlignedTopAppBar(
                 title = { 
                     Text(
-                        "Profil Oluştur (3/4)", 
+                        "Complete Your Profile (3/4)", 
                         fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.onBackground
                     ) 
@@ -66,7 +66,7 @@ fun OnboardingScreen3(
                     IconButton(onClick = onNavigateBack) {
                         Icon(
                             Icons.AutoMirrored.Filled.ArrowBack, 
-                            contentDescription = "Geri",
+                            contentDescription = "Back",
                             tint = MaterialTheme.colorScheme.onBackground
                         )
                     }
@@ -86,13 +86,13 @@ fun OnboardingScreen3(
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Text(
-                "İlgi Alanların", 
+                "Interests", 
                 style = MaterialTheme.typography.headlineSmall,
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.onBackground
             )
             Text(
-                "(En fazla 5 tane seçebilirsin)", 
+                "(You can select up to 5)", 
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
@@ -111,7 +111,7 @@ fun OnboardingScreen3(
                         onClick = { viewModel.onHobbyClicked(hobby) },
                         label = { Text(hobby) },
                         leadingIcon = if (isSelected) {
-                            { Icon(Icons.Default.Done, contentDescription = "Seçildi", modifier = Modifier.size(FilterChipDefaults.IconSize)) }
+                            { Icon(Icons.Default.Done, contentDescription = "Selected", modifier = Modifier.size(FilterChipDefaults.IconSize)) }
                         } else {
                             null
                         },
@@ -127,7 +127,7 @@ fun OnboardingScreen3(
             Spacer(Modifier.height(32.dp))
 
             Text(
-                "Kendinden Bahset", 
+                "Tell Us About Yourself", 
                 style = MaterialTheme.typography.headlineSmall,
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.onBackground
@@ -137,7 +137,7 @@ fun OnboardingScreen3(
             OutlinedTextField(
                 value = bio,
                 onValueChange = { if (it.length <= 150) viewModel.bio.value = it },
-                label = { Text("Kısaca kendini anlat...") },
+                label = { Text("Briefly describe yourself...") },
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(150.dp),
@@ -182,7 +182,7 @@ fun OnboardingScreen3(
                         strokeWidth = 2.dp
                     )
                 } else {
-                    Text("İLERİ", fontWeight = FontWeight.Bold)
+                    Text("NEXT", fontWeight = FontWeight.Bold)
                 }
             }
         }

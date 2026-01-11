@@ -31,14 +31,13 @@ class SignupViewModel @Inject constructor(
         val cleanEmail = email.trim()
 
         if (!cleanEmail.endsWith("@std.yeditepe.edu.tr") && !cleanEmail.endsWith("@yeditepe.edu.tr")) {
-            _uiState.update { it.copy(errorMessage = "L\u00FCtfen ge\u00E7erli bir Yeditepe maili giriniz!") }
+            _uiState.update { it.copy(errorMessage = "Please enter a valid Yeditepe email address!") }
             return
         }
 
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true, errorMessage = null) }
             try {
-
                 val result = auth.createUserWithEmailAndPassword(cleanEmail, pass).await()
                 val user = result.user
 
@@ -62,9 +61,9 @@ class SignupViewModel @Inject constructor(
 
             } catch (e: Exception) {
                 val msg = when {
-                    e.message?.contains("password") == true -> "\u015Eifre en az 6 karakter olmal\u0131d\u0131r."
-                    e.message?.contains("already in use") == true -> "Bu e-posta zaten kullan\u0131l\u0131yor."
-                    else -> e.localizedMessage ?: "Bir hata olu\u015Ftu."
+                    e.message?.contains("password") == true -> "Password must be at least 6 characters."
+                    e.message?.contains("already in use") == true -> "This email is already in use."
+                    else -> e.localizedMessage ?: "An error occurred."
                 }
                 _uiState.update { it.copy(isLoading = false, errorMessage = msg) }
             }

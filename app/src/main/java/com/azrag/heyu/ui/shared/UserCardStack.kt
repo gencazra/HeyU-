@@ -55,7 +55,7 @@ fun UserCardStack(
     ) {
         if (visibleUsers.isEmpty()) {
             Text(
-                text = "Çevrendeki herkesle eşleştin! ✨",
+                text = "You've matched with everyone around you! ✨",
                 style = MaterialTheme.typography.bodyLarge,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
@@ -198,8 +198,8 @@ private fun UserProfileCard(
                     .padding(20.dp),
                 verticalArrangement = Arrangement.Bottom
             ) {
-                val displayAge = user.age ?: user.birthYear?.let { Calendar.getInstance().get(Calendar.YEAR) - it }
-                val titleText = if (displayAge != null) "${user.displayName}, $displayAge" else user.displayName
+                val displayAge = user.age
+                val titleText = if (displayAge != 0) "${user.displayName}, $displayAge" else user.displayName
 
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Text(

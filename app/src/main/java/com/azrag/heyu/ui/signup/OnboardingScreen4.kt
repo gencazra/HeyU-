@@ -47,7 +47,7 @@ fun OnboardingScreen4(
             CenterAlignedTopAppBar(
                 title = { 
                     Text(
-                        "Profil Oluştur (4/4)", 
+                        "Complete Your Profile (4/4)", 
                         fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.onBackground
                     ) 
@@ -56,7 +56,7 @@ fun OnboardingScreen4(
                     IconButton(onClick = onNavigateBack) {
                         Icon(
                             Icons.AutoMirrored.Filled.ArrowBack, 
-                            contentDescription = "Geri",
+                            contentDescription = "Back",
                             tint = MaterialTheme.colorScheme.onBackground
                         )
                     }
@@ -76,7 +76,7 @@ fun OnboardingScreen4(
             verticalArrangement = Arrangement.Center
         ) {
             Text(
-                "Profil Fotoğrafı", 
+                "Profile Picture", 
                 style = MaterialTheme.typography.headlineMedium,
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.onBackground
@@ -85,7 +85,7 @@ fun OnboardingScreen4(
             Spacer(Modifier.height(8.dp))
             
             Text(
-                "Seni tanıtmamıza yardımcı olacak bir fotoğraf seç.",
+                "Choose a photo that will help us introduce you.",
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
@@ -139,7 +139,7 @@ fun OnboardingScreen4(
                         strokeWidth = 2.dp
                     )
                 } else {
-                    Text("TAMAMLA VE BİTİR", fontWeight = FontWeight.Bold)
+                    Text("COMPLETE AND FINISH", fontWeight = FontWeight.Bold)
                 }
             }
         }
