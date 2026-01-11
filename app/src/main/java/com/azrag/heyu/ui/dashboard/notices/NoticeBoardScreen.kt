@@ -19,31 +19,39 @@ import com.azrag.heyu.util.Screen
 @Composable
 fun NoticeBoardScreen(
     navController: NavController,
-    viewModel: NoticeBoardViewModel = hiltViewModel()
+    viewModel: NoticeViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
 
     Scaffold(
         floatingActionButton = {
-            FloatingActionButton(onClick = { navController.navigate("add_notice") }) {
+            FloatingActionButton(onClick = { navController.navigate(Screen.AddNotice.route) }) {
                 Icon(Icons.Default.Add, contentDescription = "Duyuru Ekle")
             }
         }
     ) { paddingValues ->
         Box(modifier = Modifier.padding(paddingValues).fillMaxSize()) {
-            when (val state = uiState) {
-                is NoticeBoardUiState.Loading -> CircularProgressIndicator(Modifier.align(Alignment.Center))
-                is NoticeBoardUiState.Success -> {
+            if (uiState.isLoadingList) {
+                CircularProgressIndicator(Modifier.align(Alignment.Center))
+            } else if (uiState.listError != null) {
+                Text(uiState.listError!!, Modifier.align(Alignment.Center))
+            } else {
+                if (uiState.notices.isEmpty()) {
+                    Text("Henüz duyuru veya etkinlik yok.", Modifier.align(Alignment.Center))
+                } else {
                     LazyColumn(
                         contentPadding = PaddingValues(16.dp),
                         verticalArrangement = Arrangement.spacedBy(16.dp)
                     ) {
-                        items(state.notices, key = { it.id }) { notice ->
-                            NoticeCard(notice, onImInClicked = { viewModel.onImInClicked(notice.id) })
+                        items(uiState.notices, key = { it.id }) { notice ->
+                            NoticeCard(
+                                notice = notice,
+                                onImInClicked = { viewModel.onImInClicked(notice.id) },
+                                onClick = { navController.navigate(Screen.NoticeDetail.createRoute(notice.id)) }
+                            )
                         }
                     }
                 }
-                is NoticeBoardUiState.Error -> Text(state.message, Modifier.align(Alignment.Center))
             }
         }
     }

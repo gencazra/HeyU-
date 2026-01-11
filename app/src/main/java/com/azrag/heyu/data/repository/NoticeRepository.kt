@@ -27,12 +27,38 @@ class NoticeRepository @Inject constructor(private val firestore: FirebaseFirest
         }
     }
 
-    suspend fun addNotice(notice: Notice): Result<String> {
+    suspend fun getNoticeById(id: String): Result<Notice> {
         return try {
-            val documentRef = noticeCollection.add(notice).await()
+            val document = noticeCollection.document(id).get().await()
+            val notice = document.toObject(Notice::class.java)?.copy(id = document.id)
+            if (notice != null) Result.Success(notice) else Result.Error("Duyuru bulunamadı.")
+        } catch (e: Exception) {
+            Result.Error(e.localizedMessage ?: "Duyuru yüklenemedi.")
+        }
+    }
+
+    suspend fun addNotice(notice: Notice): Result<String> {
+        val currentUser = Firebase.auth.currentUser ?: return Result.Error("Giriş yapmış kullanıcı bulunamadı.")
+        
+        return try {
+            val noticeMap = hashMapOf(
+                "creatorId" to currentUser.uid,
+                "creatorName" to notice.creatorName,
+                "creatorImageUrl" to notice.creatorImageUrl,
+                "title" to notice.title,
+                "description" to notice.description,
+                "category" to notice.category,
+                "eventDate" to notice.eventDate,
+                "eventTime" to notice.eventTime,
+                "location" to notice.location,
+                "imageUrl" to notice.imageUrl,
+                "attendees" to emptyList<String>(),
+                "timestamp" to FieldValue.serverTimestamp()
+            )
+            val documentRef = noticeCollection.add(noticeMap).await()
             Result.Success(documentRef.id)
         } catch (e: Exception) {
-            Result.Error(e.localizedMessage ?: "Duyuru paylaşılamadı.")
+            Result.Error(e.localizedMessage ?: "Firestore hatası.")
         }
     }
 
@@ -50,7 +76,7 @@ class NoticeRepository @Inject constructor(private val firestore: FirebaseFirest
             }
             Result.Success(Unit)
         } catch (e: Exception) {
-            Result.Error("İşlem başarısız.")
+            Result.Error("İşlem başarısız: ${e.localizedMessage}")
         }
     }
 }

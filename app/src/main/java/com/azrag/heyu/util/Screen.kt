@@ -19,7 +19,7 @@ sealed class Screen(
     object Dashboard : Screen("dashboard")
 
     object Discover : Screen("discover", "Keşfet", Icons.Default.Explore)
-    object EventBoard : Screen("event_board", "Etkinlikler", Icons.Default.Event)
+    object NoticeBoard : Screen("notice_board", "Duyurular", Icons.Default.Campaign)
     object MessageList : Screen("message_list", "Mesajlar", Icons.Default.Chat)
     object ProfileView : Screen("profile_view", "Profil", Icons.Default.Person)
 
@@ -49,11 +49,11 @@ sealed class Screen(
     }
 
 
-    object EventDetail : Screen("event_detail/{eventId}") {
-        fun createRoute(eventId: String) = "event_detail/$eventId"
+    object NoticeDetail : Screen("notice_detail/{noticeId}") {
+        fun createRoute(noticeId: String) = "notice_detail/$noticeId"
     }
 
-    object AddEvent : Screen("add_event", "Etkinlik Oluştur", Icons.Default.Add)
+    object AddNotice : Screen("add_notice", "Duyuru Oluştur", Icons.Default.Add)
 
 
     object AdminPanel : Screen("admin_panel", "Yönetim", Icons.Default.AdminPanelSettings)

@@ -8,7 +8,7 @@ import androidx.navigation.NavController
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.compose.*
 import com.azrag.heyu.ui.dashboard.messages.ChatListScreen
-import com.azrag.heyu.ui.dashboard.events.EventBoardScreen
+import com.azrag.heyu.ui.dashboard.notices.NoticeBoardScreen
 import com.azrag.heyu.ui.dashboard.discover.DiscoverScreen
 import com.azrag.heyu.ui.profile.MyProfileScreen
 import com.azrag.heyu.util.Screen
@@ -21,7 +21,7 @@ fun DashboardScreen(mainNavController: NavController) {
 
     val bottomNavItems = listOf(
         Screen.Discover,
-        Screen.EventBoard,
+        Screen.NoticeBoard,
         Screen.MessageList,
         Screen.ProfileView
     )
@@ -72,8 +72,8 @@ fun DashboardScreen(mainNavController: NavController) {
                 DiscoverScreen(mainNavController = mainNavController)
             }
 
-            composable(Screen.EventBoard.route) {
-                EventBoardScreen(navController = mainNavController)
+            composable(Screen.NoticeBoard.route) {
+                NoticeBoardScreen(navController = mainNavController)
             }
 
             composable(Screen.MessageList.route) {
