@@ -20,7 +20,6 @@ import com.google.firebase.ktx.Firebase
 import java.text.SimpleDateFormat
 import java.util.*
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun NoticeCard(
     notice: Notice,
@@ -28,7 +27,7 @@ fun NoticeCard(
 ) {
     val currentUserId = Firebase.auth.currentUser?.uid
     val isCurrentUserAttending = notice.attendees.contains(currentUserId)
-    val dateFormat = SimpleDateFormat("dd MMM, HH:mm", Locale("tr"))
+    val dateFormat = SimpleDateFormat("dd MMM, HH:mm", Locale("en"))
 
     Card(
         modifier = Modifier.fillMaxWidth(),
@@ -49,12 +48,12 @@ fun NoticeCard(
             ) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Image(
-                        painter = if (notice.creatorImageUrl.isNotBlank()) {
+                        painter = if (!notice.creatorImageUrl.isNullOrBlank()) {
                             rememberAsyncImagePainter(model = notice.creatorImageUrl)
                         } else {
                             painterResource(id = R.drawable.ic_default_profile)
                         },
-                        contentDescription = "Profil Fotoğrafı",
+                        contentDescription = "Profile Photo",
                         modifier = Modifier
                             .size(40.dp)
                             .clip(CircleShape),
@@ -69,7 +68,7 @@ fun NoticeCard(
                             color = MaterialTheme.colorScheme.onSurface
                         )
                         Text(
-                            text = notice.timestamp?.let { dateFormat.format(it) } ?: "Şimdi",
+                            text = notice.timestamp?.let { dateFormat.format(it) } ?: "Now",
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
@@ -84,6 +83,7 @@ fun NoticeCard(
                         ) 
                     },
                     border = SuggestionChipDefaults.suggestionChipBorder(
+                        enabled = true,
                         borderColor = MaterialTheme.colorScheme.primary
                     )
                 )
@@ -110,7 +110,7 @@ fun NoticeCard(
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 Text(
-                    text = "${notice.attendees.size} kişi katılıyor",
+                    text = "${notice.attendees.size} people attending",
                     style = MaterialTheme.typography.bodyMedium,
                     fontWeight = FontWeight.Medium,
                     color = MaterialTheme.colorScheme.onSurface
@@ -128,10 +128,10 @@ fun NoticeCard(
                             contentColor = MaterialTheme.colorScheme.onPrimary
                         )
                     },
-                    shape = androidx.compose.foundation.shape.RoundedCornerShape(20.dp)
+                    shape = MaterialTheme.shapes.medium
                 ) {
                     Text(
-                        text = if (isCurrentUserAttending) "KATILIYORSUN" else "BEN DE VARIM!",
+                        text = if (isCurrentUserAttending) "ATTENDING" else "I'M IN!",
                         fontWeight = FontWeight.Bold
                     )
                 }
