@@ -13,14 +13,14 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import coil.compose.rememberAsyncImagePainter
 import com.azrag.heyu.R
-import com.azrag.heyu.data.model.Event
+import com.azrag.heyu.data.model.Notice
 import java.text.SimpleDateFormat
 import java.util.*
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun EventCard(
-    event: Event,
+    notice: Notice,
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -43,9 +43,9 @@ fun EventCard(
         Column {
             Image(
                 painter = rememberAsyncImagePainter(
-                    model = if (event.imageUrl.isBlank()) R.drawable.ic_default_profile else event.imageUrl
+                    model = if (notice.imageUrl.isNullOrBlank()) R.drawable.ic_default_profile else notice.imageUrl
                 ),
-                contentDescription = event.title,
+                contentDescription = notice.title,
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(180.dp),
@@ -54,7 +54,7 @@ fun EventCard(
 
             Column(modifier = Modifier.padding(16.dp)) {
                 Text(
-                    text = event.title,
+                    text = notice.title,
                     style = MaterialTheme.typography.titleLarge,
                     fontWeight = FontWeight.Bold,
                     maxLines = 1,
@@ -62,9 +62,9 @@ fun EventCard(
                     color = contentColor
                 )
 
-                if (event.organizer.isNotBlank()) {
+                if (!notice.creatorName.isBlank()) {
                     Text(
-                        text = "Düzenleyen: ${event.organizer}",
+                        text = "Paylaşan: ${notice.creatorName}",
                         style = MaterialTheme.typography.labelMedium,
                         color = primaryColor,
                         modifier = Modifier.padding(top = 2.dp)
@@ -73,11 +73,11 @@ fun EventCard(
 
                 Spacer(modifier = Modifier.height(12.dp))
 
-                val displayDate = remember(event) {
-                    if (event.eventDate.isNotBlank()) {
-                        "${event.eventDate}, ${event.eventTime}"
+                val displayDate = remember(notice) {
+                    if (!notice.eventDate.isNullOrBlank()) {
+                        "${notice.eventDate}, ${notice.eventTime ?: ""}"
                     } else {
-                        event.serverTimestamp?.let {
+                        notice.timestamp?.let {
                             SimpleDateFormat("dd MMMM yyyy, HH:mm", Locale("tr")).format(it)
                         } ?: "Tarih belirtilmemiş"
                     }
@@ -93,13 +93,15 @@ fun EventCard(
 
                 Spacer(modifier = Modifier.height(4.dp))
 
-                Text(
-                    text = "📍 ${event.location}",
-                    style = MaterialTheme.typography.bodySmall,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                    color = secondaryColor
-                )
+                notice.location?.let {
+                    Text(
+                        text = "📍 $it",
+                        style = MaterialTheme.typography.bodySmall,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                        color = secondaryColor
+                    )
+                }
             }
         }
     }

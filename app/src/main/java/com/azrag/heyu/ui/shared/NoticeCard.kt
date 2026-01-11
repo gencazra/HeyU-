@@ -1,8 +1,13 @@
 package com.azrag.heyu.ui.shared
 
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.DateRange
+import androidx.compose.material.icons.filled.LocationOn
+import androidx.compose.material.icons.filled.Schedule
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -24,14 +29,15 @@ import java.util.*
 @Composable
 fun NoticeCard(
     notice: Notice,
-    onImInClicked: () -> Unit
+    onImInClicked: () -> Unit,
+    onClick: () -> Unit = {}
 ) {
     val currentUserId = Firebase.auth.currentUser?.uid
     val isCurrentUserAttending = notice.attendees.contains(currentUserId)
     val dateFormat = SimpleDateFormat("dd MMM, HH:mm", Locale("tr"))
 
     Card(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier.fillMaxWidth().clickable { onClick() },
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.surface,
@@ -49,7 +55,7 @@ fun NoticeCard(
             ) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Image(
-                        painter = if (notice.creatorImageUrl.isNotBlank()) {
+                        painter = if (!notice.creatorImageUrl.isNullOrBlank()) {
                             rememberAsyncImagePainter(model = notice.creatorImageUrl)
                         } else {
                             painterResource(id = R.drawable.ic_default_profile)
@@ -83,25 +89,81 @@ fun NoticeCard(
                             color = MaterialTheme.colorScheme.primary
                         ) 
                     },
-                    border = SuggestionChipDefaults.suggestionChipBorder(
-                        borderColor = MaterialTheme.colorScheme.primary
-                    )
+                    border = SuggestionChipDefaults.suggestionChipBorder(enabled = true)
                 )
             }
 
-            Column {
+            if (!notice.imageUrl.isNullOrBlank()) {
+                Image(
+                    painter = rememberAsyncImagePainter(model = notice.imageUrl),
+                    contentDescription = null,
+                    modifier = Modifier.fillMaxWidth().height(150.dp).clip(MaterialTheme.shapes.medium),
+                    contentScale = ContentScale.Crop
+                )
+            }
+
+            Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
                 Text(
                     text = notice.title,
                     style = MaterialTheme.typography.titleLarge,
                     fontWeight = FontWeight.SemiBold,
                     color = MaterialTheme.colorScheme.primary
                 )
-                Spacer(modifier = Modifier.height(4.dp))
                 Text(
                     text = notice.description,
                     style = MaterialTheme.typography.bodyLarge,
-                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f)
+                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f),
+                    maxLines = 3
                 )
+            }
+
+            if (notice.eventDate != null || notice.eventTime != null || notice.location != null) {
+                Column(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalArrangement = Arrangement.spacedBy(4.dp)
+                ) {
+                    HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp), thickness = 0.5.dp)
+                    
+                    if (!notice.location.isNullOrBlank()) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Icon(
+                                Icons.Default.LocationOn, 
+                                contentDescription = null, 
+                                modifier = Modifier.size(16.dp), 
+                                tint = MaterialTheme.colorScheme.secondary
+                            )
+                            Spacer(Modifier.width(4.dp))
+                            Text(notice.location, style = MaterialTheme.typography.bodySmall)
+                        }
+                    }
+                    
+                    Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+                        if (!notice.eventDate.isNullOrBlank()) {
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Icon(
+                                    Icons.Default.DateRange, 
+                                    contentDescription = null, 
+                                    modifier = Modifier.size(16.dp), 
+                                    tint = MaterialTheme.colorScheme.secondary
+                                )
+                                Spacer(Modifier.width(4.dp))
+                                Text(notice.eventDate, style = MaterialTheme.typography.bodySmall)
+                            }
+                        }
+                        if (!notice.eventTime.isNullOrBlank()) {
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Icon(
+                                    Icons.Default.Schedule, 
+                                    contentDescription = null, 
+                                    modifier = Modifier.size(16.dp), 
+                                    tint = MaterialTheme.colorScheme.secondary
+                                )
+                                Spacer(Modifier.width(4.dp))
+                                Text(notice.eventTime, style = MaterialTheme.typography.bodySmall)
+                            }
+                        }
+                    }
+                }
             }
 
             Row(
@@ -128,7 +190,7 @@ fun NoticeCard(
                             contentColor = MaterialTheme.colorScheme.onPrimary
                         )
                     },
-                    shape = androidx.compose.foundation.shape.RoundedCornerShape(20.dp)
+                    shape = MaterialTheme.shapes.medium
                 ) {
                     Text(
                         text = if (isCurrentUserAttending) "KATILIYORSUN" else "BEN DE VARIM!",

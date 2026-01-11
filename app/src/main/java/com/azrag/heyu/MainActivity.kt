@@ -26,10 +26,11 @@ import androidx.navigation.compose.*
 import androidx.navigation.navArgument
 import com.azrag.heyu.ui.dashboard.DashboardScreen
 import com.azrag.heyu.ui.dashboard.discover.MatchAnimationScreen
-import com.azrag.heyu.ui.dashboard.events.AddEventScreen
-import com.azrag.heyu.ui.dashboard.events.EventDetailScreen
 import com.azrag.heyu.ui.dashboard.messages.ChatScreen
+import com.azrag.heyu.ui.dashboard.notices.AddNoticeScreen
+import com.azrag.heyu.ui.dashboard.notices.NoticeDetailScreen
 import com.azrag.heyu.ui.login.*
+import com.azrag.heyu.ui.profile.SettingsScreen
 import com.azrag.heyu.ui.signup.*
 import com.azrag.heyu.ui.start.StartScreen
 import com.azrag.heyu.ui.theme.HeyUTheme
@@ -198,16 +199,27 @@ class MainActivity : ComponentActivity() {
                                     DashboardScreen(mainNavController = navController)
                                 }
 
-                                composable(Screen.AddEvent.route) {
-                                    AddEventScreen(navController = navController)
+                                composable(Screen.AddNotice.route) {
+                                    AddNoticeScreen(onNavigateBack = { navController.popBackStack() })
+                                }
+
+                                composable(Screen.Settings.route) {
+                                    SettingsScreen(
+                                        onNavigateBack = { navController.popBackStack() },
+                                        onLogout = {
+                                            navController.navigate(Screen.Login.route) {
+                                                popUpTo(Screen.Dashboard.route) { inclusive = true }
+                                            }
+                                        }
+                                    )
                                 }
 
                                 composable(
-                                    route = Screen.EventDetail.route,
-                                    arguments = listOf(navArgument("eventId") { type = NavType.StringType })
+                                    route = Screen.NoticeDetail.route,
+                                    arguments = listOf(navArgument("noticeId") { type = NavType.StringType })
                                 ) { backStackEntry ->
-                                    val id = backStackEntry.arguments?.getString("eventId") ?: ""
-                                    EventDetailScreen(eventId = id, navController = navController)
+                                    val id = backStackEntry.arguments?.getString("noticeId") ?: ""
+                                    NoticeDetailScreen(noticeId = id, navController = navController)
                                 }
 
                                 composable(

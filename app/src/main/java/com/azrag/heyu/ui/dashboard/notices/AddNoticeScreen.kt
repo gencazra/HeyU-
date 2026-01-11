@@ -1,20 +1,23 @@
 package com.azrag.heyu.ui.dashboard.notices
 
-import android.widget.Toast
+import android.app.DatePickerDialog
+import android.app.TimePickerDialog
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.DateRange
+import androidx.compose.material.icons.filled.LocationOn
+import androidx.compose.material.icons.filled.Schedule
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import com.google.accompanist.flowlayout.FlowRow
+import java.util.*
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -22,108 +25,131 @@ fun AddNoticeScreen(
     onNavigateBack: () -> Unit,
     viewModel: AddNoticeViewModel = hiltViewModel()
 ) {
-    val context = LocalContext.current
-    val uiState by viewModel.uiState.collectAsState()
-
     var title by remember { mutableStateOf("") }
     var description by remember { mutableStateOf("") }
-    val categories = listOf("Proje", "Etüt", "Kahve", "Spor", "Oyun")
-    var selectedCategory by remember { mutableStateOf("") }
-    var isLoading by remember { mutableStateOf(false) }
+    var category by remember { mutableStateOf("Genel") }
+
+    val uiState by viewModel.uiState.collectAsState()
+    val context = LocalContext.current
+    val calendar = Calendar.getInstance()
+
+    val eventDate by viewModel.eventDate
+    val eventTime by viewModel.eventTime
+    val location by viewModel.location
+
+    val datePickerDialog = DatePickerDialog(
+        context,
+        { _, year, month, day -> viewModel.onDateChange(year, month, day) },
+        calendar.get(Calendar.YEAR),
+        calendar.get(Calendar.MONTH),
+        calendar.get(Calendar.DAY_OF_MONTH)
+    )
+
+    val timePickerDialog = TimePickerDialog(
+        context,
+        { _, hour, min -> viewModel.onTimeChange(hour, min) },
+        calendar.get(Calendar.HOUR_OF_DAY),
+        calendar.get(Calendar.MINUTE),
+        true
+    )
 
     LaunchedEffect(uiState) {
-        when (val state = uiState) {
-            is AddNoticeUiState.Loading -> {
-                isLoading = true
-            }
-            is AddNoticeUiState.Success -> {
-                isLoading = false
-                Toast.makeText(context, "Duyuru başarıyla paylaşıldı!", Toast.LENGTH_SHORT).show()
-                onNavigateBack()
-            }
-            is AddNoticeUiState.Error -> {
-                isLoading = false
-                Toast.makeText(context, state.message, Toast.LENGTH_LONG).show()
-                viewModel.onUiStateHandled()
-            }
-            is AddNoticeUiState.Idle -> {
-                isLoading = false
-            }
+        if (uiState is AddNoticeUiState.Success) {
+            onNavigateBack()
+            viewModel.onUiStateHandled()
         }
     }
 
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Yeni Duyuru Oluştur") },
+                title = { Text("Duyuru / Etkinlik Oluştur", fontWeight = FontWeight.Bold) },
                 navigationIcon = {
-                    IconButton(onClick = onNavigateBack, enabled = !isLoading) {
+                    IconButton(onClick = onNavigateBack) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Geri")
                     }
                 }
             )
         }
-    ) { paddingValues ->
+    ) { padding ->
         Column(
             modifier = Modifier
-                .padding(paddingValues)
-                .padding(16.dp)
+                .padding(padding)
                 .fillMaxSize()
+                .padding(16.dp)
                 .verticalScroll(rememberScrollState()),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             OutlinedTextField(
                 value = title,
                 onValueChange = { title = it },
-                label = { Text("Başlık (Örn: CS:GO girecek var mı?)") },
-                modifier = Modifier.fillMaxWidth(),
-                singleLine = true,
-                enabled = !isLoading
+                label = { Text("Başlık") },
+                modifier = Modifier.fillMaxWidth()
             )
 
             OutlinedTextField(
                 value = description,
                 onValueChange = { description = it },
-                label = { Text("Açıklama (Örn: Akşam rank kasacak +2 arıyoruz.)") },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(150.dp),
-                enabled = !isLoading
+                label = { Text("Açıklama") },
+                modifier = Modifier.fillMaxWidth().height(120.dp),
+                maxLines = 5
             )
 
-            Text("Kategori Seç", style = MaterialTheme.typography.titleMedium)
-            FlowRow(
+            OutlinedTextField(
+                value = category,
+                onValueChange = { category = it },
+                label = { Text("Kategori (Örn: Spor, Akademik)") },
+                modifier = Modifier.fillMaxWidth()
+            )
+
+            HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
+            Text("Etkinlik Detayları (Opsiyonel)", style = MaterialTheme.typography.titleSmall, color = MaterialTheme.colorScheme.primary)
+
+            OutlinedTextField(
+                value = location,
+                onValueChange = { viewModel.location.value = it },
+                label = { Text("Konum") },
                 modifier = Modifier.fillMaxWidth(),
-                mainAxisSpacing = 8.dp,
-                crossAxisSpacing = 4.dp
-            ) {
-                categories.forEach { category ->
-                    FilterChip(
-                        selected = (category == selectedCategory),
-                        onClick = { if (!isLoading) selectedCategory = category },
-                        label = { Text(category) }
-                    )
+                leadingIcon = { Icon(Icons.Default.LocationOn, null) }
+            )
+
+            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                OutlinedButton(
+                    onClick = { datePickerDialog.show() },
+                    modifier = Modifier.weight(1f)
+                ) {
+                    Icon(Icons.Default.DateRange, null)
+                    Spacer(Modifier.width(4.dp))
+                    Text(if (eventDate.isEmpty()) "Tarih" else eventDate)
+                }
+                OutlinedButton(
+                    onClick = { timePickerDialog.show() },
+                    modifier = Modifier.weight(1f)
+                ) {
+                    Icon(Icons.Default.Schedule, null)
+                    Spacer(Modifier.width(4.dp))
+                    Text(if (eventTime.isEmpty()) "Saat" else eventTime)
                 }
             }
 
-            Spacer(modifier = Modifier.weight(1f))
+            if (uiState is AddNoticeUiState.Error) {
+                Text(
+                    text = (uiState as AddNoticeUiState.Error).message,
+                    color = MaterialTheme.colorScheme.error,
+                    style = MaterialTheme.typography.bodySmall
+                )
+            }
 
             Button(
-                onClick = {
-                    viewModel.createNotice(title, description, selectedCategory)
-                },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(50.dp),
-                enabled = !isLoading
+                onClick = { viewModel.createNotice(title, description, category) },
+                modifier = Modifier.fillMaxWidth().height(56.dp),
+                enabled = uiState !is AddNoticeUiState.Loading,
+                shape = MaterialTheme.shapes.medium
             ) {
-                if (isLoading) {
-                    CircularProgressIndicator(
-                        modifier = Modifier.size(24.dp),
-                        color = MaterialTheme.colorScheme.onPrimary
-                    )
+                if (uiState is AddNoticeUiState.Loading) {
+                    CircularProgressIndicator(modifier = Modifier.size(24.dp), color = MaterialTheme.colorScheme.onPrimary)
                 } else {
-                    Text("PAYLAŞ")
+                    Text("YAYINLA", fontWeight = FontWeight.Bold)
                 }
             }
         }

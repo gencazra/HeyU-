@@ -1,30 +1,38 @@
 package com.azrag.heyu.ui.dashboard.notices
 
+import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.azrag.heyu.data.model.Notice
+import com.azrag.heyu.data.model.UserProfile
 import com.azrag.heyu.data.repository.NoticeRepository
 import com.azrag.heyu.data.repository.UserRepository
 import com.azrag.heyu.util.Result
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 
-sealed interface NoticeBoardUiState {
-    object Loading : NoticeBoardUiState
-    data class Success(val notices: List<Notice>) : NoticeBoardUiState
-    data class Error(val message: String) : NoticeBoardUiState
-}
+data class NoticeUiState(
+    val isLoadingList: Boolean = false,
+    val isLoadingDetail: Boolean = false,
+    val notices: List<Notice> = emptyList(),
+    val selectedNotice: Notice? = null,
+    val participants: List<UserProfile> = emptyList(),
+    val listError: String? = null,
+    val detailError: String? = null
+)
 
 @HiltViewModel
-class NoticeBoardViewModel @Inject constructor(
-    private val noticeRepository: NoticeRepository
+class NoticeViewModel @Inject constructor(
+    private val noticeRepository: NoticeRepository,
+    private val userRepository: UserRepository
 ) : ViewModel() {
 
-    private val _uiState = MutableStateFlow<NoticeBoardUiState>(NoticeBoardUiState.Loading)
+    private val _uiState = MutableStateFlow(NoticeUiState())
     val uiState = _uiState.asStateFlow()
 
     init {
@@ -33,19 +41,52 @@ class NoticeBoardViewModel @Inject constructor(
 
     fun fetchNotices() {
         viewModelScope.launch {
-            _uiState.value = NoticeBoardUiState.Loading
+            _uiState.update { it.copy(isLoadingList = true) }
             when (val result = noticeRepository.getAllNotices()) {
-                is Result.Success -> _uiState.value = NoticeBoardUiState.Success(result.data ?: emptyList())
-                is Result.Error -> _uiState.value = NoticeBoardUiState.Error(result.message ?: "Hata oluştu.")
-                else -> {}
+                is Result.Success -> _uiState.update { it.copy(isLoadingList = false, notices = result.data ?: emptyList()) }
+                is Result.Error -> _uiState.update { it.copy(isLoadingList = false, listError = result.message) }
+                else -> _uiState.update { it.copy(isLoadingList = false) }
             }
+        }
+    }
+
+    fun loadNoticeDetails(id: String) {
+        viewModelScope.launch {
+            _uiState.update { it.copy(isLoadingDetail = true) }
+            when (val result = noticeRepository.getNoticeById(id)) {
+                is Result.Success -> {
+                    val notice = result.data
+                    _uiState.update { it.copy(isLoadingDetail = false, selectedNotice = notice) }
+                    loadParticipantProfiles(notice?.attendees ?: emptyList())
+                }
+                is Result.Error -> _uiState.update { it.copy(isLoadingDetail = false, detailError = result.message) }
+                else -> _uiState.update { it.copy(isLoadingDetail = false) }
+            }
+        }
+    }
+
+    private fun loadParticipantProfiles(uids: List<String>) {
+        viewModelScope.launch {
+            val profiles = mutableListOf<UserProfile>()
+            uids.forEach { uid ->
+                val res = userRepository.getUserProfile(uid)
+                if (res is Result.Success && res.data != null) {
+                    profiles.add(res.data)
+                }
+            }
+            _uiState.update { it.copy(participants = profiles) }
         }
     }
 
     fun onImInClicked(noticeId: String) {
         viewModelScope.launch {
-            noticeRepository.toggleNoticeParticipation(noticeId)
-            fetchNotices()
+            val result = noticeRepository.toggleNoticeParticipation(noticeId)
+            if (result is Result.Success) {
+                fetchNotices()
+                if (_uiState.value.selectedNotice?.id == noticeId) {
+                    loadNoticeDetails(noticeId)
+                }
+            }
         }
     }
 }
@@ -67,9 +108,14 @@ class AddNoticeViewModel @Inject constructor(
     private val _uiState = MutableStateFlow<AddNoticeUiState>(AddNoticeUiState.Idle)
     val uiState = _uiState.asStateFlow()
 
+    var eventDate = mutableStateOf("")
+    var eventTime = mutableStateOf("")
+    var location = mutableStateOf("")
+    var imageUrl = mutableStateOf("")
+
     fun createNotice(title: String, description: String, category: String) {
         if (title.isBlank() || description.isBlank() || category.isBlank()) {
-            _uiState.value = AddNoticeUiState.Error("Tüm alanları doldurun.")
+            _uiState.value = AddNoticeUiState.Error("Lütfen gerekli alanları doldurun.")
             return
         }
 
@@ -85,13 +131,18 @@ class AddNoticeViewModel @Inject constructor(
                         creatorImageUrl = user.photoUrl ?: "",
                         title = title,
                         description = description,
-                        category = category
+                        category = category,
+                        eventDate = if (eventDate.value.isNotBlank()) eventDate.value else null,
+                        eventTime = if (eventTime.value.isNotBlank()) eventTime.value else null,
+                        location = if (location.value.isNotBlank()) location.value else null,
+                        imageUrl = if (imageUrl.value.isNotBlank()) imageUrl.value else null
                     )
 
-                    when (noticeRepository.addNotice(newNotice)) {
-                        is Result.Success -> _uiState.value = AddNoticeUiState.Success
-                        is Result.Error -> _uiState.value = AddNoticeUiState.Error("Duyuru eklenemedi.")
-                        else -> {}
+                    val addResult = noticeRepository.addNotice(newNotice)
+                    if (addResult is Result.Success) {
+                        _uiState.value = AddNoticeUiState.Success
+                    } else if (addResult is Result.Error) {
+                        _uiState.value = AddNoticeUiState.Error(addResult.message ?: "Paylaşım yapılamadı.")
                     }
                 }
                 is Result.Error -> {
@@ -100,6 +151,14 @@ class AddNoticeViewModel @Inject constructor(
                 else -> {}
             }
         }
+    }
+
+    fun onDateChange(y: Int, m: Int, d: Int) {
+        eventDate.value = "$d/${m + 1}/$y"
+    }
+
+    fun onTimeChange(h: Int, min: Int) {
+        eventTime.value = String.format("%02d:%02d", h, min)
     }
 
     fun onUiStateHandled() {
