@@ -5,9 +5,21 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.text.googlefonts.GoogleFont
+import androidx.compose.ui.text.googlefonts.Font
+import com.azrag.heyu.R
 
+val provider = GoogleFont.Provider(
+    providerAuthority = "com.google.android.gms.fonts",
+    providerPackage = "com.google.android.gms",
+    certificates = R.array.com_google_android_gms_fonts_certs
+)
 
-val LogoFontFamily = FontFamily.Cursive
+val LogoFontName = GoogleFont("Pacifico")
+
+val LogoFontFamily = FontFamily(
+    Font(googleFont = LogoFontName, fontProvider = provider)
+)
 
 val Typography = Typography(
     bodyLarge = TextStyle(
@@ -19,7 +31,7 @@ val Typography = Typography(
     ),
     displayLarge = TextStyle(
         fontFamily = LogoFontFamily,
-        fontWeight = FontWeight.Bold,
+        fontWeight = FontWeight.Normal,
         fontSize = 80.sp
     )
 )

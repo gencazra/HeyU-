@@ -1,6 +1,8 @@
 package com.azrag.heyu.ui.dashboard
 
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
@@ -14,6 +16,7 @@ import com.azrag.heyu.ui.profile.MyProfileScreen
 import com.azrag.heyu.util.Screen
 
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DashboardScreen(mainNavController: NavController) {
     val dashboardNavController = rememberNavController()
@@ -26,6 +29,16 @@ fun DashboardScreen(mainNavController: NavController) {
     )
 
     Scaffold(
+        topBar = {
+            TopAppBar(
+                title = { Text("heyU!") },
+                actions = {
+                    IconButton(onClick = { mainNavController.navigate(Screen.Settings.route) }) {
+                        Icon(Icons.Default.Settings, contentDescription = "Ayarlar")
+                    }
+                }
+            )
+        },
         bottomBar = {
             NavigationBar {
                 val navBackStackEntry by dashboardNavController.currentBackStackEntryAsState()

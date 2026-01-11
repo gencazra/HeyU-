@@ -30,6 +30,7 @@ import com.azrag.heyu.ui.dashboard.events.AddEventScreen
 import com.azrag.heyu.ui.dashboard.events.EventDetailScreen
 import com.azrag.heyu.ui.dashboard.messages.ChatScreen
 import com.azrag.heyu.ui.login.*
+import com.azrag.heyu.ui.profile.SettingsScreen
 import com.azrag.heyu.ui.signup.*
 import com.azrag.heyu.ui.start.StartScreen
 import com.azrag.heyu.ui.theme.HeyUTheme
@@ -128,6 +129,20 @@ class MainActivity : ComponentActivity() {
                                     StartScreen(
                                         onLoginClicked = { navController.navigate(Screen.Login.route) },
                                         onSignUpClicked = { navController.navigate(Screen.Signup.route) }
+                                    )
+                                }
+
+                                composable(Screen.Settings.route) {
+                                    SettingsScreen(
+                                        onNavigateBack = { navController.popBackStack() },
+                                        onLogout = {
+                                            navController.navigate(Screen.Login.route) {
+                                                popUpTo(0) { inclusive = true }
+                                            }
+                                        },
+                                        onEditProfileClick = {
+                                            navController.navigate(Screen.Onboarding1.route)
+                                        }
                                     )
                                 }
 

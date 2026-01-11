@@ -1,5 +1,6 @@
 package com.azrag.heyu.ui.shared
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
@@ -20,7 +21,6 @@ import com.google.firebase.ktx.Firebase
 import java.text.SimpleDateFormat
 import java.util.*
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun NoticeCard(
     notice: Notice,
@@ -83,8 +83,9 @@ fun NoticeCard(
                             color = MaterialTheme.colorScheme.primary
                         ) 
                     },
-                    border = SuggestionChipDefaults.suggestionChipBorder(
-                        borderColor = MaterialTheme.colorScheme.primary
+                    border = BorderStroke(
+                        width = 1.dp,
+                        color = MaterialTheme.colorScheme.primary
                     )
                 )
             }
