@@ -53,7 +53,7 @@ fun AnimatedSplashScreen(onAnimationEnd: () -> Unit) {
     val textColor = Color(0xFFFDEBB3)       
 
     LaunchedEffect(Unit) {
-        for (i in 0..logoText.length) {
+        for (i in 1..logoText.length) {
             visibleChars = i
             delay(180) 
         }
@@ -88,6 +88,7 @@ class MainActivity : ComponentActivity() {
             HeyUTheme {
                 var showAnimatedSplash by remember { mutableStateOf(true) }
                 var startDestination by remember { mutableStateOf<String?>(null) }
+                var isLoading by remember { mutableStateOf(true) }
 
                 LaunchedEffect(Unit) {
                     val onboardingCompleted = dataStore.data.map {
@@ -104,17 +105,20 @@ class MainActivity : ComponentActivity() {
                                 Screen.Dashboard.route
                             }
                         }
-                        !onboardingCompleted && currentUser == null -> Screen.Start.route
+                        !onboardingCompleted -> Screen.Start.route
                         else -> Screen.Login.route
                     }
+                    isLoading = false
                 }
 
                 Surface(
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
-                    if (showAnimatedSplash) {
-                        AnimatedSplashScreen { showAnimatedSplash = false }
+                    if (showAnimatedSplash || isLoading) {
+                        AnimatedSplashScreen { 
+                            if (!isLoading) showAnimatedSplash = false 
+                        }
                     } else {
                         startDestination?.let { dest ->
                             val navController = rememberNavController()
