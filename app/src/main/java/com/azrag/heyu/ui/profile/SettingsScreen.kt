@@ -1,5 +1,6 @@
 package com.azrag.heyu.ui.profile
 
+import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -36,14 +37,15 @@ fun SettingsScreen(
     onNavigateBack: () -> Unit,
     onLogout: () -> Unit,
     onEditProfileClick: () -> Unit,
-    onNavigateToEvents: () -> Unit = {}, // Etkinliklere yönlendirme için ekledik
+    onNavigateToEvents: () -> Unit = {},
     viewModel: SettingsViewModel = hiltViewModel(),
-    discoverViewModel: DiscoverViewModel = hiltViewModel() // Test user eklemek için
+    discoverViewModel: DiscoverViewModel = hiltViewModel()
 ) {
     val context = LocalContext.current
-    val primaryColor = MaterialTheme.colorScheme.primary
-    val backgroundColor = MaterialTheme.colorScheme.background
-    val onBackgroundColor = MaterialTheme.colorScheme.onBackground
+    val colorScheme = MaterialTheme.colorScheme
+    val primaryColor = colorScheme.primary
+    val backgroundColor = colorScheme.background
+    val onBackgroundColor = colorScheme.onBackground
 
     val currentUser by viewModel.currentUser.collectAsState()
     val themeSetting by viewModel.themeSetting.collectAsState()
@@ -56,7 +58,7 @@ fun SettingsScreen(
                 .padding(24.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // Üst Bar
+            // Header
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically
@@ -83,7 +85,7 @@ fun SettingsScreen(
                 modifier = Modifier
                     .size(120.dp)
                     .clip(CircleShape)
-                    .background(primaryColor.copy(0.1f)),
+                    .background(colorScheme.surfaceVariant),
                 contentAlignment = Alignment.Center
             ) {
                 if (!currentUser?.photoUrl.isNullOrEmpty()) {
@@ -114,11 +116,15 @@ fun SettingsScreen(
 
             Spacer(Modifier.height(32.dp))
 
-            // KRİTİK: Test Kullanıcısı Ekleme Butonu (Geliştirme İçin)
+            // Test User Ekleme (Debug)
             Button(
-                onClick = { discoverViewModel.add10TestUsers() },
+                onClick = { 
+                    discoverViewModel.add10TestUsers {
+                        Toast.makeText(context, "10 Test Kullanıcısı Eklendi!", Toast.LENGTH_SHORT).show()
+                    }
+                },
                 modifier = Modifier.fillMaxWidth().height(50.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFE91E63)), // Pembe/Kırmızı dikkat çekici renk
+                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFE91E63)),
                 shape = RoundedCornerShape(12.dp)
             ) {
                 Icon(Icons.Default.Add, contentDescription = null, tint = Color.White)
@@ -128,25 +134,16 @@ fun SettingsScreen(
 
             Spacer(Modifier.height(24.dp))
 
-            // Profil Ayarları
             SettingsItem(
                 icon = Icons.Default.Edit,
-                title = "Edit Profile",
+                title = "Profili Editle",
                 onClick = onEditProfileClick
-            )
-
-            // Duyurular ve Etkinlikler (Notice Database erişimi için)
-            SettingsItem(
-                icon = Icons.Default.Campaign,
-                title = "Campus Notices",
-                subTitle = "Events & Announcements",
-                onClick = onNavigateToEvents
             )
 
             Spacer(Modifier.height(32.dp))
 
             Text(
-                text = "General Settings",
+                text = "Genel Ayarlar",
                 modifier = Modifier.align(Alignment.Start).padding(start = 8.dp),
                 color = primaryColor,
                 fontWeight = FontWeight.Bold,
@@ -157,8 +154,8 @@ fun SettingsScreen(
 
             SettingsItem(
                 icon = Icons.Default.WbSunny,
-                title = "Modes",
-                subTitle = "Dark & Light",
+                title = "Modlar",
+                subTitle = "Koyu & Açık",
                 hasSwitch = true,
                 switchChecked = themeSetting == ThemeSetting.DARK,
                 onSwitchChange = { isChecked ->
@@ -168,25 +165,24 @@ fun SettingsScreen(
 
             SettingsItem(
                 icon = Icons.Default.Language,
-                title = "Language",
+                title = "Dil",
                 onClick = { }
             )
 
             SettingsItem(
                 icon = Icons.Default.Shield,
-                title = "Privacy Policy",
-                onClick = { viewModel.openPrivacyPolicy(context) }
+                title = "Gizlilik Politikası",
+                onClick = { }
             )
 
             SettingsItem(
                 icon = Icons.Default.Star,
-                title = "Rate App",
-                onClick = { viewModel.rateApp(context) }
+                title = "Uygulamayı Puanla",
+                onClick = { }
             )
 
-            Spacer(Modifier.height(48.dp))
+            Spacer(modifier = Modifier.weight(1f))
 
-            // Çıkış Butonu
             Button(
                 onClick = {
                     viewModel.logout()
@@ -201,10 +197,10 @@ fun SettingsScreen(
                 ),
                 shape = RoundedCornerShape(25.dp)
             ) {
-                Text("Logout", fontWeight = FontWeight.Bold, fontSize = 16.sp)
+                Text("Çıkış yap", fontWeight = FontWeight.Bold, fontSize = 16.sp)
             }
 
-            Spacer(Modifier.height(24.dp))
+            Spacer(Modifier.height(48.dp))
         }
     }
 }
@@ -219,8 +215,9 @@ fun SettingsItem(
     switchChecked: Boolean = false,
     onSwitchChange: (Boolean) -> Unit = {}
 ) {
-    val primaryColor = MaterialTheme.colorScheme.primary
-    val onSurfaceColor = MaterialTheme.colorScheme.onSurface
+    val colorScheme = MaterialTheme.colorScheme
+    val primaryColor = colorScheme.primary
+    val onSurfaceColor = colorScheme.onSurface
 
     Row(
         modifier = Modifier

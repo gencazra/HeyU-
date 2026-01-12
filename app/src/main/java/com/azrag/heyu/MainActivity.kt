@@ -26,8 +26,7 @@ import androidx.navigation.compose.*
 import androidx.navigation.navArgument
 import com.azrag.heyu.ui.dashboard.DashboardScreen
 import com.azrag.heyu.ui.dashboard.discover.MatchAnimationScreen
-import com.azrag.heyu.ui.dashboard.events.AddEventScreen
-import com.azrag.heyu.ui.dashboard.events.EventDetailScreen
+
 import com.azrag.heyu.ui.dashboard.messages.ChatScreen
 import com.azrag.heyu.ui.login.*
 import com.azrag.heyu.ui.signup.*
@@ -194,17 +193,6 @@ class MainActivity : ComponentActivity() {
                                     DashboardScreen(mainNavController = navController)
                                 }
 
-                                composable(Screen.AddEvent.route) {
-                                    AddEventScreen(navController = navController)
-                                }
-
-                                composable(
-                                    route = Screen.EventDetail.route,
-                                    arguments = listOf(navArgument("eventId") { type = NavType.StringType })
-                                ) { backStackEntry ->
-                                    val id = backStackEntry.arguments?.getString("eventId") ?: ""
-                                    EventDetailScreen(eventId = id, navController = navController)
-                                }
 
                                 composable(
                                     route = Screen.Chat.route,

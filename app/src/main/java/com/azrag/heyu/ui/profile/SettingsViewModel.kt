@@ -43,7 +43,7 @@ class SettingsViewModel @Inject constructor(
     }
 
     // GÜNCELLENDİ: Artık dış link açmak yerine state değiştiriyor
-    fun openPrivacyPolicy() {
+    fun openPrivacyPolicy(context: Context) {
         _navigateToPrivacy.value = true
     }
 

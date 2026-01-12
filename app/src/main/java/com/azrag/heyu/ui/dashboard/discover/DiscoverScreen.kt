@@ -7,6 +7,8 @@ import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -39,13 +41,8 @@ fun DiscoverScreen(
     val uiState by viewModel.uiState.collectAsState()
     val colorScheme = MaterialTheme.colorScheme
 
-    // Arka plan gradyanı: Gündüz (Sarı-Turuncu), Gece (Mavi-Siyah/Koyu)
-    // Temandaki Secondary ve Primary renklerini kullanır
     val backgroundBrush = Brush.verticalGradient(
-        colors = listOf(
-            colorScheme.secondary,
-            colorScheme.primary
-        )
+        colors = listOf(colorScheme.secondary, colorScheme.primary)
     )
 
     LaunchedEffect(uiState.newMatch) {
@@ -69,7 +66,7 @@ fun DiscoverScreen(
                     style = MaterialTheme.typography.displayLarge.copy(
                         fontFamily = LogoFontFamily,
                         fontSize = 32.sp,
-                        color = colorScheme.onPrimary // Kontrast renk
+                        color = colorScheme.onPrimary
                     )
                 )
             }
@@ -81,13 +78,23 @@ fun DiscoverScreen(
                 if (uiState.isLoading) {
                     CircularProgressIndicator(color = colorScheme.onPrimary)
                 } else if (uiState.userCards.isEmpty()) {
-                    Text(
-                        "Etrafında yeni kimse yok!", 
-                        color = colorScheme.onPrimary, 
-                        fontWeight = FontWeight.Bold
-                    )
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        Text(
+                            "Etrafında yeni kimse yok!", 
+                            color = colorScheme.onPrimary, 
+                            fontWeight = FontWeight.Bold,
+                            modifier = Modifier.padding(bottom = 16.dp)
+                        )
+                        Button(
+                            onClick = { viewModel.refresh() },
+                            colors = ButtonDefaults.buttonColors(containerColor = colorScheme.onPrimary, contentColor = colorScheme.primary)
+                        ) {
+                            Icon(Icons.Default.Refresh, contentDescription = null)
+                            Spacer(Modifier.width(8.dp))
+                            Text("Yenile")
+                        }
+                    }
                 } else {
-                    // Kartlar
                     uiState.userCards.asReversed().forEach { user ->
                         SwipeableCard(
                             user = user,
@@ -147,11 +154,10 @@ fun SwipeableCard(
             .fillMaxWidth(0.85f)
             .aspectRatio(0.75f)
             .clip(RoundedCornerShape(32.dp))
-            .background(colorScheme.surface) // Kart arka planı temadan
+            .background(colorScheme.surface)
             .padding(8.dp)
     ) {
         Column(modifier = Modifier.fillMaxSize()) {
-            // Fotoğraf Alanı
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -168,7 +174,6 @@ fun SwipeableCard(
                 )
             }
 
-            // Bilgi Alanı
             Column(
                 modifier = Modifier.padding(16.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
@@ -177,7 +182,7 @@ fun SwipeableCard(
                     text = "${user.displayName}, ${user.age}",
                     fontSize = 22.sp,
                     fontWeight = FontWeight.Bold,
-                    color = colorScheme.primary // Temandaki ana renk (Turuncu veya Amber)
+                    color = colorScheme.primary
                 )
                 Text(
                     text = user.department,
@@ -187,7 +192,6 @@ fun SwipeableCard(
                 
                 Spacer(modifier = Modifier.height(8.dp))
                 
-                // Hobiler
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.Center

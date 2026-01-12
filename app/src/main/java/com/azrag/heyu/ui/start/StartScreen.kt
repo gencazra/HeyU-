@@ -7,6 +7,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -21,14 +22,22 @@ fun StartScreen(
     onSignUpClicked: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val colorScheme = MaterialTheme.colorScheme
+
     Box(modifier = Modifier.fillMaxSize()) {
+        // Arka Plan Resmi
         Image(
-            painter = painterResource(id = R.drawable.heyu_logo),
+            painter = painterResource(id = R.drawable.ic_launcher_background), // BURAYI R.drawable.login_background YAPMAYI UNUTMA
             contentDescription = null,
             modifier = Modifier.fillMaxSize(),
-            contentScale = ContentScale.Crop,
-            alpha = 0.6f
+            contentScale = ContentScale.Crop
         )
+
+        // Karartma Katmanı (Yazıların okunması için)
+        Surface(
+            modifier = Modifier.fillMaxSize(),
+            color = Color.Black.copy(alpha = 0.3f)
+        ) {}
 
         Column(
             modifier = modifier
@@ -36,59 +45,61 @@ fun StartScreen(
                 .padding(24.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Spacer(modifier = Modifier.height(60.dp))
+            Spacer(modifier = Modifier.height(80.dp))
 
+            // Logo (Temadaki ana renk)
             Text(
                 text = "heyU!",
                 style = MaterialTheme.typography.displayLarge.copy(
                     fontFamily = LogoFontFamily,
-                    fontSize = 64.sp,
-                    color = MaterialTheme.colorScheme.primary
+                    fontSize = 72.sp,
+                    color = colorScheme.primary
                 )
             )
 
             Spacer(modifier = Modifier.weight(1f))
 
+            // Hesap Oluştur Butonu (Temadaki Primary rengi)
             Button(
                 onClick = onSignUpClicked,
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .height(56.dp),
+                    .fillMaxWidth(0.8f)
+                    .height(50.dp),
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = MaterialTheme.colorScheme.primary,
-                    contentColor = MaterialTheme.colorScheme.onPrimary
+                    containerColor = colorScheme.primary,
+                    contentColor = colorScheme.onPrimary
                 ),
-                shape = RoundedCornerShape(28.dp)
+                shape = RoundedCornerShape(25.dp)
             ) {
                 Text(
-                    text = "Create an account",
-                    style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold)
+                    text = "Hesap oluştur",
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 16.sp
                 )
             }
 
             Spacer(modifier = Modifier.height(16.dp))
 
+            // Zaten hesabım var Butonu (Temadaki Secondary rengi ile Outlined)
             OutlinedButton(
                 onClick = onLoginClicked,
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .height(56.dp),
-                border = ButtonDefaults.outlinedButtonBorder.copy(
-                    width = 2.dp,
-                    brush = androidx.compose.ui.graphics.SolidColor(MaterialTheme.colorScheme.secondary)
-                ),
-                shape = RoundedCornerShape(28.dp),
+                    .fillMaxWidth(0.8f)
+                    .height(50.dp),
+                border = androidx.compose.foundation.BorderStroke(2.dp, colorScheme.secondary),
+                shape = RoundedCornerShape(25.dp),
                 colors = ButtonDefaults.outlinedButtonColors(
-                    contentColor = MaterialTheme.colorScheme.secondary
+                    contentColor = colorScheme.secondary
                 )
             ) {
                 Text(
-                    text = "I already have an account",
-                    style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold)
+                    text = "Zaten hesabım var",
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 16.sp
                 )
             }
             
-            Spacer(modifier = Modifier.height(40.dp))
+            Spacer(modifier = Modifier.height(60.dp))
         }
     }
 }
