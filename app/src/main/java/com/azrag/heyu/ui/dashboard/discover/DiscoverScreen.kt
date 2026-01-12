@@ -1,184 +1,218 @@
 package com.azrag.heyu.ui.dashboard.discover
 
+import androidx.compose.animation.core.*
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import coil.compose.rememberAsyncImagePainter
-import com.azrag.heyu.ui.theme.LogoFontFamily
 import com.azrag.heyu.data.model.UserProfile
+import com.azrag.heyu.ui.theme.LogoFontFamily
+import com.azrag.heyu.util.Screen
+import kotlinx.coroutines.launch
+import kotlin.math.roundToInt
 
 @Composable
 fun DiscoverScreen(
     mainNavController: NavController,
     viewModel: DiscoverViewModel = hiltViewModel()
 ) {
-    val primaryColor = MaterialTheme.colorScheme.primary
-    val backgroundColor = MaterialTheme.colorScheme.background
-    
     val uiState by viewModel.uiState.collectAsState()
-    
-    var currentIndex by remember { mutableIntStateOf(0) }
-    val currentProfile = uiState.userCards.getOrNull(currentIndex)
+    val colorScheme = MaterialTheme.colorScheme
 
-    Box(modifier = Modifier.fillMaxSize().background(backgroundColor)) {
+    val backgroundBrush = Brush.verticalGradient(
+        colors = listOf(colorScheme.secondary, colorScheme.primary)
+    )
+
+    LaunchedEffect(uiState.newMatch) {
+        uiState.newMatch?.let { matchedUser ->
+            mainNavController.navigate(Screen.MatchSuccess.route.replace("{matchedUserId}", matchedUser.id))
+            viewModel.clearMatch()
+        }
+    }
+
+    Box(modifier = Modifier.fillMaxSize().background(backgroundBrush)) {
         Column(modifier = Modifier.fillMaxSize()) {
-            Column(
-                modifier = Modifier.fillMaxWidth().padding(top = 16.dp),
-                horizontalAlignment = Alignment.CenterHorizontally
+            // Header
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 20.dp),
+                contentAlignment = Alignment.Center
             ) {
                 Text(
                     text = "heyU!",
                     style = MaterialTheme.typography.displayLarge.copy(
                         fontFamily = LogoFontFamily,
-                        fontSize = 42.sp,
-                        color = primaryColor,
-                        fontWeight = FontWeight.ExtraBold
+                        fontSize = 32.sp,
+                        color = colorScheme.onPrimary
                     )
                 )
-                Spacer(modifier = Modifier.height(16.dp))
-                Text(
-                    text = "Hi, Selin!", 
-                    fontSize = 28.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = primaryColor
+            }
+
+            Box(
+                modifier = Modifier.weight(1f).fillMaxWidth(),
+                contentAlignment = Alignment.Center
+            ) {
+                if (uiState.isLoading) {
+                    CircularProgressIndicator(color = colorScheme.onPrimary)
+                } else if (uiState.userCards.isEmpty()) {
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        Text(
+                            "No one new around you!", 
+                            color = colorScheme.onPrimary, 
+                            fontWeight = FontWeight.Bold,
+                            modifier = Modifier.padding(bottom = 16.dp)
+                        )
+                        Button(
+                            onClick = { viewModel.refresh() },
+                            colors = ButtonDefaults.buttonColors(containerColor = colorScheme.onPrimary, contentColor = colorScheme.primary)
+                        ) {
+                            Icon(Icons.Default.Refresh, contentDescription = null)
+                            Spacer(Modifier.width(8.dp))
+                            Text("Refresh")
+                        }
+                    }
+                } else {
+                    uiState.userCards.asReversed().forEach { user ->
+                        SwipeableCard(
+                            user = user,
+                            onSwiped = { liked ->
+                                viewModel.onCardSwiped(user, liked)
+                            }
+                        )
+                    }
+                }
+            }
+            Spacer(modifier = Modifier.height(80.dp))
+        }
+    }
+}
+
+@Composable
+fun SwipeableCard(
+    user: UserProfile,
+    onSwiped: (Boolean) -> Unit
+) {
+    val configuration = LocalConfiguration.current
+    val screenWidth = configuration.screenWidthDp.dp
+    val swipeThreshold = screenWidth * 0.4f
+    val colorScheme = MaterialTheme.colorScheme
+
+    val offsetX = remember { Animatable(0f) }
+    val rotation = (offsetX.value / 20f)
+    val scope = rememberCoroutineScope()
+
+    Box(
+        modifier = Modifier
+            .offset { IntOffset(offsetX.value.roundToInt(), 0) }
+            .graphicsLayer { rotationZ = rotation }
+            .pointerInput(Unit) {
+                detectDragGestures(
+                    onDragEnd = {
+                        if (offsetX.value > swipeThreshold.toPx()) {
+                            scope.launch {
+                                offsetX.animateTo(screenWidth.toPx() * 2, tween(300))
+                                onSwiped(true)
+                            }
+                        } else if (offsetX.value < -swipeThreshold.toPx()) {
+                            scope.launch {
+                                offsetX.animateTo(-screenWidth.toPx() * 2, tween(300))
+                                onSwiped(false)
+                            }
+                        } else {
+                            scope.launch { offsetX.animateTo(0f, spring()) }
+                        }
+                    },
+                    onDrag = { change, dragAmount ->
+                        change.consume()
+                        scope.launch { offsetX.snapTo(offsetX.value + dragAmount.x) }
+                    }
+                )
+            }
+            .fillMaxWidth(0.85f)
+            .aspectRatio(0.75f)
+            .clip(RoundedCornerShape(32.dp))
+            .background(colorScheme.surface)
+            .padding(8.dp)
+    ) {
+        Column(modifier = Modifier.fillMaxSize()) {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .weight(1f)
+                    .clip(RoundedCornerShape(24.dp))
+                    .background(colorScheme.surfaceVariant),
+                contentAlignment = Alignment.Center
+            ) {
+                Image(
+                    painter = rememberAsyncImagePainter(user.photoUrl),
+                    contentDescription = null,
+                    modifier = Modifier.fillMaxSize(),
+                    contentScale = ContentScale.Crop
                 )
             }
 
-            Spacer(modifier = Modifier.height(24.dp))
-
-            if (uiState.isLoading) {
-                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    CircularProgressIndicator(color = primaryColor)
-                }
-            } else if (currentProfile != null) {
-                ProfileCard(profile = currentProfile, primaryColor = primaryColor)
-            } else {
-                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    Text(text = uiState.errorMessage ?: "No new candidates found.", color = primaryColor)
-                }
-            }
-        }
-    }
-}
-
-@Composable
-fun ProfileCard(profile: UserProfile, primaryColor: Color) {
-    var selectedTab by remember { mutableIntStateOf(0) }
-
-    Column(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(350.dp),
-            contentAlignment = Alignment.Center
-        ) {
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth(0.9f)
-                    .fillMaxHeight()
-                    .clip(RoundedCornerShape(topStart = 150.dp, topEnd = 30.dp, bottomStart = 30.dp, bottomEnd = 150.dp))
-                    .background(primaryColor)
-            )
-
-            Image(
-                painter = rememberAsyncImagePainter(model = profile.photoUrl),
-                contentDescription = null,
-                modifier = Modifier
-                    .size(240.dp)
-                    .clip(CircleShape),
-                contentScale = ContentScale.Crop
-            )
-        }
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        Text(
-            text = profile.displayName,
-            fontWeight = FontWeight.ExtraBold,
-            fontSize = 26.sp,
-            color = primaryColor
-        )
-        Text(
-            text = "${profile.age}, ${profile.department}",
-            fontSize = 18.sp,
-            color = primaryColor.copy(0.7f)
-        )
-        Text(
-            text = "\"${profile.bio}\"",
-            fontSize = 14.sp,
-            color = primaryColor,
-            fontWeight = FontWeight.Medium
-        )
-
-        Spacer(modifier = Modifier.height(32.dp))
-
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 24.dp),
-            horizontalArrangement = Arrangement.SpaceBetween
-        ) {
-            TabButton(text = "Hobbies", isSelected = selectedTab == 0, primaryColor = primaryColor, onClick = { selectedTab = 0 })
-            TabButton(text = "Interests", isSelected = selectedTab == 1, primaryColor = primaryColor, onClick = { selectedTab = 1 })
-            TabButton(text = "About", isSelected = selectedTab == 2, primaryColor = primaryColor, onClick = { selectedTab = 2 })
-        }
-
-        Spacer(modifier = Modifier.height(24.dp))
-
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 32.dp),
-            horizontalAlignment = Alignment.Start
-        ) {
-            when (selectedTab) {
-                0 -> {
-                    profile.hobbies.forEach { hobby ->
-                        Text(text = "* $hobby", color = primaryColor, fontSize = 18.sp)
+            Column(
+                modifier = Modifier.padding(16.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Text(
+                    text = "${user.displayName}, ${user.age}",
+                    fontSize = 22.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = colorScheme.primary
+                )
+                Text(
+                    text = user.department,
+                    fontSize = 14.sp,
+                    color = colorScheme.onSurfaceVariant
+                )
+                
+                Spacer(modifier = Modifier.height(8.dp))
+                
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.Center
+                ) {
+                    user.hobbies.take(3).forEach { hobby ->
+                        Surface(
+                            modifier = Modifier.padding(horizontal = 4.dp),
+                            color = colorScheme.primaryContainer,
+                            shape = CircleShape
+                        ) {
+                            Text(
+                                text = hobby,
+                                modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+                                fontSize = 10.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = colorScheme.onPrimaryContainer
+                            )
+                        }
                     }
                 }
-                1 -> {
-                   Text(text = "Interests list...", color = primaryColor, fontSize = 18.sp)
-                }
-                2 -> {
-                    Text(text = profile.bio, color = primaryColor, fontSize = 16.sp)
-                }
             }
         }
-    }
-}
-
-@Composable
-fun TabButton(text: String, isSelected: Boolean, primaryColor: Color, onClick: () -> Unit) {
-    Surface(
-        onClick = onClick,
-        shape = RoundedCornerShape(20.dp),
-        color = if (isSelected) Color(0xFFC7B8F5) else Color.Transparent, 
-        border = if (isSelected) null else ButtonDefaults.outlinedButtonBorder
-    ) {
-        Text(
-            text = text,
-            modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
-            color = if (isSelected) Color.Black else primaryColor,
-            fontWeight = FontWeight.Bold,
-            fontSize = 14.sp
-        )
     }
 }

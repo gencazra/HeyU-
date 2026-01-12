@@ -46,10 +46,10 @@ fun NoticeDetailScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text(uiState.selectedNotice?.title ?: "Duyuru Detayı") },
+                title = { Text(uiState.selectedNotice?.title ?: "Notice Details") },
                 navigationIcon = {
                     IconButton(onClick = { navController.popBackStack() }) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Geri")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
                     }
                 }
             )
@@ -85,8 +85,8 @@ private fun NoticeDetailsContent(
             "${notice.eventDate}, ${notice.eventTime ?: ""}"
         } else {
             notice.timestamp?.let {
-                SimpleDateFormat("dd MMMM yyyy, HH:mm", Locale("tr")).format(it)
-            } ?: "Tarih belirtilmemiş"
+                SimpleDateFormat("dd MMMM yyyy, HH:mm", Locale.ENGLISH).format(it)
+            } ?: "Date not specified"
         }
     }
 
@@ -107,7 +107,7 @@ private fun NoticeDetailsContent(
         item {
             Column(modifier = Modifier.padding(16.dp)) {
                 Text(text = notice.title, style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold)
-                Text(text = "Paylaşan: ${notice.creatorName}", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.secondary)
+                Text(text = "Posted by: ${notice.creatorName}", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.secondary)
                 
                 Spacer(modifier = Modifier.height(16.dp))
 
@@ -116,7 +116,7 @@ private fun NoticeDetailsContent(
 
                 Spacer(modifier = Modifier.height(16.dp))
 
-                Text(text = "Açıklama", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
+                Text(text = "Description", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
                 Text(text = notice.description, style = MaterialTheme.typography.bodyMedium)
 
                 Spacer(modifier = Modifier.height(24.dp))
@@ -128,15 +128,15 @@ private fun NoticeDetailsContent(
                         containerColor = if (isUserParticipant) MaterialTheme.colorScheme.secondary else MaterialTheme.colorScheme.primary
                     )
                 ) {
-                    Text(if (isUserParticipant) "VAZGEÇ" else "KATILIYORUM")
+                    Text(if (isUserParticipant) "LEAVE" else "I'M IN!")
                 }
             }
         }
         item {
             Column(modifier = Modifier.padding(16.dp)) {
-                Text("Katılımcılar (${participants.size})", style = MaterialTheme.typography.titleLarge)
+                Text("Participants (${participants.size})", style = MaterialTheme.typography.titleLarge)
                 if (participants.isEmpty()) {
-                    Text("Henüz katılan yok.", modifier = Modifier.padding(top = 8.dp), style = MaterialTheme.typography.bodySmall)
+                    Text("No participants yet.", modifier = Modifier.padding(top = 8.dp), style = MaterialTheme.typography.bodySmall)
                 } else {
                     LazyRow(
                         contentPadding = PaddingValues(top = 12.dp),

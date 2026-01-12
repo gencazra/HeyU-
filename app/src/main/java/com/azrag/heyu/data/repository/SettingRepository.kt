@@ -45,7 +45,7 @@ class SettingRepository @Inject constructor(
 
     val selectedLanguage: Flow<String> = context.dataStore.data
         .map { preferences ->
-            preferences[PreferencesKeys.LANGUAGE] ?: "tr"
+            preferences[PreferencesKeys.LANGUAGE] ?: "en"
         }
 
     suspend fun setTheme(theme: ThemeSetting) {
