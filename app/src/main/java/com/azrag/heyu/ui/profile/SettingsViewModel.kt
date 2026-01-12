@@ -1,8 +1,6 @@
 package com.azrag.heyu.ui.profile
 
 import android.content.Context
-import android.content.Intent
-import android.net.Uri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.azrag.heyu.data.model.UserProfile
@@ -10,8 +8,10 @@ import com.azrag.heyu.data.repository.SettingRepository
 import com.azrag.heyu.data.repository.ThemeSetting
 import com.azrag.heyu.data.repository.UserRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -28,6 +28,10 @@ class SettingsViewModel @Inject constructor(
     val themeSetting: StateFlow<ThemeSetting> = settingRepository.themeSetting
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), ThemeSetting.SYSTEM)
 
+    // Eklendi: Navigasyon veya Dialog için state
+    private val _navigateToPrivacy = MutableStateFlow(false)
+    val navigateToPrivacy = _navigateToPrivacy.asStateFlow()
+
     fun onThemeChanged(isDark: Boolean) {
         viewModelScope.launch {
             settingRepository.setTheme(if (isDark) ThemeSetting.DARK else ThemeSetting.LIGHT)
@@ -38,23 +42,23 @@ class SettingsViewModel @Inject constructor(
         settingRepository.logout()
     }
 
-    fun openPrivacyPolicy(context: Context) {
-        val intent = Intent(Intent.ACTION_VIEW, Uri.parse("https://heyu.app/privacy"))
-        context.startActivity(intent)
+    // GÜNCELLENDİ: Artık dış link açmak yerine state değiştiriyor
+    fun openPrivacyPolicy() {
+        _navigateToPrivacy.value = true
+    }
+
+    fun resetNavigation() {
+        _navigateToPrivacy.value = false
     }
 
     fun rateApp(context: Context) {
         val packageName = context.packageName
         try {
-            context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("market://details?id=$packageName")))
+            val marketUri = android.net.Uri.parse("market://details?id=$packageName")
+            context.startActivity(android.content.Intent(android.content.Intent.ACTION_VIEW, marketUri))
         } catch (e: Exception) {
-            context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("https://play.google.com/store/apps/details?id=$packageName")))
-        }
-    }
-
-    fun changeLanguage(languageCode: String) {
-        viewModelScope.launch {
-            settingRepository.setLanguage(languageCode)
+            val playStoreUri = android.net.Uri.parse("https://play.google.com/store/apps/details?id=$packageName")
+            context.startActivity(android.content.Intent(android.content.Intent.ACTION_VIEW, playStoreUri))
         }
     }
 }

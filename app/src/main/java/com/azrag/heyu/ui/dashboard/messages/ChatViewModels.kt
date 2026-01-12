@@ -52,8 +52,18 @@ class ChatViewModel @Inject constructor(
 
     private fun loadAllChats() {
         viewModelScope.launch {
-            val currentUid = Firebase.auth.currentUser?.uid ?: return@launch
+            val currentUid = Firebase.auth.currentUser?.uid
+            if (currentUid == null) {
+                _uiState.update { it.copy(isLoading = false, errorMessage = "User session not found.") }
+                return@launch
+            }
+            
             chatRepository.getAllChatsForCurrentUser().collect { chats ->
+                if (chats.isEmpty()) {
+                    _uiState.update { it.copy(isLoading = false, chats = emptyList()) }
+                    return@collect
+                }
+
                 val enrichedChats = chats.map { chat ->
                     val otherId = chat.participants.find { it != currentUid } ?: ""
                     val otherUserRes = userRepository.getUserProfile(otherId)
@@ -67,7 +77,12 @@ class ChatViewModel @Inject constructor(
 
     private fun loadChatData() {
         viewModelScope.launch {
-            val currentUid = Firebase.auth.currentUser?.uid ?: return@launch
+            val currentUid = Firebase.auth.currentUser?.uid
+            if (currentUid == null) {
+                _uiState.update { it.copy(isLoading = false, errorMessage = "User session not found.") }
+                return@launch
+            }
+            
             val ids = chatRoomId.split("_")
             otherUserId = ids.find { it != currentUid } ?: ""
 
@@ -89,6 +104,8 @@ class ChatViewModel @Inject constructor(
                         )
                     }
                 }.collect()
+            } else {
+                _uiState.update { it.copy(isLoading = false, errorMessage = "Invalid chat room.") }
             }
         }
     }

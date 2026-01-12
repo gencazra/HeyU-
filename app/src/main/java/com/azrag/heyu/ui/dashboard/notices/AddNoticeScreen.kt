@@ -2,16 +2,22 @@ package com.azrag.heyu.ui.dashboard.notices
 
 import android.app.DatePickerDialog
 import android.app.TimePickerDialog
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.PickVisualMediaRequest
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.AddAPhoto
 import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Schedule
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
@@ -27,7 +33,7 @@ fun AddNoticeScreen(
 ) {
     var title by remember { mutableStateOf("") }
     var description by remember { mutableStateOf("") }
-    var category by remember { mutableStateOf("Genel") }
+    var category by remember { mutableStateOf("General") }
 
     val uiState by viewModel.uiState.collectAsState()
     val context = LocalContext.current
@@ -36,6 +42,17 @@ fun AddNoticeScreen(
     val eventDate by viewModel.eventDate
     val eventTime by viewModel.eventTime
     val location by viewModel.location
+    val imageUrl by viewModel.imageUrl
+
+    // Photo Picker Launcher
+    val photoPickerLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.PickVisualMedia(),
+        onResult = { uri ->
+            if (uri != null) {
+                viewModel.imageUrl.value = uri.toString()
+            }
+        }
+    )
 
     val datePickerDialog = DatePickerDialog(
         context,
@@ -63,10 +80,10 @@ fun AddNoticeScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Duyuru / Etkinlik Oluştur", fontWeight = FontWeight.Bold) },
+                title = { Text("Create New Post", fontWeight = FontWeight.Bold) },
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Geri")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
                     }
                 }
             )
@@ -83,14 +100,16 @@ fun AddNoticeScreen(
             OutlinedTextField(
                 value = title,
                 onValueChange = { title = it },
-                label = { Text("Başlık") },
+                label = { Text("Title") },
+                placeholder = { Text("Enter post title") },
                 modifier = Modifier.fillMaxWidth()
             )
 
             OutlinedTextField(
                 value = description,
                 onValueChange = { description = it },
-                label = { Text("Açıklama") },
+                label = { Text("Description") },
+                placeholder = { Text("Write something...") },
                 modifier = Modifier.fillMaxWidth().height(120.dp),
                 maxLines = 5
             )
@@ -98,17 +117,34 @@ fun AddNoticeScreen(
             OutlinedTextField(
                 value = category,
                 onValueChange = { category = it },
-                label = { Text("Kategori (Örn: Spor, Akademik)") },
+                label = { Text("Category (e.g., Party, Sport, Study)") },
                 modifier = Modifier.fillMaxWidth()
             )
 
+            // Image Button
+            OutlinedButton(
+                onClick = {
+                    photoPickerLauncher.launch(
+                        PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
+                    )
+                },
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Icon(Icons.Default.AddAPhoto, null)
+                Spacer(Modifier.width(8.dp))
+                Text(if (imageUrl.isEmpty()) "ADD COVER IMAGE" else "IMAGE SELECTED ✅")
+            }
+
             HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
-            Text("Etkinlik Detayları (Opsiyonel)", style = MaterialTheme.typography.titleSmall, color = MaterialTheme.colorScheme.primary)
+            Text("Event Information (Optional)",
+                style = MaterialTheme.typography.titleSmall,
+                color = MaterialTheme.colorScheme.primary
+            )
 
             OutlinedTextField(
                 value = location,
                 onValueChange = { viewModel.location.value = it },
-                label = { Text("Konum") },
+                label = { Text("Location / Venue") },
                 modifier = Modifier.fillMaxWidth(),
                 leadingIcon = { Icon(Icons.Default.LocationOn, null) }
             )
@@ -120,7 +156,7 @@ fun AddNoticeScreen(
                 ) {
                     Icon(Icons.Default.DateRange, null)
                     Spacer(Modifier.width(4.dp))
-                    Text(if (eventDate.isEmpty()) "Tarih" else eventDate)
+                    Text(if (eventDate.isEmpty()) "Date" else eventDate)
                 }
                 OutlinedButton(
                     onClick = { timePickerDialog.show() },
@@ -128,7 +164,7 @@ fun AddNoticeScreen(
                 ) {
                     Icon(Icons.Default.Schedule, null)
                     Spacer(Modifier.width(4.dp))
-                    Text(if (eventTime.isEmpty()) "Saat" else eventTime)
+                    Text(if (eventTime.isEmpty()) "Time" else eventTime)
                 }
             }
 
@@ -147,9 +183,13 @@ fun AddNoticeScreen(
                 shape = MaterialTheme.shapes.medium
             ) {
                 if (uiState is AddNoticeUiState.Loading) {
-                    CircularProgressIndicator(modifier = Modifier.size(24.dp), color = MaterialTheme.colorScheme.onPrimary)
+                    CircularProgressIndicator(
+                        modifier = Modifier.size(24.dp),
+                        color = MaterialTheme.colorScheme.onPrimary,
+                        strokeWidth = 2.dp
+                    )
                 } else {
-                    Text("YAYINLA", fontWeight = FontWeight.Bold)
+                    Text("POST NOW", fontWeight = FontWeight.Bold)
                 }
             }
         }

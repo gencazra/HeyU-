@@ -90,7 +90,7 @@ class ChatRepository @Inject constructor(
     fun getMessagesFromRoom(chatRoomId: String): Flow<List<Message>> = callbackFlow {
         val subscription = chatsCollection.document(chatRoomId)
             .collection("messages")
-            .orderBy("timestamp", Query.Direction.DESCENDING) // reverseLayout kullandığımız için DESCENDING
+            .orderBy("timestamp", Query.Direction.DESCENDING)
             .addSnapshotListener { snapshot, error ->
                 if (error != null) return@addSnapshotListener
                 val messages = snapshot?.toObjects(Message::class.java) ?: emptyList()

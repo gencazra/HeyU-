@@ -25,15 +25,10 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.navigation.NavController
 import coil.compose.rememberAsyncImagePainter
 import com.azrag.heyu.data.repository.ThemeSetting
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.setValue
-import androidx.lifecycle.viewmodel.compose.viewModel
-
+import com.azrag.heyu.ui.dashboard.discover.DiscoverViewModel
 import com.azrag.heyu.ui.theme.LogoFontFamily
-import com.azrag.heyu.util.Screen
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -41,7 +36,9 @@ fun SettingsScreen(
     onNavigateBack: () -> Unit,
     onLogout: () -> Unit,
     onEditProfileClick: () -> Unit,
-    viewModel: SettingsViewModel = hiltViewModel()
+    onNavigateToEvents: () -> Unit = {}, // Etkinliklere yönlendirme için ekledik
+    viewModel: SettingsViewModel = hiltViewModel(),
+    discoverViewModel: DiscoverViewModel = hiltViewModel() // Test user eklemek için
 ) {
     val context = LocalContext.current
     val primaryColor = MaterialTheme.colorScheme.primary
@@ -59,6 +56,7 @@ fun SettingsScreen(
                 .padding(24.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
+            // Üst Bar
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically
@@ -80,6 +78,7 @@ fun SettingsScreen(
 
             Spacer(Modifier.height(20.dp))
 
+            // Profil Resmi Bölümü
             Box(
                 modifier = Modifier
                     .size(120.dp)
@@ -115,10 +114,33 @@ fun SettingsScreen(
 
             Spacer(Modifier.height(32.dp))
 
+            // KRİTİK: Test Kullanıcısı Ekleme Butonu (Geliştirme İçin)
+            Button(
+                onClick = { discoverViewModel.add10TestUsers() },
+                modifier = Modifier.fillMaxWidth().height(50.dp),
+                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFE91E63)), // Pembe/Kırmızı dikkat çekici renk
+                shape = RoundedCornerShape(12.dp)
+            ) {
+                Icon(Icons.Default.Add, contentDescription = null, tint = Color.White)
+                Spacer(Modifier.width(8.dp))
+                Text("DEBUG: 10 Test User Ekle", fontWeight = FontWeight.Bold)
+            }
+
+            Spacer(Modifier.height(24.dp))
+
+            // Profil Ayarları
             SettingsItem(
                 icon = Icons.Default.Edit,
                 title = "Edit Profile",
                 onClick = onEditProfileClick
+            )
+
+            // Duyurular ve Etkinlikler (Notice Database erişimi için)
+            SettingsItem(
+                icon = Icons.Default.Campaign,
+                title = "Campus Notices",
+                subTitle = "Events & Announcements",
+                onClick = onNavigateToEvents
             )
 
             Spacer(Modifier.height(32.dp))
@@ -164,6 +186,7 @@ fun SettingsScreen(
 
             Spacer(Modifier.height(48.dp))
 
+            // Çıkış Butonu
             Button(
                 onClick = {
                     viewModel.logout()
