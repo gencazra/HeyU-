@@ -175,7 +175,7 @@ fun SettingsScreen(
             SettingsItem(
                 icon = Icons.Default.Shield,
                 title = "Privacy Policy",
-                onClick = { viewModel.openPrivacyPolicy(context) }
+                onClick = { viewModel.openPrivacyPolicy() }
             )
 
             SettingsItem(
