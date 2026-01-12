@@ -26,7 +26,7 @@ fun NoticeBoardScreen(
     Scaffold(
         floatingActionButton = {
             FloatingActionButton(onClick = { navController.navigate(Screen.AddNotice.route) }) {
-                Icon(Icons.Default.Add, contentDescription = "Duyuru Ekle")
+                Icon(Icons.Default.Add, contentDescription = "Add Notice")
             }
         }
     ) { paddingValues ->
@@ -37,7 +37,7 @@ fun NoticeBoardScreen(
                 Text(uiState.listError!!, Modifier.align(Alignment.Center))
             } else {
                 if (uiState.notices.isEmpty()) {
-                    Text("Henüz duyuru veya etkinlik yok.", Modifier.align(Alignment.Center))
+                    Text("No notices or events yet.", Modifier.align(Alignment.Center))
                 } else {
                     LazyColumn(
                         contentPadding = PaddingValues(16.dp),

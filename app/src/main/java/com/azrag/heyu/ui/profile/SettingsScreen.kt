@@ -36,9 +36,10 @@ fun SettingsScreen(
     onNavigateBack: () -> Unit,
     onLogout: () -> Unit,
     onEditProfileClick: () -> Unit,
-    onNavigateToEvents: () -> Unit = {}, // Etkinliklere yönlendirme için ekledik
+    onNavigateToPrivacy: () -> Unit,
+    onNavigateToEvents: () -> Unit = {},
     viewModel: SettingsViewModel = hiltViewModel(),
-    discoverViewModel: DiscoverViewModel = hiltViewModel() // Test user eklemek için
+    discoverViewModel: DiscoverViewModel = hiltViewModel()
 ) {
     val context = LocalContext.current
     val primaryColor = MaterialTheme.colorScheme.primary
@@ -47,6 +48,7 @@ fun SettingsScreen(
 
     val currentUser by viewModel.currentUser.collectAsState()
     val themeSetting by viewModel.themeSetting.collectAsState()
+    val discoverState by discoverViewModel.uiState.collectAsState()
 
     Surface(modifier = Modifier.fillMaxSize(), color = backgroundColor) {
         Column(
@@ -56,7 +58,7 @@ fun SettingsScreen(
                 .padding(24.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // Üst Bar
+            // Header
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically
@@ -78,7 +80,7 @@ fun SettingsScreen(
 
             Spacer(Modifier.height(20.dp))
 
-            // Profil Resmi Bölümü
+            // Profile Picture
             Box(
                 modifier = Modifier
                     .size(120.dp)
@@ -107,35 +109,48 @@ fun SettingsScreen(
                 color = primaryColor
             )
             Text(
-                text = currentUser?.email ?: "email@yeditepe.edu.tr",
+                text = currentUser?.email ?: "student@yeditepe.edu.tr",
                 fontSize = 14.sp,
                 color = onBackgroundColor.copy(0.6f)
             )
 
             Spacer(Modifier.height(32.dp))
 
-            // KRİTİK: Test Kullanıcısı Ekleme Butonu (Geliştirme İçin)
+            // DEBUG: Add Test Users Button
             Button(
                 onClick = { discoverViewModel.add10TestUsers() },
-                modifier = Modifier.fillMaxWidth().height(50.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFE91E63)), // Pembe/Kırmızı dikkat çekici renk
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(50.dp),
+                enabled = !discoverState.isLoading,
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = if (discoverState.isLoading) Color.Gray else Color(0xFFE91E63)
+                ),
                 shape = RoundedCornerShape(12.dp)
             ) {
-                Icon(Icons.Default.Add, contentDescription = null, tint = Color.White)
-                Spacer(Modifier.width(8.dp))
-                Text("DEBUG: 10 Test User Ekle", fontWeight = FontWeight.Bold)
+                if (discoverState.isLoading) {
+                    // CircularProgressIndicator Parametreleri (Material3 Uyumlu)
+                    CircularProgressIndicator(
+                        modifier = Modifier.size(20.dp),
+                        color = Color.White,
+                        strokeWidth = 2.dp
+                    )
+                } else {
+                    Icon(Icons.Default.Add, null, tint = Color.White)
+                    Spacer(Modifier.width(8.dp))
+                    Text("DEBUG: Add 10 Test Users", fontWeight = FontWeight.Bold)
+                }
             }
 
             Spacer(Modifier.height(24.dp))
 
-            // Profil Ayarları
+            // Profile Options
             SettingsItem(
                 icon = Icons.Default.Edit,
                 title = "Edit Profile",
                 onClick = onEditProfileClick
             )
 
-            // Duyurular ve Etkinlikler (Notice Database erişimi için)
             SettingsItem(
                 icon = Icons.Default.Campaign,
                 title = "Campus Notices",
@@ -147,7 +162,9 @@ fun SettingsScreen(
 
             Text(
                 text = "General Settings",
-                modifier = Modifier.align(Alignment.Start).padding(start = 8.dp),
+                modifier = Modifier
+                    .align(Alignment.Start)
+                    .padding(start = 8.dp),
                 color = primaryColor,
                 fontWeight = FontWeight.Bold,
                 fontSize = 18.sp
@@ -157,25 +174,18 @@ fun SettingsScreen(
 
             SettingsItem(
                 icon = Icons.Default.WbSunny,
-                title = "Modes",
-                subTitle = "Dark & Light",
+                title = "Dark Mode",
+                subTitle = "Toggle theme",
                 hasSwitch = true,
                 switchChecked = themeSetting == ThemeSetting.DARK,
-                onSwitchChange = { isChecked ->
-                    viewModel.onThemeChanged(isChecked)
-                }
-            )
-
-            SettingsItem(
-                icon = Icons.Default.Language,
-                title = "Language",
-                onClick = { }
+                onSwitchChange = { viewModel.onThemeChanged(it) }
             )
 
             SettingsItem(
                 icon = Icons.Default.Shield,
                 title = "Privacy Policy",
-                onClick = { viewModel.openPrivacyPolicy(context) }
+                subTitle = "Terms and data safety",
+                onClick = onNavigateToPrivacy
             )
 
             SettingsItem(
@@ -186,7 +196,7 @@ fun SettingsScreen(
 
             Spacer(Modifier.height(48.dp))
 
-            // Çıkış Butonu
+            // Logout Button
             Button(
                 onClick = {
                     viewModel.logout()
@@ -195,13 +205,10 @@ fun SettingsScreen(
                 modifier = Modifier
                     .width(180.dp)
                     .height(50.dp),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = primaryColor,
-                    contentColor = Color.White
-                ),
+                colors = ButtonDefaults.buttonColors(containerColor = primaryColor),
                 shape = RoundedCornerShape(25.dp)
             ) {
-                Text("Logout", fontWeight = FontWeight.Bold, fontSize = 16.sp)
+                Text("Logout", fontWeight = FontWeight.Bold, fontSize = 16.sp, color = Color.White)
             }
 
             Spacer(Modifier.height(24.dp))
@@ -241,18 +248,9 @@ fun SettingsItem(
         Spacer(Modifier.width(16.dp))
 
         Column(modifier = Modifier.weight(1f)) {
-            Text(
-                text = title,
-                color = onSurfaceColor,
-                fontWeight = FontWeight.Medium,
-                fontSize = 17.sp
-            )
+            Text(text = title, color = onSurfaceColor, fontWeight = FontWeight.Medium, fontSize = 17.sp)
             if (subTitle != null) {
-                Text(
-                    text = subTitle,
-                    color = onSurfaceColor.copy(0.5f),
-                    fontSize = 12.sp
-                )
+                Text(text = subTitle, color = onSurfaceColor.copy(0.5f), fontSize = 12.sp)
             }
         }
 
@@ -263,18 +261,12 @@ fun SettingsItem(
                 colors = SwitchDefaults.colors(
                     checkedThumbColor = Color.White,
                     checkedTrackColor = primaryColor,
-                    uncheckedThumbColor = primaryColor,
-                    uncheckedTrackColor = Color.LightGray,
-                    uncheckedBorderColor = Color.Transparent
+                    uncheckedThumbColor = Color.White,
+                    uncheckedTrackColor = Color.LightGray
                 )
             )
         } else {
-            Icon(
-                Icons.AutoMirrored.Filled.ArrowForward,
-                null,
-                tint = primaryColor,
-                modifier = Modifier.size(20.dp)
-            )
+            Icon(Icons.AutoMirrored.Filled.ArrowForward, null, tint = primaryColor, modifier = Modifier.size(20.dp))
         }
     }
 }

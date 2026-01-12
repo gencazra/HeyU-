@@ -1,6 +1,7 @@
 package com.azrag.heyu.ui.shared
 
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.*
@@ -23,14 +24,17 @@ import java.util.*
 @Composable
 fun NoticeCard(
     notice: Notice,
-    onImInClicked: () -> Unit
+    onImInClicked: () -> Unit,
+    onClick: () -> Unit
 ) {
     val currentUserId = Firebase.auth.currentUser?.uid
     val isCurrentUserAttending = notice.attendees.contains(currentUserId)
-    val dateFormat = SimpleDateFormat("dd MMM, HH:mm", Locale("en"))
+    val dateFormat = SimpleDateFormat("dd MMM, HH:mm", Locale.ENGLISH)
 
     Card(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable { onClick() },
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.surface,
@@ -53,7 +57,7 @@ fun NoticeCard(
                         } else {
                             painterResource(id = R.drawable.ic_default_profile)
                         },
-                        contentDescription = "Profile Photo",
+                        contentDescription = null,
                         modifier = Modifier
                             .size(40.dp)
                             .clip(CircleShape),
@@ -75,12 +79,12 @@ fun NoticeCard(
                     }
                 }
                 SuggestionChip(
-                    onClick = {  },
-                    label = { 
+                    onClick = { },
+                    label = {
                         Text(
                             text = notice.category,
                             color = MaterialTheme.colorScheme.primary
-                        ) 
+                        )
                     },
                     border = SuggestionChipDefaults.suggestionChipBorder(
                         enabled = true,

@@ -12,6 +12,8 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -20,17 +22,15 @@ import androidx.compose.ui.unit.sp
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.preferencesDataStore
-import androidx.lifecycle.lifecycleScope
 import androidx.navigation.NavType
 import androidx.navigation.compose.*
 import androidx.navigation.navArgument
 import com.azrag.heyu.ui.dashboard.DashboardScreen
 import com.azrag.heyu.ui.dashboard.discover.MatchAnimationScreen
-import com.azrag.heyu.ui.dashboard.events.AddEventScreen
-import com.azrag.heyu.ui.dashboard.events.EventDetailScreen
 import com.azrag.heyu.ui.dashboard.messages.ChatScreen
 import com.azrag.heyu.ui.login.*
 import com.azrag.heyu.ui.signup.*
+import com.azrag.heyu.ui.profile.TextContentViewerScreen
 import com.azrag.heyu.ui.start.StartScreen
 import com.azrag.heyu.ui.theme.HeyUTheme
 import com.azrag.heyu.util.Screen
@@ -48,16 +48,16 @@ val Context.dataStore by preferencesDataStore(name = "settings")
 fun AnimatedSplashScreen(onAnimationEnd: () -> Unit) {
     val logoText = "heyU!"
     var visibleChars by remember { mutableStateOf(0) }
-    
-    val backgroundColor = Color(0xFFE67E59) 
-    val textColor = Color(0xFFFDEBB3)       
+
+    val backgroundColor = Color(0xFFE67E59)
+    val textColor = Color(0xFFFDEBB3)
 
     LaunchedEffect(Unit) {
         for (i in 0..logoText.length) {
             visibleChars = i
-            delay(180) 
+            delay(180)
         }
-        delay(800) 
+        delay(800)
         onAnimationEnd()
     }
 
@@ -71,7 +71,7 @@ fun AnimatedSplashScreen(onAnimationEnd: () -> Unit) {
             text = logoText.take(visibleChars),
             style = MaterialTheme.typography.displayLarge.copy(
                 fontWeight = FontWeight.ExtraBold,
-                fontSize = 80.sp 
+                fontSize = 80.sp
             ),
             color = textColor
         )
@@ -104,8 +104,7 @@ class MainActivity : ComponentActivity() {
                                 Screen.Dashboard.route
                             }
                         }
-                        !onboardingCompleted && currentUser == null -> Screen.Start.route
-                        else -> Screen.Login.route
+                        else -> Screen.Start.route
                     }
                 }
 
@@ -124,6 +123,7 @@ class MainActivity : ComponentActivity() {
                                 navController = navController,
                                 startDestination = dest
                             ) {
+                                // --- Giriş ve Kayıt ---
                                 composable(Screen.Start.route) {
                                     StartScreen(
                                         onLoginClicked = { navController.navigate(Screen.Login.route) },
@@ -155,6 +155,7 @@ class MainActivity : ComponentActivity() {
                                     ForgotPasswordScreen(onNavigateBack = { navController.popBackStack() })
                                 }
 
+                                // --- Onboarding Süreci ---
                                 composable(Screen.Onboarding1.route) {
                                     OnboardingNameAgeScreen(
                                         onNavigateToMajor = { navController.navigate(Screen.Onboarding2.route) },
@@ -190,27 +191,30 @@ class MainActivity : ComponentActivity() {
                                     )
                                 }
 
+                                // --- Ana Ekran (Dashboard) ---
                                 composable(Screen.Dashboard.route) {
                                     DashboardScreen(mainNavController = navController)
                                 }
 
-                                composable(Screen.AddEvent.route) {
-                                    AddEventScreen(navController = navController)
-                                }
-
+                                // --- Bilgi Ekranları (Privacy/Terms) ---
                                 composable(
-                                    route = Screen.EventDetail.route,
-                                    arguments = listOf(navArgument("eventId") { type = NavType.StringType })
+                                    route = "text_content/{type}",
+                                    arguments = listOf(navArgument("type") { type = NavType.StringType })
                                 ) { backStackEntry ->
-                                    val id = backStackEntry.arguments?.getString("eventId") ?: ""
-                                    EventDetailScreen(eventId = id, navController = navController)
+                                    val type = backStackEntry.arguments?.getString("type") ?: "privacy"
+                                    TextContentViewerScreen(
+                                        contentType = type,
+                                        onNavigateBack = { navController.popBackStack() }
+                                    )
                                 }
 
+                                // --- Mesajlaşma ---
                                 composable(
                                     route = Screen.Chat.route,
                                     arguments = listOf(navArgument("chatRoomId") { type = NavType.StringType })
                                 ) { ChatScreen(navController = navController) }
 
+                                // --- Eşleşme Başarısı ---
                                 composable(
                                     route = Screen.MatchSuccess.route,
                                     arguments = listOf(navArgument("matchedUserId") { type = NavType.StringType })

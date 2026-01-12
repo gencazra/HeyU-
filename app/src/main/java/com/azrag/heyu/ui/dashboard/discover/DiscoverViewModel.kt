@@ -8,6 +8,7 @@ import com.azrag.heyu.data.repository.MatchRepository
 import com.azrag.heyu.data.repository.UserRepository
 import com.azrag.heyu.util.Result
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
@@ -19,7 +20,7 @@ data class DiscoverUiState(
     val isLoading: Boolean = false,
     val userCards: List<UserProfile> = emptyList(),
     val errorMessage: String? = null,
-    val newMatch: UserProfile? = null, // Virgül hatası burada düzeltildi
+    val newMatch: UserProfile? = null,
     val selectedDepartment: String = "All"
 )
 
@@ -38,31 +39,39 @@ class DiscoverViewModel @Inject constructor(
         loadPotentialMatches()
     }
 
-    /**
-     * TEST BUTONU İÇİN: Veritabanına 10 tane hazır Yeditepeli kullanıcı ekler.
-     */
     fun add10TestUsers() {
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true) }
-            val departments = listOf("Yazılım Mühendisliği", "Hukuk", "Tıp", "Mimarlık", "Psikoloji")
+            val departments = listOf("Software Engineering", "Law", "Medicine", "Architecture", "Psychology")
             val hobbies = listOf("Tennis", "Gaming", "Art", "Chess", "Cooking", "Music", "Photography")
 
-            for (i in 1..10) {
-                val testId = "test_user_${System.currentTimeMillis()}_$i"
-                val testUser = UserProfile(
-                    id = testId,
-                    displayName = "Yeditepe Student $i",
-                    email = "test$i@std.yeditepe.edu.tr",
-                    age = Random.nextInt(18, 26), // DÜZELTME: .toString() kaldırıldı, artık Int gönderiyor.
-                    department = departments.random(),
-                    hobbies = hobbies.shuffled().take(3),
-                    photoUrl = "https://ui-avatars.com/api/?name=Student+$i&background=random",
-                    onboardingComplete = true
-                )
-                userRepository.updateUserProfile(testUser)
+            try {
+                for (i in 1..10) {
+                    // ID'yi her seferinde tamamen benzersiz yapıyoruz (Saniyeyi de ekledik)
+                    val uniqueId = "test_${System.currentTimeMillis()}_${Random.nextInt(1000, 9999)}"
+                    val testUser = UserProfile(
+                        id = uniqueId,
+                        displayName = "Student ${Random.nextInt(100, 999)}",
+                        email = "$uniqueId@std.yeditepe.edu.tr",
+                        age = Random.nextInt(18, 26),
+                        department = departments.random(),
+                        hobbies = hobbies.shuffled().take(3),
+                        photoUrl = "https://ui-avatars.com/api/?name=User+$i&background=random",
+                        onboardingComplete = true
+                    )
+                    userRepository.updateUserProfile(testUser)
+                }
+                Log.d(TAG, "10 Test users successfully added.")
+
+                // Firebase'in veriyi yayması için 1.5 saniye bekle
+                delay(1500)
+
+                // Listeyi temizle ve sıfırdan yükle
+                loadPotentialMatches()
+            } catch (e: Exception) {
+                Log.e(TAG, "Error adding users: ${e.message}")
+                _uiState.update { it.copy(isLoading = false) }
             }
-            Log.d(TAG, "10 Test kullanıcısı başarıyla eklendi.")
-            loadPotentialMatches()
         }
     }
 
@@ -73,23 +82,24 @@ class DiscoverViewModel @Inject constructor(
 
     fun loadPotentialMatches() {
         viewModelScope.launch {
-            Log.d(TAG, "Loading potential matches...")
             _uiState.update { it.copy(isLoading = true, errorMessage = null) }
-
             val currentProfileResult = userRepository.getCurrentUserProfile()
 
             if (currentProfileResult is Result.Success && currentProfileResult.data != null) {
                 val currentUser = currentProfileResult.data!!
 
+                // REPOSITORY'DEN ÇEKERKEN FILTREYI KONTROL ET
                 when (val result = matchRepository.getDiscoveryCandidates(currentUser)) {
                     is Result.Success -> {
                         val candidates = result.data ?: emptyList()
 
-                        var filteredList = candidates.filter { it.onboardingComplete && it.displayName.isNotBlank() }
+                        // KRİTİK FİLTRE: onboardingComplete=true olanları getir
+                        var filteredList = candidates.filter { it.onboardingComplete }
 
-                        if (_uiState.value.selectedDepartment != "All" && _uiState.value.selectedDepartment != "Hepsi") {
+                        val currentDept = _uiState.value.selectedDepartment
+                        if (currentDept != "All" && currentDept != "Hepsi") {
                             filteredList = filteredList.filter {
-                                it.department.contains(_uiState.value.selectedDepartment, ignoreCase = true)
+                                it.department.contains(currentDept, ignoreCase = true)
                             }
                         }
 
@@ -97,20 +107,17 @@ class DiscoverViewModel @Inject constructor(
                             it.copy(
                                 isLoading = false,
                                 userCards = filteredList,
-                                errorMessage = if (filteredList.isEmpty()) "Etrafında yeni kimse yok!" else null
+                                errorMessage = if (filteredList.isEmpty()) "No one found. Try 'Add Test Users'!" else null
                             )
                         }
                     }
                     is Result.Error -> {
                         _uiState.update { it.copy(isLoading = false, errorMessage = result.message) }
                     }
-                    is Result.Loading -> {
-                        _uiState.update { it.copy(isLoading = true) }
-                    }
+                    else -> _uiState.update { it.copy(isLoading = false) }
                 }
             } else {
-                val error = (currentProfileResult as? Result.Error)?.message ?: "Profil yüklenemedi."
-                _uiState.update { it.copy(isLoading = false, errorMessage = error) }
+                _uiState.update { it.copy(isLoading = false, errorMessage = "Profile not found") }
             }
         }
     }
@@ -119,7 +126,6 @@ class DiscoverViewModel @Inject constructor(
         _uiState.update { state ->
             state.copy(userCards = state.userCards.filterNot { it.id == swipedUser.id })
         }
-
         viewModelScope.launch {
             if (liked) {
                 val matchResult = matchRepository.likeUser(swipedUser.id)
@@ -128,10 +134,6 @@ class DiscoverViewModel @Inject constructor(
                 }
             } else {
                 matchRepository.passUser(swipedUser.id)
-            }
-
-            if (_uiState.value.userCards.isEmpty()) {
-                loadPotentialMatches()
             }
         }
     }
