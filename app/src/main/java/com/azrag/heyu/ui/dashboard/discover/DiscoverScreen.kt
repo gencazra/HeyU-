@@ -80,7 +80,7 @@ fun DiscoverScreen(
                 } else if (uiState.userCards.isEmpty()) {
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
                         Text(
-                            "Etrafında yeni kimse yok!", 
+                            "No one new around you!", 
                             color = colorScheme.onPrimary, 
                             fontWeight = FontWeight.Bold,
                             modifier = Modifier.padding(bottom = 16.dp)
@@ -91,7 +91,7 @@ fun DiscoverScreen(
                         ) {
                             Icon(Icons.Default.Refresh, contentDescription = null)
                             Spacer(Modifier.width(8.dp))
-                            Text("Yenile")
+                            Text("Refresh")
                         }
                     }
                 } else {

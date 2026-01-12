@@ -18,10 +18,10 @@ sealed class Screen(
     object ForgotPassword : Screen("forgot_password")
     object Dashboard : Screen("dashboard")
 
-    object Discover : Screen("discover", "Keşfet", Icons.Default.Explore)
-    object NoticeBoard : Screen("notice_board", "Duyurular", Icons.Default.Campaign)
-    object MessageList : Screen("message_list", "Mesajlar", Icons.Default.Chat)
-    object ProfileView : Screen("profile_view", "Profil", Icons.Default.Person)
+    object Discover : Screen("discover", "Discover", Icons.Default.Explore)
+    object NoticeBoard : Screen("notice_board", "Notices", Icons.Default.Campaign)
+    object MessageList : Screen("message_list", "Messages", Icons.Default.Chat)
+    object ProfileView : Screen("profile_view", "Profile", Icons.Default.Person)
 
 
     object Onboarding1 : Screen("onboarding_name_age")
@@ -30,9 +30,9 @@ sealed class Screen(
     object Onboarding4 : Screen("onboarding_picture")
 
 
-    object Settings : Screen("settings", "Ayarlar", Icons.Default.Settings)
-    object EditProfile : Screen("edit_profile", "Profili Düzenle", Icons.Default.Edit)
-    object BlockedUsers : Screen("blocked_users", "Engellenenler", Icons.Default.Block)
+    object Settings : Screen("settings", "Settings", Icons.Default.Settings)
+    object EditProfile : Screen("edit_profile", "Edit Profile", Icons.Default.Edit)
+    object BlockedUsers : Screen("blocked_users", "Blocked Users", Icons.Default.Block)
 
     object UserDetail : Screen("user_detail/{userId}") {
         fun createRoute(userId: String) = "user_detail/$userId"
@@ -53,8 +53,8 @@ sealed class Screen(
         fun createRoute(noticeId: String) = "notice_detail/$noticeId"
     }
 
-    object AddNotice : Screen("add_notice", "Duyuru Oluştur", Icons.Default.Add)
+    object AddNotice : Screen("add_notice", "Create Notice", Icons.Default.Add)
 
 
-    object AdminPanel : Screen("admin_panel", "Yönetim", Icons.Default.AdminPanelSettings)
+    object AdminPanel : Screen("admin_panel", "Admin Panel", Icons.Default.AdminPanelSettings)
 }

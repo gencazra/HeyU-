@@ -131,23 +131,23 @@ class UserRepository @Inject constructor(
         }
     }
 
-    // --- KEŞFET (SWIPE) FONKSİYONLARI ---
+    // --- DISCOVER (SWIPE) FUNCTIONS ---
 
     suspend fun getDiscoverUsers(): Result<List<UserProfile>> {
-        val currentUid = auth.currentUser?.uid ?: return Result.Error("Oturum bulunamadı.")
+        val currentUid = auth.currentUser?.uid ?: return Result.Error("Session not found.")
         return try {
-            // 1. Mevcut kullanıcıyı çekip kimleri beğendiğini/geçtiğini öğreniyoruz
+            // 1. Get current user and see who they liked/passed
             val currentUserDoc = usersCollection.document(currentUid).get().await()
             val currentUser = currentUserDoc.toObject(UserProfile::class.java)
 
-            val excludedIds = mutableListOf(currentUid) // Kendini gösterme
+            val excludedIds = mutableListOf(currentUid) // Don't show self
             currentUser?.let {
                 excludedIds.addAll(it.likedUsers)
                 excludedIds.addAll(it.passedUsers)
                 excludedIds.addAll(it.blockedUsers)
             }
 
-            // 2. Diğer kullanıcıları çekiyoruz
+            // 2. Fetch other users
             val snapshot = usersCollection
                 .whereEqualTo("onboardingComplete", true)
                 .limit(40)
@@ -155,48 +155,47 @@ class UserRepository @Inject constructor(
 
             val users = snapshot.toObjects(UserProfile::class.java)
                 .filter { it.id !in excludedIds }
-                .shuffled() // Karışık gelsinler
+                .shuffled() // Shuffle them
 
             Result.Success(users)
         } catch (e: Exception) {
             Log.e(TAG, "getDiscoverUsers error: ${e.message}")
-            Result.Error(e.message ?: "Kullanıcılar yüklenemedi.")
+            Result.Error(e.message ?: "Users could not be loaded.")
         }
     }
 
     suspend fun likeUser(targetUserId: String): Result<Boolean> {
-        val currentUid = auth.currentUser?.uid ?: return Result.Error("Oturum bulunamadı.")
+        val currentUid = auth.currentUser?.uid ?: return Result.Error("Session not found.")
         return try {
-            // 1. LikedUsers listesine ekle
+            // 1. Add to LikedUsers list
             usersCollection.document(currentUid).update("likedUsers", FieldValue.arrayUnion(targetUserId)).await()
 
-            // 2. Karşı taraf bizi daha önce beğenmiş mi bak (Match kontrolü)
+            // 2. Check if target user liked current user (Match check)
             val targetUserDoc = usersCollection.document(targetUserId).get().await()
             val targetUser = targetUserDoc.toObject(UserProfile::class.java)
 
             if (targetUser?.likedUsers?.contains(currentUid) == true) {
-                // EŞLEŞME OLDU!
-                // Her iki tarafın matches listesine ekle
+                // MATCH!
+                // Add to matches list for both sides
                 usersCollection.document(currentUid).update("matches", FieldValue.arrayUnion(targetUserId)).await()
                 usersCollection.document(targetUserId).update("matches", FieldValue.arrayUnion(currentUid)).await()
                 
-                // Chat odası oluşturma mantığı burada veya MatchAnimationScreen'de tetiklenebilir
-                Result.Success(true) // True = Match oldu
+                Result.Success(true) // True = Match happened
             } else {
-                Result.Success(false) // Beğenildi ama henüz match yok
+                Result.Success(false) // Liked but no match yet
             }
         } catch (e: Exception) {
-            Result.Error(e.message ?: "Beğeni işlemi başarısız.")
+            Result.Error(e.message ?: "Like operation failed.")
         }
     }
 
     suspend fun passUser(targetUserId: String): Result<Unit> {
-        val currentUid = auth.currentUser?.uid ?: return Result.Error("Oturum bulunamadı.")
+        val currentUid = auth.currentUser?.uid ?: return Result.Error("Session not found.")
         return try {
             usersCollection.document(currentUid).update("passedUsers", FieldValue.arrayUnion(targetUserId)).await()
             Result.Success(Unit)
         } catch (e: Exception) {
-            Result.Error(e.message ?: "Geçme işlemi başarısız.")
+            Result.Error(e.message ?: "Pass operation failed.")
         }
     }
 

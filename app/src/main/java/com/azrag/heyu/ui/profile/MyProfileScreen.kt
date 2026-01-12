@@ -118,13 +118,13 @@ fun MyProfileScreen(
                 
                 ProfileDisplayItem(label = "Name", value = profile.displayName)
                 Spacer(Modifier.height(12.dp))
-                ProfileDisplayItem(label = "Change bio", value = profile.bio)
+                ProfileDisplayItem(label = "Bio", value = profile.bio)
                 Spacer(Modifier.height(12.dp))
-                ProfileDisplayItem(label = "Add your favorites", value = "*Movie  *TV Series  *Music", hasAdd = true)
+                ProfileDisplayItem(label = "Favorites", value = "*Movie  *TV Series  *Music", hasAdd = true)
                 Spacer(Modifier.height(12.dp))
-                ProfileDisplayItem(label = "Add your interests", value = "*Cocktail  *Swimming  *Yoga", hasAdd = true)
+                ProfileDisplayItem(label = "Interests", value = "*Cocktail  *Swimming  *Yoga", hasAdd = true)
                 Spacer(Modifier.height(12.dp))
-                ProfileDisplayItem(label = "Add about section", value = "*Vegan  *Sweet tooth  *Animal lover", hasAdd = true)
+                ProfileDisplayItem(label = "About section", value = "*Vegan  *Sweet tooth  *Animal lover", hasAdd = true)
             }
 
             Spacer(Modifier.height(40.dp))

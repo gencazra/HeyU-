@@ -26,7 +26,6 @@ import androidx.navigation.compose.*
 import androidx.navigation.navArgument
 import com.azrag.heyu.ui.dashboard.DashboardScreen
 import com.azrag.heyu.ui.dashboard.discover.MatchAnimationScreen
-
 import com.azrag.heyu.ui.dashboard.messages.ChatScreen
 import com.azrag.heyu.ui.login.*
 import com.azrag.heyu.ui.signup.*

@@ -26,7 +26,7 @@ class ChatRepository @Inject constructor(
 
 
     suspend fun createOrGetChatRoom(otherUserId: String): Result<String> {
-        val currentUserId = auth.currentUser?.uid ?: return Result.Error("Oturum bulunamadı.")
+        val currentUserId = auth.currentUser?.uid ?: return Result.Error("Session not found.")
 
         val chatRoomId = if (currentUserId < otherUserId) {
             "${currentUserId}_$otherUserId"
@@ -52,7 +52,7 @@ class ChatRepository @Inject constructor(
             }
             Result.Success(chatRoomId)
         } catch (e: Exception) {
-            Result.Error(e.localizedMessage ?: "Sohbet başlatılamadı.")
+            Result.Error(e.localizedMessage ?: "Could not start chat.")
         }
     }
 

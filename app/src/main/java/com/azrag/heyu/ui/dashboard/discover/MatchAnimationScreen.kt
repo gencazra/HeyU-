@@ -41,18 +41,15 @@ fun MatchAnimationScreen(
 ) {
     var showMatchContent by remember { mutableStateOf(true) }
     
-    // Temadaki renkleri çekiyoruz
     val colorScheme = MaterialTheme.colorScheme
     
-    // Gradyan renklerini temadan alıyoruz
     val backgroundBrush = Brush.verticalGradient(
         colors = listOf(
-            colorScheme.secondary, // Üst renk (Gündüz: Sarı, Gece: Temandaki Secondary)
-            colorScheme.primary    // Alt renk (Gündüz: Turuncu, Gece: Temandaki Primary)
+            colorScheme.secondary,
+            colorScheme.primary
         )
     )
 
-    // Yazı rengini temadan alıyoruz (Koyu modda onBackground genelde beyaz/açık sarı olur)
     val contentColor = colorScheme.onBackground
 
     LaunchedEffect(Unit) {
@@ -93,7 +90,7 @@ fun MatchAnimationScreen(
                 Spacer(modifier = Modifier.height(40.dp))
 
                 Text(
-                    text = "hey!\nsohbet ederken",
+                    text = "hey!\nwhile chatting",
                     style = MaterialTheme.typography.headlineMedium.copy(
                         fontWeight = FontWeight.Bold,
                         color = contentColor,
@@ -114,7 +111,7 @@ fun MatchAnimationScreen(
                 Spacer(modifier = Modifier.height(20.dp))
 
                 Text(
-                    text = "kibar olmayı\nunutma!",
+                    text = "don't forget\nto be polite!",
                     style = MaterialTheme.typography.headlineSmall.copy(
                         fontWeight = FontWeight.Bold,
                         color = contentColor,

@@ -25,15 +25,15 @@ fun StartScreen(
     val colorScheme = MaterialTheme.colorScheme
 
     Box(modifier = Modifier.fillMaxSize()) {
-        // Arka Plan Resmi
+        // Background Image
         Image(
-            painter = painterResource(id = R.drawable.ic_launcher_background), // BURAYI R.drawable.login_background YAPMAYI UNUTMA
+            painter = painterResource(id = R.drawable.ic_launcher_background), // DON'T FORGET TO CHANGE TO R.drawable.login_background
             contentDescription = null,
             modifier = Modifier.fillMaxSize(),
             contentScale = ContentScale.Crop
         )
 
-        // Karartma Katmanı (Yazıların okunması için)
+        // Overlay Layer (to make text readable)
         Surface(
             modifier = Modifier.fillMaxSize(),
             color = Color.Black.copy(alpha = 0.3f)
@@ -47,7 +47,7 @@ fun StartScreen(
         ) {
             Spacer(modifier = Modifier.height(80.dp))
 
-            // Logo (Temadaki ana renk)
+            // Logo (Primary theme color)
             Text(
                 text = "heyU!",
                 style = MaterialTheme.typography.displayLarge.copy(
@@ -59,7 +59,7 @@ fun StartScreen(
 
             Spacer(modifier = Modifier.weight(1f))
 
-            // Hesap Oluştur Butonu (Temadaki Primary rengi)
+            // Create Account Button
             Button(
                 onClick = onSignUpClicked,
                 modifier = Modifier
@@ -72,7 +72,7 @@ fun StartScreen(
                 shape = RoundedCornerShape(25.dp)
             ) {
                 Text(
-                    text = "Hesap oluştur",
+                    text = "Create account",
                     fontWeight = FontWeight.Bold,
                     fontSize = 16.sp
                 )
@@ -80,7 +80,7 @@ fun StartScreen(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // Zaten hesabım var Butonu (Temadaki Secondary rengi ile Outlined)
+            // Already have an account Button
             OutlinedButton(
                 onClick = onLoginClicked,
                 modifier = Modifier
@@ -93,7 +93,7 @@ fun StartScreen(
                 )
             ) {
                 Text(
-                    text = "Zaten hesabım var",
+                    text = "I already have an account",
                     fontWeight = FontWeight.Bold,
                     fontSize = 16.sp
                 )

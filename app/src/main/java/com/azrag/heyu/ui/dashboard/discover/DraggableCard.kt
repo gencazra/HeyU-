@@ -94,7 +94,7 @@ fun DraggableCard(
                 painter = rememberAsyncImagePainter(
                     model = userProfile.photoUrl.ifEmpty { R.drawable.ic_default_profile }
                 ),
-                contentDescription = "Profil Fotoğrafı",
+                contentDescription = "Profile Photo",
                 modifier = Modifier.fillMaxSize(),
                 contentScale = ContentScale.Crop
             )

@@ -80,7 +80,7 @@ fun SettingsScreen(
 
             Spacer(Modifier.height(20.dp))
 
-            // Profil Resmi Bölümü
+            // Profile Picture Section
             Box(
                 modifier = Modifier
                     .size(120.dp)
@@ -116,11 +116,11 @@ fun SettingsScreen(
 
             Spacer(Modifier.height(32.dp))
 
-            // Test User Ekleme (Debug)
+            // Add Test Users (Debug)
             Button(
                 onClick = { 
                     discoverViewModel.add10TestUsers {
-                        Toast.makeText(context, "10 Test Kullanıcısı Eklendi!", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(context, "10 Test Users Added!", Toast.LENGTH_SHORT).show()
                     }
                 },
                 modifier = Modifier.fillMaxWidth().height(50.dp),
@@ -129,21 +129,21 @@ fun SettingsScreen(
             ) {
                 Icon(Icons.Default.Add, contentDescription = null, tint = Color.White)
                 Spacer(Modifier.width(8.dp))
-                Text("DEBUG: 10 Test User Ekle", fontWeight = FontWeight.Bold)
+                Text("DEBUG: Add 10 Test Users", fontWeight = FontWeight.Bold)
             }
 
             Spacer(Modifier.height(24.dp))
 
             SettingsItem(
                 icon = Icons.Default.Edit,
-                title = "Profili Editle",
+                title = "Edit Profile",
                 onClick = onEditProfileClick
             )
 
             Spacer(Modifier.height(32.dp))
 
             Text(
-                text = "Genel Ayarlar",
+                text = "General Settings",
                 modifier = Modifier.align(Alignment.Start).padding(start = 8.dp),
                 color = primaryColor,
                 fontWeight = FontWeight.Bold,
@@ -154,8 +154,8 @@ fun SettingsScreen(
 
             SettingsItem(
                 icon = Icons.Default.WbSunny,
-                title = "Modlar",
-                subTitle = "Koyu & Açık",
+                title = "Modes",
+                subTitle = "Dark & Light",
                 hasSwitch = true,
                 switchChecked = themeSetting == ThemeSetting.DARK,
                 onSwitchChange = { isChecked ->
@@ -165,19 +165,19 @@ fun SettingsScreen(
 
             SettingsItem(
                 icon = Icons.Default.Language,
-                title = "Dil",
+                title = "Language",
                 onClick = { }
             )
 
             SettingsItem(
                 icon = Icons.Default.Shield,
-                title = "Gizlilik Politikası",
+                title = "Privacy Policy",
                 onClick = { }
             )
 
             SettingsItem(
                 icon = Icons.Default.Star,
-                title = "Uygulamayı Puanla",
+                title = "Rate App",
                 onClick = { }
             )
 
@@ -197,7 +197,7 @@ fun SettingsScreen(
                 ),
                 shape = RoundedCornerShape(25.dp)
             ) {
-                Text("Çıkış yap", fontWeight = FontWeight.Bold, fontSize = 16.sp)
+                Text("Logout", fontWeight = FontWeight.Bold, fontSize = 16.sp)
             }
 
             Spacer(Modifier.height(48.dp))
