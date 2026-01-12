@@ -8,7 +8,6 @@ plugins {
 }
 
 android {
-    namespace = "com.azrag"
     namespace = "com.azrag.heyu"
     compileSdk = 34
 
@@ -55,7 +54,6 @@ android {
 }
 
 dependencies {
-    // --- TEMEL ANDROID VE COMPOSE ---
     implementation("androidx.core:core-ktx:1.13.1")
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.8.3")
     implementation("androidx.activity:activity-compose:1.9.0")
@@ -68,36 +66,33 @@ dependencies {
 
     implementation("androidx.core:core-splashscreen:1.0.1")
 
-    // --- MATERIAL DESIGN 3 ---
     implementation("androidx.compose.material3:material3:1.2.1")
     implementation("androidx.compose.material:material-icons-extended:1.6.8")
 
-    // --- GOOGLE FONTS ---
     implementation("androidx.compose.ui:ui-text-google-fonts:1.6.8")
 
-    // --- NAVİGASYON ---
+
     implementation("androidx.navigation:navigation-compose:2.7.7")
 
-    // --- HILT ---
     implementation("com.google.dagger:hilt-android:2.51.1")
     kapt("com.google.dagger:hilt-compiler:2.51.1")
     implementation("androidx.hilt:hilt-navigation-compose:1.2.0")
     implementation("com.google.accompanist:accompanist-flowlayout:0.17.0")
 
-    // --- FIREBASE ---
+
     implementation(platform("com.google.firebase:firebase-bom:33.1.2"))
     implementation("com.google.firebase:firebase-auth-ktx")
     implementation("com.google.firebase:firebase-firestore-ktx")
     implementation("com.google.firebase:firebase-storage-ktx")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-play-services:1.8.1")
 
-    // --- DATASTORE ---
+
     implementation("androidx.datastore:datastore-preferences:1.1.1")
 
-    // --- YARDIMCI KÜTÜPHANELER ---
+
     implementation("io.coil-kt:coil-compose:2.6.0")
 
-    // --- TEST ---
+
     testImplementation("junit:junit:4.13.2")
     androidTestImplementation("androidx.test.ext:junit:1.2.1")
     androidTestImplementation("androidx.test.espresso:espresso-core:3.6.1")

@@ -1,5 +1,6 @@
 package com.azrag.heyu.data.repository
 
+import android.net.Uri
 import com.azrag.heyu.data.model.Notice
 import com.azrag.heyu.util.Result
 import com.google.firebase.auth.ktx.auth
@@ -7,6 +8,7 @@ import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.Query
 import com.google.firebase.ktx.Firebase
+import com.google.firebase.storage.FirebaseStorage
 import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -14,6 +16,7 @@ import javax.inject.Singleton
 @Singleton
 class NoticeRepository @Inject constructor(private val firestore: FirebaseFirestore) {
     private val noticeCollection = firestore.collection("notices")
+    private val storage = FirebaseStorage.getInstance()
 
     suspend fun getAllNotices(): Result<List<Notice>> {
         return try {
@@ -23,7 +26,7 @@ class NoticeRepository @Inject constructor(private val firestore: FirebaseFirest
             }
             Result.Success(notices)
         } catch (e: Exception) {
-            Result.Error(e.localizedMessage ?: "Duyurular yüklenemedi.")
+            Result.Error(e.localizedMessage ?: "Failed to load notices.")
         }
     }
 
@@ -31,14 +34,26 @@ class NoticeRepository @Inject constructor(private val firestore: FirebaseFirest
         return try {
             val document = noticeCollection.document(id).get().await()
             val notice = document.toObject(Notice::class.java)?.copy(id = document.id)
-            if (notice != null) Result.Success(notice) else Result.Error("Duyuru bulunamadı.")
+            if (notice != null) Result.Success(notice) else Result.Error("Notice not found.")
         } catch (e: Exception) {
-            Result.Error(e.localizedMessage ?: "Duyuru yüklenemedi.")
+            Result.Error(e.localizedMessage ?: "Failed to load notice.")
+        }
+    }
+
+    suspend fun uploadImage(uri: Uri): Result<String> {
+        return try {
+            val fileName = "notices/${System.currentTimeMillis()}_${uri.lastPathSegment}"
+            val ref = storage.reference.child(fileName)
+            ref.putFile(uri).await()
+            val downloadUrl = ref.downloadUrl.await()
+            Result.Success(downloadUrl.toString())
+        } catch (e: Exception) {
+            Result.Error(e.localizedMessage ?: "Image upload failed.")
         }
     }
 
     suspend fun addNotice(notice: Notice): Result<String> {
-        val currentUser = Firebase.auth.currentUser ?: return Result.Error("Giriş yapmış kullanıcı bulunamadı.")
+        val currentUser = Firebase.auth.currentUser ?: return Result.Error("User not logged in.")
         
         return try {
             val noticeMap = hashMapOf(
@@ -58,12 +73,12 @@ class NoticeRepository @Inject constructor(private val firestore: FirebaseFirest
             val documentRef = noticeCollection.add(noticeMap).await()
             Result.Success(documentRef.id)
         } catch (e: Exception) {
-            Result.Error(e.localizedMessage ?: "Firestore hatası.")
+            Result.Error(e.localizedMessage ?: "Firestore error.")
         }
     }
 
     suspend fun toggleNoticeParticipation(noticeId: String): Result<Unit> {
-        val currentUserId = Firebase.auth.currentUser?.uid ?: return Result.Error("Giriş yapmalısınız.")
+        val currentUserId = Firebase.auth.currentUser?.uid ?: return Result.Error("Please log in.")
         return try {
             val docRef = noticeCollection.document(noticeId)
             val document = docRef.get().await()
@@ -76,7 +91,7 @@ class NoticeRepository @Inject constructor(private val firestore: FirebaseFirest
             }
             Result.Success(Unit)
         } catch (e: Exception) {
-            Result.Error("İşlem başarısız: ${e.localizedMessage}")
+            Result.Error("Action failed: ${e.localizedMessage}")
         }
     }
 }

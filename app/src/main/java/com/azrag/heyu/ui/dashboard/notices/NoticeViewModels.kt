@@ -1,5 +1,6 @@
 package com.azrag.heyu.ui.dashboard.notices
 
+import android.net.Uri
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -65,18 +66,21 @@ class NoticeViewModel @Inject constructor(
         }
     }
 
+
     private fun loadParticipantProfiles(uids: List<String>) {
+        if (uids.isEmpty()) {
+            _uiState.update { it.copy(participants = emptyList()) }
+            return
+        }
         viewModelScope.launch {
-            val profiles = mutableListOf<UserProfile>()
-            uids.forEach { uid ->
+            val profiles = uids.take(30).mapNotNull { uid ->
                 val res = userRepository.getUserProfile(uid)
-                if (res is Result.Success && res.data != null) {
-                    profiles.add(res.data)
-                }
+                if (res is Result.Success) res.data else null
             }
             _uiState.update { it.copy(participants = profiles) }
         }
     }
+
 
     fun onImInClicked(noticeId: String) {
         viewModelScope.launch {
@@ -115,19 +119,31 @@ class AddNoticeViewModel @Inject constructor(
 
     fun createNotice(title: String, description: String, category: String) {
         if (title.isBlank() || description.isBlank() || category.isBlank()) {
-            _uiState.value = AddNoticeUiState.Error("Lütfen gerekli alanları doldurun.")
+            _uiState.value = AddNoticeUiState.Error("Please fill in all required fields.")
             return
         }
 
         viewModelScope.launch {
             _uiState.value = AddNoticeUiState.Loading
 
+            // Önce fotoğrafı yükleyelim (varsa)
+            var finalImageUrl: String? = null
+            if (imageUrl.value.isNotBlank()) {
+                val uploadResult = noticeRepository.uploadImage(Uri.parse(imageUrl.value))
+                if (uploadResult is Result.Success) {
+                    finalImageUrl = uploadResult.data
+                } else if (uploadResult is Result.Error) {
+                    _uiState.value = AddNoticeUiState.Error("Image upload failed: ${uploadResult.message}")
+                    return@launch
+                }
+            }
+
             when (val userResult = userRepository.getCurrentUserProfile()) {
                 is Result.Success -> {
                     val user = userResult.data ?: return@launch
                     val newNotice = Notice(
                         creatorId = user.id,
-                        creatorName = user.displayName ?: "İsimsiz",
+                        creatorName = user.displayName ?: "Anonymous",
                         creatorImageUrl = user.photoUrl ?: "",
                         title = title,
                         description = description,
@@ -135,18 +151,18 @@ class AddNoticeViewModel @Inject constructor(
                         eventDate = if (eventDate.value.isNotBlank()) eventDate.value else null,
                         eventTime = if (eventTime.value.isNotBlank()) eventTime.value else null,
                         location = if (location.value.isNotBlank()) location.value else null,
-                        imageUrl = if (imageUrl.value.isNotBlank()) imageUrl.value else null
+                        imageUrl = finalImageUrl
                     )
 
                     val addResult = noticeRepository.addNotice(newNotice)
                     if (addResult is Result.Success) {
                         _uiState.value = AddNoticeUiState.Success
                     } else if (addResult is Result.Error) {
-                        _uiState.value = AddNoticeUiState.Error(addResult.message ?: "Paylaşım yapılamadı.")
+                        _uiState.value = AddNoticeUiState.Error(addResult.message ?: "Failed to post.")
                     }
                 }
                 is Result.Error -> {
-                    _uiState.value = AddNoticeUiState.Error("Profil bilgileri alınamadı.")
+                    _uiState.value = AddNoticeUiState.Error("Could not retrieve profile information.")
                 }
                 else -> {}
             }

@@ -11,9 +11,10 @@ data class UserProfile(
     val photoUrl: String = "",
     val department: String = "",
     val bio: String = "",
-    val hobbies: List<String> = emptyList(),   // Favoriler
-    val interests: List<String> = emptyList(), // İlgi Alanları
-    val aboutTags: List<String> = emptyList(), // Hakkında etiketleri
+    val hobbies: List<String> = emptyList(),
+    val interests: List<String> = emptyList(),
+    val aboutTags: List<String> = emptyList(),
+
     val age: Int = 0,
     val birthYear: Int? = null,
 
@@ -28,6 +29,9 @@ data class UserProfile(
 
     val isAdmin: Boolean = false,
 
+
+    val onboardingComplete: Boolean = false,
+
     @ServerTimestamp
     val createdAt: Timestamp? = null,
 
@@ -39,11 +43,11 @@ data class UserProfile(
     fun isValidAge(): Boolean = age >= 18
 
     @Exclude
-    fun isOnboardingComplete(): Boolean {
-        return displayName.isNotBlank() &&
+    fun checkOnboardingStatus(): Boolean {
+        return onboardingComplete || (displayName.isNotBlank() &&
                 department.isNotBlank() &&
                 photoUrl.isNotBlank() &&
-                isValidAge()
+                isValidAge())
     }
 
     @Exclude
