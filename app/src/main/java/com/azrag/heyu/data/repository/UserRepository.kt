@@ -57,7 +57,6 @@ class UserRepository @Inject constructor(
         }
     }
 
-    // Profil Güncelleme (Diğer kısımlardan çağırmak için)
     suspend fun updateUserProfile(profile: UserProfile): Result<Unit> {
         return try {
             usersCollection.document(profile.id).set(profile, SetOptions.merge()).await()
@@ -129,6 +128,75 @@ class UserRepository @Inject constructor(
             Result.Success(Unit)
         } catch (e: Exception) {
             Result.Error(e.message ?: "Could not send reset email.")
+        }
+    }
+
+    // --- KEŞFET (SWIPE) FONKSİYONLARI ---
+
+    suspend fun getDiscoverUsers(): Result<List<UserProfile>> {
+        val currentUid = auth.currentUser?.uid ?: return Result.Error("Oturum bulunamadı.")
+        return try {
+            // 1. Mevcut kullanıcıyı çekip kimleri beğendiğini/geçtiğini öğreniyoruz
+            val currentUserDoc = usersCollection.document(currentUid).get().await()
+            val currentUser = currentUserDoc.toObject(UserProfile::class.java)
+
+            val excludedIds = mutableListOf(currentUid) // Kendini gösterme
+            currentUser?.let {
+                excludedIds.addAll(it.likedUsers)
+                excludedIds.addAll(it.passedUsers)
+                excludedIds.addAll(it.blockedUsers)
+            }
+
+            // 2. Diğer kullanıcıları çekiyoruz
+            val snapshot = usersCollection
+                .whereEqualTo("onboardingComplete", true)
+                .limit(40)
+                .get().await()
+
+            val users = snapshot.toObjects(UserProfile::class.java)
+                .filter { it.id !in excludedIds }
+                .shuffled() // Karışık gelsinler
+
+            Result.Success(users)
+        } catch (e: Exception) {
+            Log.e(TAG, "getDiscoverUsers error: ${e.message}")
+            Result.Error(e.message ?: "Kullanıcılar yüklenemedi.")
+        }
+    }
+
+    suspend fun likeUser(targetUserId: String): Result<Boolean> {
+        val currentUid = auth.currentUser?.uid ?: return Result.Error("Oturum bulunamadı.")
+        return try {
+            // 1. LikedUsers listesine ekle
+            usersCollection.document(currentUid).update("likedUsers", FieldValue.arrayUnion(targetUserId)).await()
+
+            // 2. Karşı taraf bizi daha önce beğenmiş mi bak (Match kontrolü)
+            val targetUserDoc = usersCollection.document(targetUserId).get().await()
+            val targetUser = targetUserDoc.toObject(UserProfile::class.java)
+
+            if (targetUser?.likedUsers?.contains(currentUid) == true) {
+                // EŞLEŞME OLDU!
+                // Her iki tarafın matches listesine ekle
+                usersCollection.document(currentUid).update("matches", FieldValue.arrayUnion(targetUserId)).await()
+                usersCollection.document(targetUserId).update("matches", FieldValue.arrayUnion(currentUid)).await()
+                
+                // Chat odası oluşturma mantığı burada veya MatchAnimationScreen'de tetiklenebilir
+                Result.Success(true) // True = Match oldu
+            } else {
+                Result.Success(false) // Beğenildi ama henüz match yok
+            }
+        } catch (e: Exception) {
+            Result.Error(e.message ?: "Beğeni işlemi başarısız.")
+        }
+    }
+
+    suspend fun passUser(targetUserId: String): Result<Unit> {
+        val currentUid = auth.currentUser?.uid ?: return Result.Error("Oturum bulunamadı.")
+        return try {
+            usersCollection.document(currentUid).update("passedUsers", FieldValue.arrayUnion(targetUserId)).await()
+            Result.Success(Unit)
+        } catch (e: Exception) {
+            Result.Error(e.message ?: "Geçme işlemi başarısız.")
         }
     }
 

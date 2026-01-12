@@ -4,18 +4,14 @@ import androidx.compose.animation.*
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.scale
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -24,15 +20,10 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.ViewModel
 import androidx.navigation.NavController
-import coil.compose.rememberAsyncImagePainter
 import com.azrag.heyu.R
-import com.azrag.heyu.data.model.UserProfile
 import com.azrag.heyu.data.repository.UserRepository
 import com.azrag.heyu.ui.theme.LogoFontFamily
-import com.azrag.heyu.util.Result
 import com.azrag.heyu.util.Screen
-import com.google.firebase.auth.ktx.auth
-import com.google.firebase.ktx.Firebase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.delay
 import javax.inject.Inject
@@ -48,109 +39,88 @@ fun MatchAnimationScreen(
     matchedUserId: String?,
     viewModel: MatchViewModel = hiltViewModel()
 ) {
-    var matchedUser by remember { mutableStateOf<UserProfile?>(null) }
     var showMatchContent by remember { mutableStateOf(true) }
+    
+    // Temadaki renkleri çekiyoruz
+    val colorScheme = MaterialTheme.colorScheme
+    
+    // Gradyan renklerini temadan alıyoruz
+    val backgroundBrush = Brush.verticalGradient(
+        colors = listOf(
+            colorScheme.secondary, // Üst renk (Gündüz: Sarı, Gece: Temandaki Secondary)
+            colorScheme.primary    // Alt renk (Gündüz: Turuncu, Gece: Temandaki Primary)
+        )
+    )
 
-    // Tema renklerini alıyoruz
-    val primaryColor = MaterialTheme.colorScheme.primary
-    val backgroundColor = MaterialTheme.colorScheme.background
-    val onPrimaryColor = MaterialTheme.colorScheme.onPrimary
-    val onBackgroundColor = MaterialTheme.colorScheme.onBackground
+    // Yazı rengini temadan alıyoruz (Koyu modda onBackground genelde beyaz/açık sarı olur)
+    val contentColor = colorScheme.onBackground
 
-    LaunchedEffect(matchedUserId) {
-        if (matchedUserId != null) {
-            val result = viewModel.userRepository.getUserProfile(matchedUserId)
-            if (result is Result.Success<UserProfile?>) { matchedUser = result.data }
-        }
-        delay(3000)
+    LaunchedEffect(Unit) {
+        delay(3500)
         showMatchContent = false
         delay(500)
-        navController.navigate(Screen.MessageList.route) {
-            popUpTo(Screen.Dashboard.route) { inclusive = false }
+        navController.navigate(Screen.Dashboard.route) {
+            popUpTo(0) { inclusive = true }
         }
     }
 
-    val currentUser = Firebase.auth.currentUser
-
     AnimatedVisibility(
         visible = showMatchContent,
-        exit = slideOutVertically(targetOffsetY = { -it }) + fadeOut()
+        enter = fadeIn(),
+        exit = fadeOut() + slideOutVertically()
     ) {
-        Box(modifier = Modifier.fillMaxSize().background(backgroundColor)) {
-            Box(
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(backgroundBrush)
+        ) {
+            Column(
                 modifier = Modifier
                     .fillMaxSize()
-                    .offset(y = 100.dp)
-                    .scale(1.5f)
-                    .background(primaryColor, CircleShape)
-            )
-
-            Column(
-                modifier = Modifier.fillMaxSize().padding(24.dp),
-                horizontalAlignment = Alignment.CenterHorizontally
+                    .padding(24.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center
             ) {
-                Spacer(Modifier.height(40.dp))
                 Text(
                     text = "heyU!",
                     style = MaterialTheme.typography.displayLarge.copy(
                         fontFamily = LogoFontFamily,
-                        fontSize = 42.sp,
-                        color = primaryColor
+                        fontSize = 32.sp,
+                        color = contentColor
                     )
                 )
 
-                Spacer(Modifier.height(40.dp))
+                Spacer(modifier = Modifier.height(40.dp))
+
                 Text(
-                    text = "hey, ${currentUser?.displayName?.split(" ")?.firstOrNull() ?: "Selin"} !",
-                    fontSize = 18.sp,
-                    color = primaryColor,
-                    fontWeight = FontWeight.Bold
-                )
-
-                Spacer(Modifier.height(40.dp))
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Box(modifier = Modifier.size(120.dp).clip(CircleShape).background(MaterialTheme.colorScheme.surfaceVariant)) {
-                        Image(
-                            painter = rememberAsyncImagePainter(currentUser?.photoUrl),
-                            contentDescription = null,
-                            modifier = Modifier.fillMaxSize(),
-                            contentScale = ContentScale.Crop
-                        )
-                    }
-                    Spacer(Modifier.width((-20).dp))
-                    Box(modifier = Modifier.size(120.dp).clip(CircleShape).background(backgroundColor).padding(4.dp)) {
-                        Box(modifier = Modifier.fillMaxSize().clip(CircleShape).background(MaterialTheme.colorScheme.surfaceVariant)) {
-                            Image(
-                                painter = rememberAsyncImagePainter(matchedUser?.photoUrl),
-                                contentDescription = null,
-                                modifier = Modifier.fillMaxSize(),
-                                contentScale = ContentScale.Crop
-                            )
-                        }
-                    }
-                }
-
-                Spacer(Modifier.height(40.dp))
-                Text(
-                    text = "${matchedUser?.displayName ?: "Birisi"} \nile arkadaş oldun !",
-                    color = onPrimaryColor,
-                    fontSize = 22.sp,
-                    fontWeight = FontWeight.Bold,
-                    textAlign = TextAlign.Center
-                )
-
-                Spacer(Modifier.weight(1f))
-
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Image(
-                        painter = painterResource(id = R.drawable.heyu_logo),
-                        contentDescription = null,
-                        modifier = Modifier.size(60.dp)
+                    text = "hey!\nsohbet ederken",
+                    style = MaterialTheme.typography.headlineMedium.copy(
+                        fontWeight = FontWeight.Bold,
+                        color = contentColor,
+                        textAlign = TextAlign.Center
                     )
-                    Text("hey!", color = onPrimaryColor, fontWeight = FontWeight.Bold)
-                    Text("gönder", color = onPrimaryColor, fontSize = 12.sp)
-                }
-                Spacer(Modifier.height(60.dp))
+                )
+
+                Spacer(modifier = Modifier.height(20.dp))
+
+                Image(
+                    painter = painterResource(id = R.drawable.heyu_logo),
+                    contentDescription = null,
+                    modifier = Modifier
+                        .size(200.dp)
+                        .padding(20.dp)
+                )
+
+                Spacer(modifier = Modifier.height(20.dp))
+
+                Text(
+                    text = "kibar olmayı\nunutma!",
+                    style = MaterialTheme.typography.headlineSmall.copy(
+                        fontWeight = FontWeight.Bold,
+                        color = contentColor,
+                        textAlign = TextAlign.Center
+                    )
+                )
             }
         }
     }
