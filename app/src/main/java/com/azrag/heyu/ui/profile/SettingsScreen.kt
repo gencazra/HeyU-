@@ -1,6 +1,5 @@
 package com.azrag.heyu.ui.profile
 
-import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -37,9 +36,9 @@ fun SettingsScreen(
     onNavigateBack: () -> Unit,
     onLogout: () -> Unit,
     onEditProfileClick: () -> Unit,
-    onNavigateToEvents: () -> Unit = {},
+    onNavigateToEvents: () -> Unit = {}, // Etkinliklere yönlendirme için ekledik
     viewModel: SettingsViewModel = hiltViewModel(),
-    discoverViewModel: DiscoverViewModel = hiltViewModel()
+    discoverViewModel: DiscoverViewModel = hiltViewModel() // Test user eklemek için
 ) {
     val context = LocalContext.current
     val primaryColor = MaterialTheme.colorScheme.primary
@@ -115,15 +114,11 @@ fun SettingsScreen(
 
             Spacer(Modifier.height(32.dp))
 
-            // TEST BUTONU
+            // KRİTİK: Test Kullanıcısı Ekleme Butonu (Geliştirme İçin)
             Button(
-                onClick = { 
-                    discoverViewModel.add10TestUsers {
-                        Toast.makeText(context, "10 Test Kullanıcısı Eklendi!", Toast.LENGTH_SHORT).show()
-                    }
-                },
+                onClick = { discoverViewModel.add10TestUsers() },
                 modifier = Modifier.fillMaxWidth().height(50.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFE91E63)),
+                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFE91E63)), // Pembe/Kırmızı dikkat çekici renk
                 shape = RoundedCornerShape(12.dp)
             ) {
                 Icon(Icons.Default.Add, contentDescription = null, tint = Color.White)
@@ -133,12 +128,14 @@ fun SettingsScreen(
 
             Spacer(Modifier.height(24.dp))
 
+            // Profil Ayarları
             SettingsItem(
                 icon = Icons.Default.Edit,
                 title = "Edit Profile",
                 onClick = onEditProfileClick
             )
 
+            // Duyurular ve Etkinlikler (Notice Database erişimi için)
             SettingsItem(
                 icon = Icons.Default.Campaign,
                 title = "Campus Notices",
@@ -178,7 +175,7 @@ fun SettingsScreen(
             SettingsItem(
                 icon = Icons.Default.Shield,
                 title = "Privacy Policy",
-                onClick = { viewModel.openPrivacyPolicy() }
+                onClick = { viewModel.openPrivacyPolicy(context) }
             )
 
             SettingsItem(
@@ -189,6 +186,7 @@ fun SettingsScreen(
 
             Spacer(Modifier.height(48.dp))
 
+            // Çıkış Butonu
             Button(
                 onClick = {
                     viewModel.logout()

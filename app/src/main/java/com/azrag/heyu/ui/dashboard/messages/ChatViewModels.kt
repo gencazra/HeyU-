@@ -19,7 +19,7 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 data class ChatUiState(
-    val isLoading: Boolean = true,
+    val isLoading: Boolean = false, // Varsayılanı false yapıyoruz, fonksiyonlar başlatacak
     val chats: List<Chat> = emptyList(),
     val messages: List<Message> = emptyList(),
     val otherUser: UserProfile? = null,
@@ -50,39 +50,53 @@ class ChatViewModel @Inject constructor(
         }
     }
 
+    /**
+     * Tüm konuşmaları (Mesajlar Sekmesi) yükler
+     */
     private fun loadAllChats() {
         viewModelScope.launch {
+            _uiState.update { it.copy(isLoading = true) }
             val currentUid = Firebase.auth.currentUser?.uid
+
             if (currentUid == null) {
                 _uiState.update { it.copy(isLoading = false, errorMessage = "User session not found.") }
                 return@launch
             }
-            
-            chatRepository.getAllChatsForCurrentUser().collect { chats ->
-                if (chats.isEmpty()) {
-                    _uiState.update { it.copy(isLoading = false, chats = emptyList()) }
-                    return@collect
-                }
 
-                val enrichedChats = chats.map { chat ->
-                    val otherId = chat.participants.find { it != currentUid } ?: ""
-                    val otherUserRes = userRepository.getUserProfile(otherId)
-                    val otherUser = if (otherUserRes is Result.Success) otherUserRes.data ?: UserProfile() else UserProfile()
-                    chat.copy(otherUser = otherUser)
+            chatRepository.getAllChatsForCurrentUser()
+                .onStart { _uiState.update { it.copy(isLoading = true) } }
+                .catch { e ->
+                    _uiState.update { it.copy(isLoading = false, errorMessage = e.message) }
                 }
-                _uiState.update { it.copy(isLoading = false, chats = enrichedChats) }
-            }
+                .collect { chats ->
+                    if (chats.isEmpty()) {
+                        _uiState.update { it.copy(isLoading = false, chats = emptyList()) }
+                    } else {
+                        val enrichedChats = chats.map { chat ->
+                            val otherId = chat.participants.find { it != currentUid } ?: ""
+                            val otherUserRes = userRepository.getUserProfile(otherId)
+                            val otherUser = if (otherUserRes is Result.Success) otherUserRes.data ?: UserProfile() else UserProfile()
+                            chat.copy(otherUser = otherUser)
+                        }
+                        _uiState.update { it.copy(isLoading = false, chats = enrichedChats) }
+                    }
+                }
         }
     }
 
+    /**
+     * Belirli bir sohbet odasının (Chat Screen) detaylarını ve mesajlarını yükler
+     */
     private fun loadChatData() {
         viewModelScope.launch {
+            _uiState.update { it.copy(isLoading = true) }
             val currentUid = Firebase.auth.currentUser?.uid
+
             if (currentUid == null) {
                 _uiState.update { it.copy(isLoading = false, errorMessage = "User session not found.") }
                 return@launch
             }
-            
+
             val ids = chatRoomId.split("_")
             otherUserId = ids.find { it != currentUid } ?: ""
 
@@ -96,13 +110,15 @@ class ChatViewModel @Inject constructor(
                 ) { currentUser, chatMessages ->
                     _uiState.update {
                         it.copy(
-                            isLoading = false,
+                            isLoading = false, // Veri geldiğinde loading'i kapat
                             currentUserProfile = currentUser,
                             otherUser = otherUser,
                             messages = chatMessages,
                             isUserBlocked = currentUser?.blockedUsers?.contains(otherUserId) ?: false
                         )
                     }
+                }.catch { e ->
+                    _uiState.update { it.copy(isLoading = false, errorMessage = e.message) }
                 }.collect()
             } else {
                 _uiState.update { it.copy(isLoading = false, errorMessage = "Invalid chat room.") }
@@ -115,7 +131,7 @@ class ChatViewModel @Inject constructor(
         if (rawText.isBlank() || chatRoomId.isEmpty() || otherUserId.isEmpty()) return
 
         if (!ModerationManager.isSafe(rawText)) {
-            _uiState.update { it.copy(errorMessage = "Your message contains content that violates community guidelines!") }
+            _uiState.update { it.copy(errorMessage = "Message violates guidelines!") }
             return
         }
 

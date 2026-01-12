@@ -29,7 +29,7 @@ fun NoticeCard(
 ) {
     val currentUserId = Firebase.auth.currentUser?.uid
     val isCurrentUserAttending = notice.attendees.contains(currentUserId)
-    val dateFormat = SimpleDateFormat("dd MMM, HH:mm", Locale("en"))
+    val dateFormat = SimpleDateFormat("dd MMM, HH:mm", Locale.ENGLISH)
 
     Card(
         modifier = Modifier
@@ -57,7 +57,7 @@ fun NoticeCard(
                         } else {
                             painterResource(id = R.drawable.ic_default_profile)
                         },
-                        contentDescription = "Profile Photo",
+                        contentDescription = null,
                         modifier = Modifier
                             .size(40.dp)
                             .clip(CircleShape),
@@ -79,12 +79,12 @@ fun NoticeCard(
                     }
                 }
                 SuggestionChip(
-                    onClick = {  },
-                    label = { 
+                    onClick = { },
+                    label = {
                         Text(
                             text = notice.category,
                             color = MaterialTheme.colorScheme.primary
-                        ) 
+                        )
                     },
                     border = SuggestionChipDefaults.suggestionChipBorder(
                         enabled = true,
