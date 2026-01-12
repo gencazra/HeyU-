@@ -22,8 +22,6 @@ class ChatRepository @Inject constructor(
     private val firestore: FirebaseFirestore
 ) {
     private val chatsCollection = firestore.collection("chats")
-    private val usersCollection = firestore.collection("users")
-
 
     suspend fun createOrGetChatRoom(otherUserId: String): Result<String> {
         val currentUserId = auth.currentUser?.uid ?: return Result.Error("Oturum bulunamadı.")
@@ -45,7 +43,6 @@ class ChatRepository @Inject constructor(
                     "lastMessage" to "Hey! 👋",
                     "lastMessageSenderId" to currentUserId,
                     "lastMessageTimestamp" to Timestamp.now(),
-
                     "unreadCount" to mapOf(currentUserId to 0, otherUserId to 0)
                 )
                 docRef.set(chatData).await()
@@ -55,7 +52,6 @@ class ChatRepository @Inject constructor(
             Result.Error(e.localizedMessage ?: "Sohbet başlatılamadı.")
         }
     }
-
 
     suspend fun sendTextMessageToRoom(chatRoomId: String, receiverId: String, text: String) {
         val currentUserId = auth.currentUser?.uid ?: return
@@ -73,7 +69,6 @@ class ChatRepository @Inject constructor(
 
             batch.set(messageDocRef, message)
 
-
             batch.update(chatDocRef, mapOf(
                 "lastMessage" to text,
                 "lastMessageSenderId" to currentUserId,
@@ -87,18 +82,54 @@ class ChatRepository @Inject constructor(
         }
     }
 
+    suspend fun sendWelcomeMessage() {
+        val userId = auth.currentUser?.uid ?: return
+        val systemId = "HeyU_Admin"
+        val chatRoomId = "system_$userId"
+
+        try {
+            val chatDocRef = chatsCollection.document(chatRoomId)
+            val snapshot = chatDocRef.get().await()
+
+            if (!snapshot.exists()) {
+                val welcomeText = "HeyU! ailesine hoş geldin! 👋 Yeni insanlarla tanışmaya ve keşfetmeye hemen başlayabilirsin. Keyifli vakit geçirmeni dileriz!"
+                
+                val chatData = hashMapOf(
+                    "participants" to listOf(systemId, userId),
+                    "createdAt" to System.currentTimeMillis(),
+                    "lastMessage" to welcomeText,
+                    "lastMessageSenderId" to systemId,
+                    "lastMessageTimestamp" to Timestamp.now(),
+                    "unreadCount" to mapOf(userId to 1, systemId to 0)
+                )
+                chatDocRef.set(chatData).await()
+
+                val messageData = hashMapOf(
+                    "senderId" to systemId,
+                    "text" to welcomeText,
+                    "timestamp" to Timestamp.now()
+                )
+                chatDocRef.collection("messages").add(messageData).await()
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+    }
+
     fun getMessagesFromRoom(chatRoomId: String): Flow<List<Message>> = callbackFlow {
         val subscription = chatsCollection.document(chatRoomId)
             .collection("messages")
             .orderBy("timestamp", Query.Direction.DESCENDING)
             .addSnapshotListener { snapshot, error ->
-                if (error != null) return@addSnapshotListener
+                if (error != null) {
+                    close(error)
+                    return@addSnapshotListener
+                }
                 val messages = snapshot?.toObjects(Message::class.java) ?: emptyList()
                 trySend(messages)
             }
         awaitClose { subscription.remove() }
     }
-
 
     suspend fun markMessagesAsRead(chatRoomId: String) {
         val currentUserId = auth.currentUser?.uid ?: return
@@ -111,14 +142,16 @@ class ChatRepository @Inject constructor(
         }
     }
 
-
     fun getAllChatsForCurrentUser(): Flow<List<Chat>> = callbackFlow {
         val currentUserId = auth.currentUser?.uid ?: return@callbackFlow
 
         val subscription = chatsCollection
             .whereArrayContains("participants", currentUserId)
             .addSnapshotListener { snapshot, error ->
-                if (error != null) return@addSnapshotListener
+                if (error != null) {
+                    close(error)
+                    return@addSnapshotListener
+                }
 
                 val chats = snapshot?.documents?.mapNotNull { doc ->
                     val chat = doc.toObject(Chat::class.java)?.apply {

@@ -107,8 +107,6 @@ fun ChatListScreen(
                 Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                     CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
                 }
-            } else if (filteredChats.isEmpty()) {
-                EmptyChatsPlaceholder()
             } else {
                 LazyColumn(
                     modifier = Modifier.fillMaxSize(),
@@ -117,7 +115,12 @@ fun ChatListScreen(
                     items(filteredChats) { chat ->
                         ChatItem(
                             chat = chat,
-                            onClick = { navController.navigate(Screen.Chat.createRoute(chat.chatRoomId)) }
+                            onClick = { 
+                                // ID boşsa navigasyon yapma (Çökmeyi engeller)
+                                if (chat.chatRoomId.isNotEmpty()) {
+                                    navController.navigate(Screen.Chat.createRoute(chat.chatRoomId)) 
+                                }
+                            }
                         )
                     }
                 }
@@ -138,10 +141,17 @@ private fun ChatItem(chat: Chat, onClick: () -> Unit) {
             .padding(horizontal = 16.dp, vertical = 12.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
+        val imagePainter = rememberAsyncImagePainter(
+            model = if (chat.otherUser.photoUrl.isEmpty()) {
+                "https://ui-avatars.com/api/?name=HeyU&background=6200EE&color=fff"
+            } else {
+                chat.otherUser.photoUrl
+            },
+            placeholder = rememberAsyncImagePainter(R.drawable.ic_default_profile)
+        )
+
         Image(
-            painter = rememberAsyncImagePainter(
-                model = chat.otherUser.photoUrl.ifBlank { R.drawable.ic_default_profile }
-            ),
+            painter = imagePainter,
             contentDescription = null,
             modifier = Modifier
                 .size(60.dp)
@@ -159,7 +169,7 @@ private fun ChatItem(chat: Chat, onClick: () -> Unit) {
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    text = chat.otherUser.displayName,
+                    text = chat.otherUser.displayName.ifBlank { "HeyU! Team" },
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.onBackground
@@ -181,33 +191,5 @@ private fun ChatItem(chat: Chat, onClick: () -> Unit) {
                 overflow = TextOverflow.Ellipsis
             )
         }
-    }
-}
-
-@Composable
-private fun EmptyChatsPlaceholder() {
-    Column(
-        modifier = Modifier.fillMaxSize(),
-        verticalArrangement = Arrangement.Center,
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        Icon(
-            Icons.Default.ChatBubbleOutline,
-            null,
-            modifier = Modifier.size(64.dp),
-            tint = MaterialTheme.colorScheme.primary.copy(alpha = 0.5f)
-        )
-        Spacer(Modifier.height(16.dp))
-        Text(
-            "No messages yet", 
-            fontWeight = FontWeight.Bold,
-            color = MaterialTheme.colorScheme.onBackground
-        )
-        Text(
-            "Go to Discover to meet new people!", 
-            textAlign = TextAlign.Center,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = Modifier.padding(horizontal = 32.dp)
-        )
     }
 }
