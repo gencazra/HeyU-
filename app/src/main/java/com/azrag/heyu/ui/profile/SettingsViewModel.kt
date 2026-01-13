@@ -28,9 +28,12 @@ class SettingsViewModel @Inject constructor(
     val themeSetting: StateFlow<ThemeSetting> = settingRepository.themeSetting
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), ThemeSetting.SYSTEM)
 
-    // Eklendi: Navigasyon veya Dialog için state
     private val _navigateToPrivacy = MutableStateFlow(false)
     val navigateToPrivacy = _navigateToPrivacy.asStateFlow()
+
+    // Dil State'i (TR/EN)
+    private val _currentLanguage = MutableStateFlow("TR")
+    val currentLanguage = _currentLanguage.asStateFlow()
 
     fun onThemeChanged(isDark: Boolean) {
         viewModelScope.launch {
@@ -38,11 +41,15 @@ class SettingsViewModel @Inject constructor(
         }
     }
 
+    fun onLanguageChanged(lang: String) {
+        _currentLanguage.value = lang
+        // Burada gerçek yerelleştirme (Locale) işlemleri de tetiklenebilir
+    }
+
     fun logout() {
         settingRepository.logout()
     }
 
-    // GÜNCELLENDİ: Artık dış link açmak yerine state değiştiriyor
     fun openPrivacyPolicy(context: Context) {
         _navigateToPrivacy.value = true
     }

@@ -19,6 +19,7 @@ import com.azrag.heyu.ui.dashboard.messages.ChatScreen
 import com.azrag.heyu.ui.dashboard.discover.MatchAnimationScreen
 import com.azrag.heyu.ui.login.*
 import com.azrag.heyu.ui.profile.SettingsScreen
+import com.azrag.heyu.ui.profile.TextContentViewerScreen
 import com.azrag.heyu.ui.signup.*
 import com.azrag.heyu.ui.start.StartScreen
 import com.azrag.heyu.ui.theme.HeyUTheme
@@ -84,12 +85,30 @@ class MainActivity : ComponentActivity() {
                         composable(Screen.Settings.route) {
                             SettingsScreen(
                                 onNavigateBack = { navController.popBackStack() },
-                                onLogout = { navController.navigate(Screen.Login.route) { popUpTo(0) { inclusive = true } } },
-                                onEditProfileClick = { navController.navigate(Screen.Onboarding1.route) }
+                                onLogout = { 
+                                    navController.navigate(Screen.Login.route) { 
+                                        popUpTo(0) { inclusive = true } 
+                                    } 
+                                },
+                                onEditProfileClick = { navController.navigate(Screen.EditProfile.route) },
+                                onNavigateToPrivacy = {
+                                    navController.navigate("privacy_viewer/privacy")
+                                }
                             )
                         }
 
-                        // Match Animasyon Ekranını Ana NavHost'a Ekle
+                        // Gizlilik Politikası Gösterici Sayfası
+                        composable(
+                            route = "privacy_viewer/{contentType}",
+                            arguments = listOf(navArgument("contentType") { type = NavType.StringType })
+                        ) { backStackEntry ->
+                            val contentType = backStackEntry.arguments?.getString("contentType") ?: ""
+                            TextContentViewerScreen(
+                                contentType = contentType,
+                                onNavigateBack = { navController.popBackStack() }
+                            )
+                        }
+
                         composable(
                             route = Screen.MatchSuccess.route,
                             arguments = listOf(navArgument("matchedUserId") { type = NavType.StringType })
