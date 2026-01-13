@@ -16,6 +16,7 @@ import androidx.navigation.navArgument
 import com.azrag.heyu.data.repository.ThemeSetting
 import com.azrag.heyu.ui.dashboard.DashboardScreen
 import com.azrag.heyu.ui.dashboard.messages.ChatScreen
+import com.azrag.heyu.ui.dashboard.discover.MatchAnimationScreen
 import com.azrag.heyu.ui.login.*
 import com.azrag.heyu.ui.profile.SettingsScreen
 import com.azrag.heyu.ui.signup.*
@@ -85,6 +86,18 @@ class MainActivity : ComponentActivity() {
                                 onNavigateBack = { navController.popBackStack() },
                                 onLogout = { navController.navigate(Screen.Login.route) { popUpTo(0) { inclusive = true } } },
                                 onEditProfileClick = { navController.navigate(Screen.Onboarding1.route) }
+                            )
+                        }
+
+                        // Match Animasyon Ekranını Ana NavHost'a Ekle
+                        composable(
+                            route = Screen.MatchSuccess.route,
+                            arguments = listOf(navArgument("matchedUserId") { type = NavType.StringType })
+                        ) { backStackEntry ->
+                            val matchedUserId = backStackEntry.arguments?.getString("matchedUserId")
+                            MatchAnimationScreen(
+                                navController = navController,
+                                matchedUserId = matchedUserId
                             )
                         }
                     }

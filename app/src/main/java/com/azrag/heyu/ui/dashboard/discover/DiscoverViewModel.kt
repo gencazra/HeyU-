@@ -4,6 +4,7 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.azrag.heyu.data.model.UserProfile
+import com.azrag.heyu.data.repository.ChatRepository
 import com.azrag.heyu.data.repository.UserRepository
 import com.azrag.heyu.util.Result
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -24,7 +25,8 @@ data class DiscoverUiState(
 
 @HiltViewModel
 class DiscoverViewModel @Inject constructor(
-    private val userRepository: UserRepository
+    private val userRepository: UserRepository,
+    private val chatRepository: ChatRepository
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(DiscoverUiState())
@@ -97,12 +99,25 @@ class DiscoverViewModel @Inject constructor(
             state.copy(userCards = state.userCards.filterNot { it.id == swipedUser.id })
         }
 
+        if (liked) {
+            // Kullanıcı sağa kaydırdığı (eklediği) an animasyonu tetikle
+            _uiState.update { it.copy(newMatch = swipedUser) }
+        }
+
         viewModelScope.launch {
             try {
                 if (liked) {
                     val result = userRepository.likeUser(swipedUser.id)
+                    // Eğer gerçek bir eşleşme (mutual match) varsa chat oluştur
                     if (result is Result.Success && result.data == true) {
-                        _uiState.update { it.copy(newMatch = swipedUser) }
+                        val chatResult = chatRepository.createOrGetChatRoom(swipedUser.id)
+                        if (chatResult is Result.Success) {
+                            chatRepository.sendTextMessageToRoom(
+                                chatRoomId = chatResult.data,
+                                receiverId = swipedUser.id,
+                                text = "Heyy! 👋"
+                            )
+                        }
                     }
                 } else {
                     userRepository.passUser(swipedUser.id)

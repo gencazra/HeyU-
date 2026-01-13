@@ -41,9 +41,10 @@ fun DiscoverScreen(
     val uiState by viewModel.uiState.collectAsState()
     val backgroundColor = Color(0xFFFFF8E1)
 
+    // Match olduğunda animasyon ekranına git
     LaunchedEffect(uiState.newMatch) {
         uiState.newMatch?.let { matchedUser ->
-            mainNavController.navigate(Screen.MatchSuccess.route.replace("{matchedUserId}", matchedUser.id))
+            mainNavController.navigate(Screen.MatchSuccess.createRoute(matchedUser.id))
             viewModel.clearMatch()
         }
     }
@@ -75,7 +76,6 @@ fun DiscoverScreen(
                 if (uiState.isLoading) {
                     CircularProgressIndicator(color = Color(0xFFE67E59))
                 } else if (uiState.errorMessage != null) {
-                    // Hata mesajını ekranda göster
                     ErrorState(
                         message = uiState.errorMessage!!,
                         onRetry = { viewModel.refresh() }
