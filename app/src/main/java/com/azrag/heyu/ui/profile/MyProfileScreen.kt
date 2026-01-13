@@ -2,6 +2,7 @@ package com.azrag.heyu.ui.profile
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
@@ -11,19 +12,17 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import coil.compose.rememberAsyncImagePainter
-import com.azrag.heyu.data.model.UserProfile
 import com.azrag.heyu.ui.theme.LogoFontFamily
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -53,7 +52,7 @@ fun MyProfileScreen(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                IconButton(onClick = { }) {
+                IconButton(onClick = { /* Back handle if needed */ }) {
                     Icon(Icons.AutoMirrored.Filled.ArrowBack, null, tint = MaterialTheme.colorScheme.primary)
                 }
                 Text(
@@ -64,7 +63,13 @@ fun MyProfileScreen(
                         color = MaterialTheme.colorScheme.primary
                     )
                 )
-                Box(modifier = Modifier.size(48.dp))
+                IconButton(onClick = onNavigateToSettings) {
+                    Icon(
+                        imageVector = Icons.Default.Settings,
+                        contentDescription = "Settings",
+                        tint = MaterialTheme.colorScheme.primary
+                    )
+                }
             }
 
             Spacer(Modifier.height(20.dp))
@@ -110,7 +115,12 @@ fun MyProfileScreen(
             }
 
             Spacer(Modifier.height(16.dp))
-            Text("Edit pictures or avatar", color = MaterialTheme.colorScheme.primary, fontSize = 14.sp)
+            Text(
+                text = "Edit pictures or avatar", 
+                color = MaterialTheme.colorScheme.primary, 
+                fontSize = 14.sp,
+                modifier = Modifier.clickable { onNavigateToEditProfile() }
+            )
             Spacer(Modifier.height(24.dp))
 
             if (uiState is MyProfileUiState.Success) {

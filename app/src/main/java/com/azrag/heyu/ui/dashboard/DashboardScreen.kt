@@ -13,7 +13,6 @@ import com.azrag.heyu.ui.dashboard.discover.DiscoverScreen
 import com.azrag.heyu.ui.profile.MyProfileScreen
 import com.azrag.heyu.util.Screen
 
-
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DashboardScreen(mainNavController: NavController) {
@@ -22,16 +21,11 @@ fun DashboardScreen(mainNavController: NavController) {
     val bottomNavItems = listOf(
         Screen.Discover,
         Screen.NoticeBoard,
-        Screen.MessageList,
+        Screen.Messages,
         Screen.ProfileView
     )
 
     Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text("heyU!") }
-            )
-        },
         bottomBar = {
             NavigationBar {
                 val navBackStackEntry by dashboardNavController.currentBackStackEntryAsState()
@@ -41,20 +35,19 @@ fun DashboardScreen(mainNavController: NavController) {
                     NavigationBarItem(
                         selected = currentRoute == screen.route,
                         onClick = {
-                            dashboardNavController.navigate(screen.route) {
-                                popUpTo(dashboardNavController.graph.findStartDestination().id) {
-                                    saveState = true
+                            if (currentRoute != screen.route) {
+                                dashboardNavController.navigate(screen.route) {
+                                    popUpTo(dashboardNavController.graph.findStartDestination().id) {
+                                        saveState = true
+                                    }
+                                    launchSingleTop = true
+                                    restoreState = true
                                 }
-                                launchSingleTop = true
-                                restoreState = true
                             }
                         },
                         icon = {
                             screen.icon?.let {
-                                Icon(
-                                    imageVector = it,
-                                    contentDescription = screen.title
-                                )
+                                Icon(imageVector = it, contentDescription = screen.title)
                             }
                         },
                         label = { screen.title?.let { Text(it) } }
@@ -71,26 +64,24 @@ fun DashboardScreen(mainNavController: NavController) {
             composable(Screen.Discover.route) {
                 DiscoverScreen(mainNavController = mainNavController)
             }
-
             composable(Screen.NoticeBoard.route) {
                 NoticeBoardScreen(navController = mainNavController)
             }
-
-            composable(Screen.MessageList.route) {
+            
+            // MESAJLAR LİSTESİ
+            composable(Screen.Messages.route) {
+                // mainNavController'ı veriyoruz ki bir konuşmaya tıklandığında 
+                // ana NavHost üzerindeki ChatScreen'e gidebilsin.
                 ChatListScreen(navController = mainNavController)
             }
 
             composable(Screen.ProfileView.route) {
                 MyProfileScreen(
-                    onNavigateToEditProfile = {
-                        mainNavController.navigate(Screen.Onboarding1.route)
-                    },
-                    onNavigateToSettings = {
-                        mainNavController.navigate(Screen.Settings.route)
-                    },
+                    onNavigateToEditProfile = { mainNavController.navigate(Screen.Onboarding1.route) },
+                    onNavigateToSettings = { mainNavController.navigate(Screen.Settings.route) },
                     onLogoutSuccess = {
                         mainNavController.navigate(Screen.Login.route) {
-                            popUpTo(Screen.Dashboard.route) { inclusive = true }
+                            popUpTo(0) { inclusive = true }
                         }
                     }
                 )

@@ -9,183 +9,175 @@ import com.azrag.heyu.data.model.Message
 import com.azrag.heyu.data.model.UserProfile
 import com.azrag.heyu.data.repository.ChatRepository
 import com.azrag.heyu.data.repository.UserRepository
-import com.azrag.heyu.util.ModerationManager
 import com.azrag.heyu.util.Result
 import com.google.firebase.Timestamp
 import com.google.firebase.auth.FirebaseAuth
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
-data class ChatUiState(
+data class ChatListUiState(
     val isLoading: Boolean = false,
     val chats: List<Chat> = emptyList(),
+    val errorMessage: String? = null
+)
+
+data class ChatDetailUiState(
+    val isLoading: Boolean = false,
     val messages: List<Message> = emptyList(),
     val otherUser: UserProfile? = null,
     val currentUserProfile: UserProfile? = null,
-    val errorMessage: String? = null,
-    val isUserBlocked: Boolean = false
+    val errorMessage: String? = null
 )
 
 @HiltViewModel
-class ChatViewModel @Inject constructor(
+class ChatListViewModel @Inject constructor(
     private val chatRepository: ChatRepository,
     private val userRepository: UserRepository,
-    private val auth: FirebaseAuth,
-    savedStateHandle: SavedStateHandle
+    private val auth: FirebaseAuth
 ) : ViewModel() {
 
-    private val _uiState = MutableStateFlow(ChatUiState())
+    private val _uiState = MutableStateFlow(ChatListUiState())
     val uiState = _uiState.asStateFlow()
-
-    var messageText = mutableStateOf("")
-    // savedStateHandle üzerinden ID'yi çekiyoruz
-    private val chatRoomId: String = savedStateHandle.get<String>("chatRoomId") ?: ""
-    private var otherUserId: String = ""
 
     private val systemUser = UserProfile(
         id = "HeyU_Admin",
         displayName = "HeyU! Team",
-        photoUrl = "https://ui-avatars.com/api/?name=HeyU&background=6200EE&color=fff"
+        photoUrl = "" 
     )
 
     init {
-        if (chatRoomId.isNotEmpty()) {
-            loadChatData()
-        } else {
-            loadAllChats()
-        }
+        loadAllChats()
     }
 
     private fun loadAllChats() {
-        viewModelScope.launch {
-            val currentUid = auth.currentUser?.uid ?: return@launch
-            
-            val welcomeChat = Chat(
+        val currentUid = auth.currentUser?.uid
+        
+        // Varsayılan hoş geldin mesajını hemen listeye ekleyelim (Boş görünmesin)
+        if (currentUid != null) {
+            val welcomePlaceholder = Chat(
                 chatRoomId = "system_$currentUid",
                 otherUser = systemUser,
                 participants = listOf("HeyU_Admin", currentUid),
                 lastMessage = "HeyU! ailesine hoş geldin! 👋",
                 lastMessageTimestamp = Timestamp.now()
             )
-            
-            _uiState.update { it.copy(chats = listOf(welcomeChat), isLoading = false) }
+            _uiState.update { it.copy(chats = listOf(welcomePlaceholder), isLoading = true) }
+        }
 
-            launch { chatRepository.sendWelcomeMessage() }
+        viewModelScope.launch {
+            if (currentUid == null) {
+                _uiState.update { it.copy(isLoading = false) }
+                return@launch
+            }
+
+            // Arka planda Firestore'a mesajı gönder/güncelle
+            try { chatRepository.sendWelcomeMessage() } catch (e: Exception) {}
 
             chatRepository.getAllChatsForCurrentUser()
-                .catch { e -> _uiState.update { it.copy(errorMessage = e.message, isLoading = false) } }
+                .catch { e -> _uiState.update { it.copy(isLoading = false) } }
                 .collect { chats ->
                     val enriched = chats.map { chat ->
                         async {
-                            val otherId = chat.participants.find { it != currentUid } ?: ""
-                            val user = if (otherId == "HeyU_Admin" || chat.chatRoomId.startsWith("system_")) {
-                                systemUser
+                            val oId = chat.participants.find { it != currentUid }
+                            if (oId == null || oId == "HeyU_Admin" || chat.chatRoomId.startsWith("system_")) {
+                                chat.copy(otherUser = systemUser)
                             } else {
-                                val res = userRepository.getUserProfile(otherId)
-                                if (res is Result.Success) res.data ?: UserProfile() else UserProfile()
+                                val res = userRepository.getUserProfile(oId)
+                                val user = if (res is Result.Success) res.data ?: UserProfile(id = oId, displayName = "User") 
+                                           else UserProfile(id = oId, displayName = "User")
+                                chat.copy(otherUser = user)
                             }
-                            chat.copy(otherUser = user)
                         }
                     }.awaitAll().toMutableList()
 
-                    if (enriched.none { it.otherUser.id == "HeyU_Admin" }) {
-                        enriched.add(welcomeChat)
+                    // Sistem mesajı listede yoksa ekle
+                    if (enriched.none { it.chatRoomId.startsWith("system_") }) {
+                        enriched.add(0, Chat(
+                            chatRoomId = "system_$currentUid",
+                            otherUser = systemUser,
+                            participants = listOf("HeyU_Admin", currentUid),
+                            lastMessage = "HeyU! ailesine hoş geldin! 👋",
+                            lastMessageTimestamp = Timestamp.now()
+                        ))
                     }
                     
-                    val sortedChats = enriched.sortedByDescending { it.lastMessageTimestamp ?: Timestamp.now() }
-                    _uiState.update { it.copy(chats = sortedChats, isLoading = false) }
+                    val sorted = enriched.sortedByDescending { it.lastMessageTimestamp ?: Timestamp.now() }
+                    _uiState.update { it.copy(chats = sorted, isLoading = false) }
                 }
+        }
+    }
+}
+
+@HiltViewModel
+class ChatViewModel @Inject constructor(
+    private val chatRepository: ChatRepository,
+    private val userRepository: UserRepository,
+    private val auth: FirebaseAuth,
+    private val savedStateHandle: SavedStateHandle
+) : ViewModel() {
+
+    private val _uiState = MutableStateFlow(ChatDetailUiState())
+    val uiState = _uiState.asStateFlow()
+
+    var messageText = mutableStateOf("")
+    
+    private val chatRoomId: String = savedStateHandle.get<String>("chatRoomId") ?: ""
+    private var otherUserId: String = ""
+
+    private val welcomeMsg = Message(
+        id = "welcome_system",
+        senderId = "HeyU_Admin",
+        text = "HeyU! ailesine hoş geldin! 👋 Yeni insanlarla tanışmaya ve keşfetmeye hemen başlayabilirsin. Keyifli vakit geçirmeni dileriz!",
+        timestamp = Timestamp.now()
+    )
+
+    init {
+        if (chatRoomId.isNotBlank()) {
+            loadChatData()
         }
     }
 
     private fun loadChatData() {
+        val currentUid = auth.currentUser?.uid ?: return
+        
         viewModelScope.launch {
-            val currentUid = auth.currentUser?.uid ?: return@launch
-            if (chatRoomId.isEmpty()) return@launch
+            _uiState.update { it.copy(isLoading = true) }
 
             if (chatRoomId.startsWith("system_")) {
                 otherUserId = "HeyU_Admin"
-                
-                val defaultMsg = Message(
-                    id = "welcome_msg",
-                    senderId = "HeyU_Admin",
-                    text = "HeyU! ailesine hoş geldin! 👋 Yeni insanlarla tanışmaya ve keşfetmeye hemen başlayabilirsin. Keyifli vakit geçirmeni dileriz!",
-                    timestamp = Timestamp.now()
-                )
-                
-                _uiState.update { 
-                    it.copy(otherUser = systemUser, messages = listOf(defaultMsg), isLoading = false) 
-                }
-
-                launch {
-                    userRepository.getUserProfileStream(currentUid).collect { profile ->
-                        _uiState.update { it.copy(currentUserProfile = profile) }
-                    }
-                }
-                
-                launch {
-                    chatRepository.getMessagesFromRoom(chatRoomId).collect { msgs ->
-                        if (msgs.isNotEmpty()) {
-                            _uiState.update { it.copy(messages = msgs) }
-                        } else {
-                            _uiState.update { it.copy(messages = listOf(defaultMsg)) }
-                        }
-                    }
-                }
+                _uiState.update { it.copy(otherUser = UserProfile(id = "HeyU_Admin", displayName = "HeyU! Team"), messages = listOf(welcomeMsg)) }
             } else {
-                val ids = chatRoomId.split("_")
-                otherUserId = ids.find { it != currentUid } ?: ""
-
+                val parts = chatRoomId.split("_")
+                otherUserId = parts.find { it != currentUid } ?: ""
                 if (otherUserId.isNotEmpty()) {
-                    _uiState.update { it.copy(isLoading = true) }
-                    val otherUserRes = userRepository.getUserProfile(otherUserId)
-                    val otherUser = if (otherUserRes is Result.Success) otherUserRes.data else null
-                    _uiState.update { it.copy(otherUser = otherUser) }
-
-                    launch {
-                        userRepository.getUserProfileStream(currentUid).collect { profile ->
-                            _uiState.update { it.copy(currentUserProfile = profile) }
-                        }
-                    }
-
-                    launch {
-                        chatRepository.getMessagesFromRoom(chatRoomId).collect { msgs ->
-                            _uiState.update { it.copy(messages = msgs, isLoading = false) }
-                        }
-                    }
+                    val res = userRepository.getUserProfile(otherUserId)
+                    if (res is Result.Success) _uiState.update { it.copy(otherUser = res.data) }
                 }
+            }
+
+            chatRepository.getMessagesFromRoom(chatRoomId).collect { msgs ->
+                val finalMessages = if (chatRoomId.startsWith("system_") && msgs.isEmpty()) listOf(welcomeMsg) else msgs
+                _uiState.update { it.copy(messages = finalMessages, isLoading = false) }
             }
         }
     }
 
-    fun sendTextMessage(textOverride: String? = null) {
-        val rawText = textOverride ?: messageText.value
-        if (rawText.isBlank() || chatRoomId.isEmpty() || otherUserId.isEmpty() || otherUserId == "HeyU_Admin") return
-
-        if (!ModerationManager.isSafe(rawText)) {
-            _uiState.update { it.copy(errorMessage = "Message violates guidelines!") }
-            return
-        }
-
-        val cleanText = ModerationManager.filterText(rawText)
-        if (textOverride == null) messageText.value = ""
-
-        viewModelScope.launch {
-            chatRepository.sendTextMessageToRoom(chatRoomId, otherUserId, cleanText)
-        }
+    fun sendTextMessage() {
+        val text = messageText.value
+        if (text.isBlank() || chatRoomId.isBlank() || otherUserId.isBlank() || otherUserId == "HeyU_Admin") return
+        messageText.value = ""
+        viewModelScope.launch { chatRepository.sendTextMessageToRoom(chatRoomId, otherUserId, text) }
     }
 
     fun toggleBlockUser() {
-        if (otherUserId == "HeyU_Admin") return
+        if (otherUserId.isEmpty() || otherUserId == "HeyU_Admin") return
         viewModelScope.launch {
-            val result = userRepository.blockUser(otherUserId)
-            if (result is Result.Success) {
-                _uiState.update { it.copy(errorMessage = "User blocked.", isUserBlocked = true) }
-            }
+            userRepository.blockUser(otherUserId)
         }
     }
 }

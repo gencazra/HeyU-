@@ -25,12 +25,7 @@ class ChatRepository @Inject constructor(
 
     suspend fun createOrGetChatRoom(otherUserId: String): Result<String> {
         val currentUserId = auth.currentUser?.uid ?: return Result.Error("Session not found.")
-
-        val chatRoomId = if (currentUserId < otherUserId) {
-            "${currentUserId}_$otherUserId"
-        } else {
-            "${otherUserId}_$currentUserId"
-        }
+        val chatRoomId = if (currentUserId < otherUserId) "${currentUserId}_$otherUserId" else "${otherUserId}_$currentUserId"
 
         return try {
             val docRef = chatsCollection.document(chatRoomId)
@@ -55,7 +50,6 @@ class ChatRepository @Inject constructor(
 
     suspend fun sendTextMessageToRoom(chatRoomId: String, receiverId: String, text: String) {
         val currentUserId = auth.currentUser?.uid ?: return
-
         val message = hashMapOf(
             "senderId" to currentUserId,
             "text" to text,
@@ -66,34 +60,29 @@ class ChatRepository @Inject constructor(
             val batch = firestore.batch()
             val chatDocRef = chatsCollection.document(chatRoomId)
             val messageDocRef = chatDocRef.collection("messages").document()
-
             batch.set(messageDocRef, message)
-
             batch.update(chatDocRef, mapOf(
                 "lastMessage" to text,
                 "lastMessageSenderId" to currentUserId,
                 "lastMessageTimestamp" to Timestamp.now(),
                 "unreadCount.$receiverId" to FieldValue.increment(1)
             ))
-
             batch.commit().await()
-        } catch (e: Exception) {
-            e.printStackTrace()
-        }
+        } catch (e: Exception) { e.printStackTrace() }
     }
 
     suspend fun sendWelcomeMessage() {
         val userId = auth.currentUser?.uid ?: return
         val systemId = "HeyU_Admin"
         val chatRoomId = "system_$userId"
+        val welcomeText = "HeyU! ailesine hoş geldin! 👋 Yeni insanlarla tanışmaya ve keşfetmeye hemen başlayabilirsin. Keyifli vakit geçirmeni dileriz!"
 
         try {
             val chatDocRef = chatsCollection.document(chatRoomId)
+            val messagesCollection = chatDocRef.collection("messages")
+            
             val snapshot = chatDocRef.get().await()
-
             if (!snapshot.exists()) {
-                val welcomeText = "HeyU! ailesine hoş geldin! 👋 Yeni insanlarla tanışmaya ve keşfetmeye hemen başlayabilirsin. Keyifli vakit geçirmeni dileriz!"
-                
                 val chatData = hashMapOf(
                     "participants" to listOf(systemId, userId),
                     "createdAt" to System.currentTimeMillis(),
@@ -103,17 +92,26 @@ class ChatRepository @Inject constructor(
                     "unreadCount" to mapOf(userId to 1, systemId to 0)
                 )
                 chatDocRef.set(chatData).await()
-
+                
                 val messageData = hashMapOf(
                     "senderId" to systemId,
                     "text" to welcomeText,
                     "timestamp" to Timestamp.now()
                 )
-                chatDocRef.collection("messages").add(messageData).await()
+                messagesCollection.add(messageData).await()
+            } else {
+                // Doküman varsa ama mesajlar boşsa yine ekle
+                val msgSnapshot = messagesCollection.limit(1).get().await()
+                if (msgSnapshot.isEmpty) {
+                    val messageData = hashMapOf(
+                        "senderId" to systemId,
+                        "text" to welcomeText,
+                        "timestamp" to Timestamp.now()
+                    )
+                    messagesCollection.add(messageData).await()
+                }
             }
-        } catch (e: Exception) {
-            e.printStackTrace()
-        }
+        } catch (e: Exception) { e.printStackTrace() }
     }
 
     fun getMessagesFromRoom(chatRoomId: String): Flow<List<Message>> = callbackFlow {
@@ -131,20 +129,8 @@ class ChatRepository @Inject constructor(
         awaitClose { subscription.remove() }
     }
 
-    suspend fun markMessagesAsRead(chatRoomId: String) {
-        val currentUserId = auth.currentUser?.uid ?: return
-        try {
-            chatsCollection.document(chatRoomId)
-                .update("unreadCount.$currentUserId", 0)
-                .await()
-        } catch (e: Exception) {
-            e.printStackTrace()
-        }
-    }
-
     fun getAllChatsForCurrentUser(): Flow<List<Chat>> = callbackFlow {
         val currentUserId = auth.currentUser?.uid ?: return@callbackFlow
-
         val subscription = chatsCollection
             .whereArrayContains("participants", currentUserId)
             .addSnapshotListener { snapshot, error ->
@@ -152,14 +138,9 @@ class ChatRepository @Inject constructor(
                     close(error)
                     return@addSnapshotListener
                 }
-
                 val chats = snapshot?.documents?.mapNotNull { doc ->
-                    val chat = doc.toObject(Chat::class.java)?.apply {
-                        chatRoomId = doc.id
-                    }
-                    chat
+                    doc.toObject(Chat::class.java)?.apply { chatRoomId = doc.id }
                 } ?: emptyList()
-
                 trySend(chats)
             }
         awaitClose { subscription.remove() }

@@ -5,12 +5,8 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ChatBubbleOutline
-import androidx.compose.material.icons.filled.Event
-import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -18,10 +14,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import coil.compose.rememberAsyncImagePainter
@@ -35,14 +29,17 @@ import java.util.*
 @Composable
 fun ChatListScreen(
     navController: NavController,
-    viewModel: ChatViewModel = hiltViewModel()
+    // Hilt'in ViewModel'i doğru oluşturduğundan emin olmak için
+    viewModel: ChatListViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
     var searchQuery by remember { mutableStateOf("") }
 
     val filteredChats = remember(uiState.chats, searchQuery) {
         if (searchQuery.isBlank()) uiState.chats
-        else uiState.chats.filter { it.otherUser.displayName.contains(searchQuery, ignoreCase = true) }
+        else uiState.chats.filter { 
+            (it.otherUser.displayName ?: "").contains(searchQuery, ignoreCase = true) 
+        }
     }
 
     Scaffold(
@@ -50,15 +47,6 @@ fun ChatListScreen(
         topBar = {
             CenterAlignedTopAppBar(
                 title = { Text("Messages", fontWeight = FontWeight.ExtraBold) },
-                actions = {
-                    IconButton(onClick = { navController.navigate("events") }) {
-                        Icon(
-                            Icons.Default.Event,
-                            contentDescription = "Events",
-                            tint = MaterialTheme.colorScheme.primary
-                        )
-                    }
-                },
                 colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
                     containerColor = MaterialTheme.colorScheme.background,
                     titleContentColor = MaterialTheme.colorScheme.onBackground
@@ -71,54 +59,27 @@ fun ChatListScreen(
                 .padding(paddingValues)
                 .fillMaxSize()
         ) {
-            OutlinedTextField(
-                value = searchQuery,
-                onValueChange = { searchQuery = it },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 8.dp),
-                placeholder = { 
-                    Text(
-                        "Search in chats...", 
-                        fontSize = 14.sp,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
-                    ) 
-                },
-                leadingIcon = { 
-                    Icon(
-                        Icons.Default.Search, 
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.primary
-                    ) 
-                },
-                singleLine = true,
-                shape = CircleShape,
-                colors = OutlinedTextFieldDefaults.colors(
-                    focusedContainerColor = MaterialTheme.colorScheme.surface,
-                    unfocusedContainerColor = MaterialTheme.colorScheme.surface,
-                    focusedBorderColor = MaterialTheme.colorScheme.primary,
-                    unfocusedBorderColor = MaterialTheme.colorScheme.outlineVariant,
-                    focusedTextColor = MaterialTheme.colorScheme.onSurface,
-                    unfocusedTextColor = MaterialTheme.colorScheme.onSurface
-                )
-            )
-
             if (uiState.isLoading) {
                 Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                     CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
+                }
+            } else if (filteredChats.isEmpty()) {
+                Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                    Text("No messages yet.", color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
             } else {
                 LazyColumn(
                     modifier = Modifier.fillMaxSize(),
                     contentPadding = PaddingValues(bottom = 16.dp)
                 ) {
-                    items(filteredChats) { chat ->
+                    // key hatasını önlemek için itemsIndexed kullanalım
+                    itemsIndexed(filteredChats) { index, chat ->
                         ChatItem(
                             chat = chat,
                             onClick = { 
-                                // ID boşsa navigasyon yapma (Çökmeyi engeller)
-                                if (chat.chatRoomId.isNotEmpty()) {
-                                    navController.navigate(Screen.Chat.createRoute(chat.chatRoomId)) 
+                                if (chat.chatRoomId.isNotBlank()) {
+                                    val route = Screen.Chat.createRoute(chat.chatRoomId)
+                                    navController.navigate(route)
                                 }
                             }
                         )
@@ -132,26 +93,26 @@ fun ChatListScreen(
 @Composable
 private fun ChatItem(chat: Chat, onClick: () -> Unit) {
     val sdf = remember { SimpleDateFormat("HH:mm", Locale.getDefault()) }
-    val timeStr = chat.lastMessageTimestamp?.let { sdf.format(it.toDate()) } ?: ""
+    val timeStr = try {
+        chat.lastMessageTimestamp?.let { sdf.format(it.toDate()) } ?: ""
+    } catch (e: Exception) { "" }
 
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .clickable(onClick = onClick)
+            .clickable { onClick() }
             .padding(horizontal = 16.dp, vertical = 12.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        val imagePainter = rememberAsyncImagePainter(
-            model = if (chat.otherUser.photoUrl.isEmpty()) {
-                "https://ui-avatars.com/api/?name=HeyU&background=6200EE&color=fff"
-            } else {
-                chat.otherUser.photoUrl
-            },
-            placeholder = rememberAsyncImagePainter(R.drawable.ic_default_profile)
-        )
+        // GÜVENLİ RESİM: coil null veya boş gelirse default resmi basar
+        val imageModel = if (chat.otherUser.photoUrl.isNullOrBlank()) {
+            R.drawable.ic_default_profile
+        } else {
+            chat.otherUser.photoUrl
+        }
 
         Image(
-            painter = imagePainter,
+            painter = rememberAsyncImagePainter(model = imageModel),
             contentDescription = null,
             modifier = Modifier
                 .size(60.dp)
@@ -169,7 +130,7 @@ private fun ChatItem(chat: Chat, onClick: () -> Unit) {
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    text = chat.otherUser.displayName.ifBlank { "HeyU! Team" },
+                    text = if (chat.otherUser.displayName.isNullOrBlank()) "HeyU! Team" else chat.otherUser.displayName,
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.onBackground
@@ -184,7 +145,7 @@ private fun ChatItem(chat: Chat, onClick: () -> Unit) {
             Spacer(modifier = Modifier.height(4.dp))
 
             Text(
-                text = chat.lastMessage ?: "",
+                text = chat.lastMessage ?: "No messages yet.",
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 maxLines = 1,
