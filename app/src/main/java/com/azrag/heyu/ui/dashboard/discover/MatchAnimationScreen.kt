@@ -13,6 +13,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -31,13 +33,11 @@ fun MatchAnimationScreen(
     val orangeColor = Color(0xFFE67E59)
     val yellowColor = Color(0xFFFFD54F)
     val beigeColor = Color(0xFFFFF8E1)
-
-    var startAnimation by remember { mutableStateOf(false) }
+    val characterColor = Color(0xFFE67E59)
 
     LaunchedEffect(Unit) {
-        startAnimation = true
         delay(4000)
-        navController.popBackStack() // Discover'a geri dön
+        navController.popBackStack()
     }
 
     Box(
@@ -45,18 +45,17 @@ fun MatchAnimationScreen(
             .fillMaxSize()
             .background(yellowColor)
     ) {
-        // Arka plandaki turuncu kavis (Figma'daki gibi)
+        // Figma Wave Effect (Orange bottom area)
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .offset(y = 100.dp)
         ) {
             Canvas(modifier = Modifier.fillMaxSize()) {
                 val path = Path().apply {
-                    moveTo(0f, size.height * 0.4f)
+                    moveTo(0f, size.height * 0.7f)
                     quadraticBezierTo(
-                        size.width * 0.5f, size.height * 0.2f,
-                        size.width, size.height * 0.4f
+                        size.width * 0.4f, size.height * 0.55f,
+                        size.width, size.height * 0.75f
                     )
                     lineTo(size.width, size.height)
                     lineTo(0f, size.height)
@@ -84,62 +83,83 @@ fun MatchAnimationScreen(
 
             Text(
                 text = "hey!\nsohbet ederken",
-                fontSize = 36.sp,
+                fontSize = 32.sp,
                 fontWeight = FontWeight.Bold,
-                color = orangeColor,
+                color = Color(0xFF4A4A4A), // Figma text color
                 textAlign = TextAlign.Center,
-                lineHeight = 40.sp
+                lineHeight = 38.sp
             )
 
             Spacer(modifier = Modifier.height(30.dp))
 
-            // Kalp Animasyonu
+            // Character Animation Box
             Box(
-                modifier = Modifier.size(220.dp),
+                modifier = Modifier.size(280.dp),
                 contentAlignment = Alignment.Center
             ) {
-                val infiniteTransition = rememberInfiniteTransition()
+                val infiniteTransition = rememberInfiniteTransition(label = "heartTransition")
                 
-                // Kalbin zıplama animasyonu
+                // Bouncing and scale animation
                 val bounce by infiniteTransition.animateFloat(
                     initialValue = 0f,
-                    targetValue = -20f,
+                    targetValue = -15f,
                     animationSpec = infiniteRepeatable(
-                        animation = tween(600, easing = FastOutSlowInEasing),
+                        animation = tween(800, easing = FastOutSlowInEasing),
                         repeatMode = RepeatMode.Reverse
-                    )
+                    ),
+                    label = "bounce"
                 )
 
-                // Kalp Çizimi (Canvas ile)
-                Canvas(
-                    modifier = Modifier
-                        .size(180.dp)
-                        .graphicsLayer { translationY = bounce }
-                ) {
-                    val width = size.width
-                    val height = size.height
-                    val path = Path().apply {
-                        moveTo(width / 2, height / 4)
-                        cubicTo(width / 4, 0f, 0f, height / 4, 0f, height / 2)
-                        cubicTo(0f, height * 3 / 4, width / 4, height, width / 2, height)
-                        cubicTo(width * 3 / 4, height, width, height * 3 / 4, width, height / 2)
-                        cubicTo(width, height / 4, width * 3 / 4, 0f, width / 2, height / 4)
+                Canvas(modifier = Modifier.fillMaxSize()) {
+                    val center = size.width / 2
+                    val top = size.height / 2 + bounce
+                    val heartSize = 120f
+
+                    // 1. Draw Legs
+                    val leftLegPath = Path().apply {
+                        moveTo(center - 30f, top + 60f)
+                        quadraticBezierTo(center - 50f, top + 100f, center - 40f, top + 130f)
                     }
-                    drawPath(path, orangeColor)
-                }
-                
-                // Kalbin gözleri ve ağzı (Figma'daki gibi sempatik bir karakter)
-                Column(
-                    modifier = Modifier.graphicsLayer { translationY = bounce - 10f },
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                    Row {
-                        Box(modifier = Modifier.size(12.dp).background(Color.White, CircleShape))
-                        Spacer(modifier = Modifier.width(24.dp))
-                        Box(modifier = Modifier.size(12.dp).background(Color.White, CircleShape))
+                    drawPath(leftLegPath, Color.Black, style = Stroke(width = 6f, cap = StrokeCap.Round))
+                    
+                    val rightLegPath = Path().apply {
+                        moveTo(center + 30f, top + 60f)
+                        quadraticBezierTo(center + 50f, top + 100f, center + 60f, top + 130f)
                     }
-                    Spacer(modifier = Modifier.height(8.dp))
-                    Box(modifier = Modifier.size(30.dp, 4.dp).background(Color.White, CircleShape))
+                    drawPath(rightLegPath, Color.Black, style = Stroke(width = 6f, cap = StrokeCap.Round))
+
+                    // 2. Draw Main Heart Body
+                    val heartPath = Path().apply {
+                        moveTo(center, top + heartSize / 4)
+                        cubicTo(center - heartSize / 2, top - heartSize / 2, center - heartSize, top + heartSize / 4, center, top + heartSize)
+                        cubicTo(center + heartSize, top + heartSize / 4, center + heartSize / 2, top - heartSize / 2, center, top + heartSize / 4)
+                    }
+                    drawPath(heartPath, characterColor)
+
+                    // 3. Draw Arms (Holding head/heart top like in Figma)
+                    val leftArmPath = Path().apply {
+                        moveTo(center - heartSize * 0.7f, top + 30f)
+                        quadraticBezierTo(center - heartSize * 0.9f, top - 20f, center - 30f, top - 10f)
+                    }
+                    drawPath(leftArmPath, Color.Black, style = Stroke(width = 5f, cap = StrokeCap.Round))
+
+                    val rightArmPath = Path().apply {
+                        moveTo(center + heartSize * 0.7f, top + 30f)
+                        quadraticBezierTo(center + heartSize * 0.9f, top - 20f, center + 30f, top - 10f)
+                    }
+                    drawPath(rightArmPath, Color.Black, style = Stroke(width = 5f, cap = StrokeCap.Round))
+
+                    // 4. Draw Face
+                    // Eyes
+                    drawCircle(Color.Black, radius = 4f, center = androidx.compose.ui.geometry.Offset(center - 25f, top + 35f))
+                    drawCircle(Color.Black, radius = 4f, center = androidx.compose.ui.geometry.Offset(center + 25f, top + 35f))
+                    
+                    // Mouth
+                    val mouthPath = Path().apply {
+                        moveTo(center - 10f, top + 55f)
+                        quadraticBezierTo(center, top + 62f, center + 10f, top + 55f)
+                    }
+                    drawPath(mouthPath, Color.Black, style = Stroke(width = 3f, cap = StrokeCap.Round))
                 }
             }
 
@@ -149,7 +169,7 @@ fun MatchAnimationScreen(
                 text = "kibar olmayı\nunutma!",
                 fontSize = 24.sp,
                 fontWeight = FontWeight.Bold,
-                color = Color.White,
+                color = Color(0xFFD32F2F), // Figma reddish text
                 textAlign = TextAlign.Center
             )
         }

@@ -100,25 +100,31 @@ class DiscoverViewModel @Inject constructor(
         }
 
         if (liked) {
-            // Kullanıcı sağa kaydırdığı (eklediği) an animasyonu tetikle
+            // Kullanıcı sağa kaydırdığı an animasyonu tetikle
             _uiState.update { it.copy(newMatch = swipedUser) }
+            
+            // Sağa kaydırılan kişiyle sohbeti başlat ve "hey-U!" mesajını gönder
+            viewModelScope.launch {
+                try {
+                    val chatResult = chatRepository.createOrGetChatRoom(swipedUser.id)
+                    if (chatResult is Result.Success) {
+                        chatRepository.sendTextMessageToRoom(
+                            chatRoomId = chatResult.data,
+                            receiverId = swipedUser.id,
+                            text = "hey-U!"
+                        )
+                        Log.d(TAG, "hey-U! mesajı başarıyla gönderildi: ${swipedUser.displayName}")
+                    }
+                } catch (e: Exception) {
+                    Log.e(TAG, "Mesaj gönderilirken hata oluştu", e)
+                }
+            }
         }
 
         viewModelScope.launch {
             try {
                 if (liked) {
-                    val result = userRepository.likeUser(swipedUser.id)
-                    // Eğer gerçek bir eşleşme (mutual match) varsa chat oluştur
-                    if (result is Result.Success && result.data == true) {
-                        val chatResult = chatRepository.createOrGetChatRoom(swipedUser.id)
-                        if (chatResult is Result.Success) {
-                            chatRepository.sendTextMessageToRoom(
-                                chatRoomId = chatResult.data,
-                                receiverId = swipedUser.id,
-                                text = "Heyy! 👋"
-                            )
-                        }
-                    }
+                    userRepository.likeUser(swipedUser.id)
                 } else {
                     userRepository.passUser(swipedUser.id)
                 }
