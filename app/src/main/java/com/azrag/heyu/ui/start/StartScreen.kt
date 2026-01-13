@@ -25,19 +25,12 @@ fun StartScreen(
     val colorScheme = MaterialTheme.colorScheme
 
     Box(modifier = Modifier.fillMaxSize()) {
-        // Background Image
         Image(
-            painter = painterResource(id = R.drawable.ic_launcher_background), // DON'T FORGET TO CHANGE TO R.drawable.login_background
+            painter = painterResource(id = R.drawable.baslangic), 
             contentDescription = null,
             modifier = Modifier.fillMaxSize(),
             contentScale = ContentScale.Crop
         )
-
-        // Overlay Layer (to make text readable)
-        Surface(
-            modifier = Modifier.fillMaxSize(),
-            color = Color.Black.copy(alpha = 0.3f)
-        ) {}
 
         Column(
             modifier = modifier
@@ -45,58 +38,49 @@ fun StartScreen(
                 .padding(24.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Spacer(modifier = Modifier.height(80.dp))
+            Spacer(modifier = Modifier.height(100.dp))
 
-            // Logo (Primary theme color)
+            // GÜNCELLENDİ: Tam Agbalumo tarzı, büyük ve baskın logo
             Text(
                 text = "heyU!",
                 style = MaterialTheme.typography.displayLarge.copy(
                     fontFamily = LogoFontFamily,
-                    fontSize = 72.sp,
-                    color = colorScheme.primary
+                    fontSize = 90.sp, // Agbalumo için daha etkileyici bir boyut
+                    color = colorScheme.primary,
+                    letterSpacing = (-2).sp // Fontun karakteri gereği harfleri biraz yakınlaştırdım
                 )
             )
 
             Spacer(modifier = Modifier.weight(1f))
 
-            // Create Account Button
             Button(
                 onClick = onSignUpClicked,
                 modifier = Modifier
-                    .fillMaxWidth(0.8f)
-                    .height(50.dp),
+                    .fillMaxWidth(0.85f)
+                    .height(55.dp),
                 colors = ButtonDefaults.buttonColors(
                     containerColor = colorScheme.primary,
-                    contentColor = colorScheme.onPrimary
+                    contentColor = Color.White
                 ),
                 shape = RoundedCornerShape(25.dp)
             ) {
-                Text(
-                    text = "Create account",
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 16.sp
-                )
+                Text(text = "Create account", fontWeight = FontWeight.Bold, fontSize = 18.sp)
             }
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // Already have an account Button
-            OutlinedButton(
+            Button(
                 onClick = onLoginClicked,
                 modifier = Modifier
-                    .fillMaxWidth(0.8f)
-                    .height(50.dp),
-                border = androidx.compose.foundation.BorderStroke(2.dp, colorScheme.secondary),
-                shape = RoundedCornerShape(25.dp),
-                colors = ButtonDefaults.outlinedButtonColors(
-                    contentColor = colorScheme.secondary
-                )
+                    .fillMaxWidth(0.85f)
+                    .height(55.dp),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = colorScheme.primary,
+                    contentColor = Color.White
+                ),
+                shape = RoundedCornerShape(25.dp)
             ) {
-                Text(
-                    text = "I already have an account",
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 16.sp
-                )
+                Text(text = "I have already an account", fontWeight = FontWeight.Bold, fontSize = 18.sp)
             }
             
             Spacer(modifier = Modifier.height(60.dp))
