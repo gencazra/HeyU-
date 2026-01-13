@@ -14,12 +14,12 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
@@ -39,11 +39,7 @@ fun DiscoverScreen(
     viewModel: DiscoverViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
-    val colorScheme = MaterialTheme.colorScheme
-
-    val backgroundBrush = Brush.verticalGradient(
-        colors = listOf(colorScheme.secondary, colorScheme.primary)
-    )
+    val backgroundColor = Color(0xFFFFF8E1)
 
     LaunchedEffect(uiState.newMatch) {
         uiState.newMatch?.let { matchedUser ->
@@ -52,60 +48,82 @@ fun DiscoverScreen(
         }
     }
 
-    Box(modifier = Modifier.fillMaxSize().background(backgroundBrush)) {
+    Box(modifier = Modifier.fillMaxSize().background(backgroundColor)) {
         Column(modifier = Modifier.fillMaxSize()) {
-            // Header
+            // Logo / Header
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(top = 20.dp),
+                    .padding(top = 16.dp, bottom = 8.dp),
                 contentAlignment = Alignment.Center
             ) {
                 Text(
                     text = "heyU!",
                     style = MaterialTheme.typography.displayLarge.copy(
                         fontFamily = LogoFontFamily,
-                        fontSize = 32.sp,
-                        color = colorScheme.onPrimary
+                        fontSize = 40.sp,
+                        color = Color(0xFFE67E59)
                     )
                 )
             }
 
+            // Cards Area
             Box(
                 modifier = Modifier.weight(1f).fillMaxWidth(),
                 contentAlignment = Alignment.Center
             ) {
                 if (uiState.isLoading) {
-                    CircularProgressIndicator(color = colorScheme.onPrimary)
+                    CircularProgressIndicator(color = Color(0xFFE67E59))
+                } else if (uiState.errorMessage != null) {
+                    // Hata mesajını ekranda göster
+                    ErrorState(
+                        message = uiState.errorMessage!!,
+                        onRetry = { viewModel.refresh() }
+                    )
                 } else if (uiState.userCards.isEmpty()) {
-                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        Text(
-                            "No one new around you!", 
-                            color = colorScheme.onPrimary, 
-                            fontWeight = FontWeight.Bold,
-                            modifier = Modifier.padding(bottom = 16.dp)
-                        )
-                        Button(
-                            onClick = { viewModel.refresh() },
-                            colors = ButtonDefaults.buttonColors(containerColor = colorScheme.onPrimary, contentColor = colorScheme.primary)
-                        ) {
-                            Icon(Icons.Default.Refresh, contentDescription = null)
-                            Spacer(Modifier.width(8.dp))
-                            Text("Refresh")
-                        }
-                    }
+                    EmptyState(onRefresh = { viewModel.add10TestUsers() })
                 } else {
                     uiState.userCards.asReversed().forEach { user ->
-                        SwipeableCard(
-                            user = user,
-                            onSwiped = { liked ->
-                                viewModel.onCardSwiped(user, liked)
-                            }
-                        )
+                        key(user.id) {
+                            SwipeableCard(
+                                user = user,
+                                onSwiped = { liked ->
+                                    viewModel.onCardSwiped(user, liked)
+                                }
+                            )
+                        }
                     }
                 }
             }
-            Spacer(modifier = Modifier.height(80.dp))
+            Spacer(modifier = Modifier.height(20.dp))
+        }
+    }
+}
+
+@Composable
+fun ErrorState(message: String, onRetry: () -> Unit) {
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        modifier = Modifier.padding(24.dp)
+    ) {
+        Text(
+            text = "Bir hata oluştu",
+            color = Color.Red,
+            fontWeight = FontWeight.Bold,
+            fontSize = 18.sp
+        )
+        Spacer(modifier = Modifier.height(8.dp))
+        Text(
+            text = message,
+            color = Color.Gray,
+            fontSize = 14.sp,
+            modifier = Modifier.padding(bottom = 16.dp)
+        )
+        Button(
+            onClick = onRetry,
+            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFE67E59))
+        ) {
+            Text("Tekrar Dene")
         }
     }
 }
@@ -117,17 +135,24 @@ fun SwipeableCard(
 ) {
     val configuration = LocalConfiguration.current
     val screenWidth = configuration.screenWidthDp.dp
-    val swipeThreshold = screenWidth * 0.4f
-    val colorScheme = MaterialTheme.colorScheme
+    val swipeThreshold = screenWidth * 0.45f
 
     val offsetX = remember { Animatable(0f) }
-    val rotation = (offsetX.value / 20f)
+    val rotation = (offsetX.value / 25f)
     val scope = rememberCoroutineScope()
+
+    val orangeColor = Color(0xFFE67E59)
+    val beigeColor = Color(0xFFFFF8E1)
 
     Box(
         modifier = Modifier
             .offset { IntOffset(offsetX.value.roundToInt(), 0) }
-            .graphicsLayer { rotationZ = rotation }
+            .graphicsLayer {
+                rotationZ = rotation
+                val scale = (1f - (kotlin.math.abs(offsetX.value) / (screenWidth.toPx() * 3f))).coerceIn(0.9f, 1f)
+                scaleX = scale
+                scaleY = scale
+            }
             .pointerInput(Unit) {
                 detectDragGestures(
                     onDragEnd = {
@@ -142,7 +167,7 @@ fun SwipeableCard(
                                 onSwiped(false)
                             }
                         } else {
-                            scope.launch { offsetX.animateTo(0f, spring()) }
+                            scope.launch { offsetX.animateTo(0f, spring(dampingRatio = Spring.DampingRatioMediumBouncy)) }
                         }
                     },
                     onDrag = { change, dragAmount ->
@@ -151,68 +176,151 @@ fun SwipeableCard(
                     }
                 )
             }
-            .fillMaxWidth(0.85f)
-            .aspectRatio(0.75f)
-            .clip(RoundedCornerShape(32.dp))
-            .background(colorScheme.surface)
-            .padding(8.dp)
+            .fillMaxWidth(0.88f)
+            .fillMaxHeight(0.82f)
+            .clip(RoundedCornerShape(36.dp))
+            .background(orangeColor)
     ) {
-        Column(modifier = Modifier.fillMaxSize()) {
+        // Wave Effect
+        Box(
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .fillMaxWidth()
+                .fillMaxHeight(0.55f)
+                .background(
+                    color = beigeColor,
+                    shape = RoundedCornerShape(topStart = 160.dp)
+                )
+        )
+
+        Text(
+            text = "hey, ${user.displayName.split(" ").first()} !",
+            color = beigeColor,
+            fontSize = 32.sp,
+            fontWeight = FontWeight.Bold,
+            fontFamily = LogoFontFamily,
+            modifier = Modifier.padding(top = 48.dp, start = 24.dp)
+        )
+
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(top = 80.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
             Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .weight(1f)
-                    .clip(RoundedCornerShape(24.dp))
-                    .background(colorScheme.surfaceVariant),
+                modifier = Modifier.size(200.dp),
                 contentAlignment = Alignment.Center
             ) {
                 Image(
                     painter = rememberAsyncImagePainter(user.photoUrl),
                     contentDescription = null,
-                    modifier = Modifier.fillMaxSize(),
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .clip(CircleShape),
                     contentScale = ContentScale.Crop
                 )
-            }
-
-            Column(
-                modifier = Modifier.padding(16.dp),
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                Text(
-                    text = "${user.displayName}, ${user.age}",
-                    fontSize = 22.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = colorScheme.primary
-                )
-                Text(
-                    text = user.department,
-                    fontSize = 14.sp,
-                    color = colorScheme.onSurfaceVariant
-                )
                 
-                Spacer(modifier = Modifier.height(8.dp))
-                
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.Center
+                Surface(
+                    modifier = Modifier
+                        .align(Alignment.BottomCenter)
+                        .offset(y = 12.dp)
+                        .size(44.dp),
+                    shape = CircleShape,
+                    color = beigeColor,
+                    shadowElevation = 2.dp
                 ) {
-                    user.hobbies.take(3).forEach { hobby ->
-                        Surface(
-                            modifier = Modifier.padding(horizontal = 4.dp),
-                            color = colorScheme.primaryContainer,
-                            shape = CircleShape
-                        ) {
-                            Text(
-                                text = hobby,
-                                modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
-                                fontSize = 10.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = colorScheme.onPrimaryContainer
-                            )
-                        }
+                    Box(contentAlignment = Alignment.Center) {
+                        Text(
+                            text = "✦",
+                            fontSize = 24.sp,
+                            color = orangeColor,
+                            fontWeight = FontWeight.Bold
+                        )
                     }
                 }
             }
+
+            Spacer(modifier = Modifier.height(24.dp))
+
+            Text(
+                text = user.displayName,
+                color = orangeColor,
+                fontSize = 26.sp,
+                fontWeight = FontWeight.Bold
+            )
+            Text(
+                text = "${user.age}, ${user.department}",
+                color = orangeColor.copy(alpha = 0.8f),
+                fontSize = 16.sp,
+                fontWeight = FontWeight.Medium
+            )
+            Text(
+                text = "*Derssiz Zaman",
+                color = orangeColor.copy(alpha = 0.5f),
+                fontSize = 13.sp,
+                fontStyle = FontStyle.Italic,
+                modifier = Modifier.padding(top = 4.dp)
+            )
+
+            Spacer(modifier = Modifier.weight(1f))
+
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = 32.dp, start = 16.dp, end = 16.dp),
+                horizontalArrangement = Arrangement.SpaceEvenly
+            ) {
+                InfoPill("Favoriler")
+                InfoPill("İlgi Alanları")
+                InfoPill("Hakkında")
+            }
+        }
+    }
+}
+
+@Composable
+fun InfoPill(text: String) {
+    Surface(
+        color = Color(0xFFE67E59).copy(alpha = 0.15f),
+        shape = RoundedCornerShape(20.dp),
+        modifier = Modifier.height(38.dp)
+    ) {
+        Box(
+            modifier = Modifier.padding(horizontal = 14.dp),
+            contentAlignment = Alignment.Center
+        ) {
+            Text(
+                text = text,
+                color = Color(0xFFE67E59),
+                fontSize = 12.sp,
+                fontWeight = FontWeight.Bold
+            )
+        }
+    }
+}
+
+@Composable
+fun EmptyState(onRefresh: () -> Unit) {
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center,
+        modifier = Modifier.padding(32.dp)
+    ) {
+        Text(
+            "Etrafında yeni kimse yok!",
+            color = Color(0xFFE67E59),
+            fontWeight = FontWeight.Bold,
+            fontSize = 18.sp,
+            modifier = Modifier.padding(bottom = 16.dp)
+        )
+        IconButton(
+            onClick = onRefresh,
+            modifier = Modifier
+                .size(64.dp)
+                .background(Color(0xFFE67E59), CircleShape)
+        ) {
+            Icon(Icons.Default.Refresh, contentDescription = "Yenile", tint = Color.White)
         }
     }
 }

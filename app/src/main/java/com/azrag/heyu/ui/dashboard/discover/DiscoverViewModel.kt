@@ -7,12 +7,12 @@ import com.azrag.heyu.data.model.UserProfile
 import com.azrag.heyu.data.repository.UserRepository
 import com.azrag.heyu.util.Result
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
-import kotlin.random.Random
 
 data class DiscoverUiState(
     val isLoading: Boolean = false,
@@ -46,28 +46,22 @@ class DiscoverViewModel @Inject constructor(
 
     fun add10TestUsers(onComplete: () -> Unit = {}) {
         viewModelScope.launch {
-            _uiState.update { it.copy(isLoading = true) }
-            val departments = listOf("Yazılım Mühendisliği", "Hukuk", "Tıp", "Mimarlık", "Psikoloji")
-            val names = listOf("Ahmet", "Mehmet", "Ayşe", "Fatma", "Can", "Ece", "Bora", "Deniz", "Selin", "Mert")
-            val hobbies = listOf("Tennis", "Gaming", "Art", "Chess", "Cooking", "Music", "Photography")
-
-            for (i in 0..9) {
-                val testId = "test_user_${System.currentTimeMillis()}_$i"
-                val testUser = UserProfile(
-                    id = testId,
-                    displayName = names[i],
-                    email = "test$i@std.yeditepe.edu.tr",
-                    age = Random.nextInt(18, 26),
-                    department = departments.random(),
-                    hobbies = hobbies.shuffled().take(3),
-                    photoUrl = "https://i.pravatar.cc/300?u=$testId",
-                    onboardingComplete = true,
-                    bio = "Hey! Ben bir Yeditepe öğrencisiyim. Tanışalım!"
-                )
-                userRepository.updateUserProfile(testUser)
+            _uiState.update { it.copy(isLoading = true, errorMessage = null) }
+            
+            val result = userRepository.seedDummyUsers()
+            
+            when (result) {
+                is Result.Success -> {
+                    delay(2000) 
+                    loadPotentialMatches()
+                }
+                is Result.Error -> {
+                    _uiState.update { it.copy(isLoading = false, errorMessage = result.message) }
+                }
+                is Result.Loading -> { /* Do nothing */ }
             }
+            
             onComplete()
-            loadPotentialMatches()
         }
     }
 
@@ -78,6 +72,7 @@ class DiscoverViewModel @Inject constructor(
             when (val result = userRepository.getDiscoverUsers()) {
                 is Result.Success -> {
                     val candidates = result.data ?: emptyList()
+                    Log.d(TAG, "Loaded ${candidates.size} candidates")
                     _uiState.update {
                         it.copy(
                             isLoading = false,
@@ -87,10 +82,11 @@ class DiscoverViewModel @Inject constructor(
                     }
                 }
                 is Result.Error -> {
+                    Log.e(TAG, "Load Error: ${result.message}")
                     _uiState.update { it.copy(isLoading = false, errorMessage = result.message) }
                 }
-                else -> {
-                    _uiState.update { it.copy(isLoading = false) }
+                is Result.Loading -> {
+                    _uiState.update { it.copy(isLoading = true) }
                 }
             }
         }
@@ -102,17 +98,21 @@ class DiscoverViewModel @Inject constructor(
         }
 
         viewModelScope.launch {
-            if (liked) {
-                val result = userRepository.likeUser(swipedUser.id)
-                if (result is Result.Success && result.data == true) {
-                    _uiState.update { it.copy(newMatch = swipedUser) }
+            try {
+                if (liked) {
+                    val result = userRepository.likeUser(swipedUser.id)
+                    if (result is Result.Success && result.data == true) {
+                        _uiState.update { it.copy(newMatch = swipedUser) }
+                    }
+                } else {
+                    userRepository.passUser(swipedUser.id)
                 }
-            } else {
-                userRepository.passUser(swipedUser.id)
-            }
 
-            if (_uiState.value.userCards.isEmpty()) {
-                loadPotentialMatches()
+                if (_uiState.value.userCards.isEmpty()) {
+                    loadPotentialMatches()
+                }
+            } catch (e: Exception) {
+                Log.e(TAG, "Swipe action failed", e)
             }
         }
     }
