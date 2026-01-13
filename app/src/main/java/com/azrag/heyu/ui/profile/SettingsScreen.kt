@@ -28,7 +28,6 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import coil.compose.rememberAsyncImagePainter
 import com.azrag.heyu.data.repository.ThemeSetting
-import com.azrag.heyu.ui.dashboard.discover.DiscoverViewModel
 import com.azrag.heyu.ui.theme.LogoFontFamily
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -37,15 +36,13 @@ fun SettingsScreen(
     onNavigateBack: () -> Unit,
     onLogout: () -> Unit,
     onEditProfileClick: () -> Unit,
-    onNavigateToEvents: () -> Unit = {},
-    viewModel: SettingsViewModel = hiltViewModel(),
-    discoverViewModel: DiscoverViewModel = hiltViewModel()
+    viewModel: SettingsViewModel = hiltViewModel()
 ) {
     val context = LocalContext.current
     val colorScheme = MaterialTheme.colorScheme
     val primaryColor = colorScheme.primary
-    val backgroundColor = colorScheme.background
-    val onBackgroundColor = colorScheme.onBackground
+    val onPrimaryColor = colorScheme.onPrimary
+    val backgroundColor = Color(0xFFFDF8F0) // Figma'daki krem rengi arka plan
 
     val currentUser by viewModel.currentUser.collectAsState()
     val themeSetting by viewModel.themeSetting.collectAsState()
@@ -58,7 +55,7 @@ fun SettingsScreen(
                 .padding(24.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // Header
+            // Header: Profilim/ Ayarlar
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically
@@ -66,24 +63,29 @@ fun SettingsScreen(
                 IconButton(onClick = onNavigateBack) {
                     Icon(Icons.AutoMirrored.Filled.ArrowBack, null, tint = primaryColor)
                 }
-                Spacer(Modifier.weight(1f))
                 Text(
-                    text = "heyU!",
-                    style = MaterialTheme.typography.displayLarge.copy(
-                        fontFamily = LogoFontFamily,
-                        fontSize = 42.sp,
-                        color = primaryColor
-                    )
+                    text = "Profilim/ Ayarlar",
+                    fontSize = 14.sp,
+                    color = primaryColor.copy(alpha = 0.7f)
                 )
-                Spacer(Modifier.weight(1.3f))
+                Spacer(Modifier.weight(1f))
             }
 
-            Spacer(Modifier.height(20.dp))
+            Text(
+                text = "heyU!",
+                style = MaterialTheme.typography.displayLarge.copy(
+                    fontFamily = LogoFontFamily,
+                    fontSize = 48.sp,
+                    color = primaryColor
+                )
+            )
 
-            // Profile Picture Section
+            Spacer(Modifier.height(16.dp))
+
+            // Profil Resmi
             Box(
                 modifier = Modifier
-                    .size(120.dp)
+                    .size(100.dp)
                     .clip(CircleShape)
                     .background(colorScheme.surfaceVariant),
                 contentAlignment = Alignment.Center
@@ -96,55 +98,38 @@ fun SettingsScreen(
                         contentScale = ContentScale.Crop
                     )
                 } else {
-                    Icon(Icons.Default.Person, null, modifier = Modifier.size(70.dp), tint = primaryColor)
+                    Icon(Icons.Default.Person, null, modifier = Modifier.size(60.dp), tint = primaryColor)
                 }
             }
 
-            Spacer(Modifier.height(16.dp))
+            Spacer(Modifier.height(12.dp))
 
             Text(
-                text = currentUser?.displayName ?: "User",
+                text = currentUser?.displayName ?: "Kullanıcı Adı",
                 fontWeight = FontWeight.Bold,
-                fontSize = 22.sp,
+                fontSize = 20.sp,
                 color = primaryColor
             )
             Text(
                 text = currentUser?.email ?: "email@yeditepe.edu.tr",
                 fontSize = 14.sp,
-                color = onBackgroundColor.copy(0.6f)
+                color = primaryColor.copy(alpha = 0.6f)
             )
 
             Spacer(Modifier.height(32.dp))
 
-            // Add Test Users (Debug)
-            Button(
-                onClick = { 
-                    discoverViewModel.add10TestUsers {
-                        Toast.makeText(context, "10 Test Users Added!", Toast.LENGTH_SHORT).show()
-                    }
-                },
-                modifier = Modifier.fillMaxWidth().height(50.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFE91E63)),
-                shape = RoundedCornerShape(12.dp)
-            ) {
-                Icon(Icons.Default.Add, contentDescription = null, tint = Color.White)
-                Spacer(Modifier.width(8.dp))
-                Text("DEBUG: Add 10 Test Users", fontWeight = FontWeight.Bold)
-            }
-
-            Spacer(Modifier.height(24.dp))
-
-            SettingsItem(
+            // Profili Düzenle Butonu (Dolu Stil)
+            SettingsItemFilled(
                 icon = Icons.Default.Edit,
-                title = "Edit Profile",
+                title = "Profili Düzenle",
                 onClick = onEditProfileClick
             )
 
             Spacer(Modifier.height(32.dp))
 
             Text(
-                text = "General Settings",
-                modifier = Modifier.align(Alignment.Start).padding(start = 8.dp),
+                text = "Genel Ayarlar",
+                modifier = Modifier.align(Alignment.Start).padding(start = 4.dp),
                 color = primaryColor,
                 fontWeight = FontWeight.Bold,
                 fontSize = 18.sp
@@ -152,10 +137,11 @@ fun SettingsScreen(
 
             Spacer(Modifier.height(16.dp))
 
-            SettingsItem(
+            // Ayar Seçenekleri
+            SettingsItemFilled(
                 icon = Icons.Default.WbSunny,
-                title = "Modes",
-                subTitle = "Dark & Light",
+                title = "Modlar",
+                subTitle = "Koyu & Açık",
                 hasSwitch = true,
                 switchChecked = themeSetting == ThemeSetting.DARK,
                 onSwitchChange = { isChecked ->
@@ -163,50 +149,58 @@ fun SettingsScreen(
                 }
             )
 
-            SettingsItem(
+            Spacer(Modifier.height(12.dp))
+
+            SettingsItemFilled(
                 icon = Icons.Default.Language,
-                title = "Language",
-                onClick = { }
+                title = "Dil",
+                onClick = { /* Dil değiştirme fonksiyonu */ }
             )
 
-            SettingsItem(
+            Spacer(Modifier.height(12.dp))
+
+            SettingsItemFilled(
                 icon = Icons.Default.Shield,
-                title = "Privacy Policy",
-                onClick = { }
+                title = "Gizlilik Politikası",
+                onClick = { viewModel.openPrivacyPolicy(context) }
             )
 
-            SettingsItem(
+            Spacer(Modifier.height(12.dp))
+
+            SettingsItemFilled(
                 icon = Icons.Default.Star,
-                title = "Rate App",
-                onClick = { }
+                title = "Uygulamayı Puanla",
+                onClick = { viewModel.rateApp(context) }
             )
 
             Spacer(modifier = Modifier.weight(1f))
+            Spacer(modifier = Modifier.height(24.dp))
 
+            // Çıkış Yap Butonu
             Button(
                 onClick = {
                     viewModel.logout()
                     onLogout()
                 },
                 modifier = Modifier
-                    .width(180.dp)
-                    .height(50.dp),
+                    .width(150.dp)
+                    .height(45.dp),
                 colors = ButtonDefaults.buttonColors(
                     containerColor = primaryColor,
-                    contentColor = Color.White
+                    contentColor = onPrimaryColor
                 ),
                 shape = RoundedCornerShape(25.dp)
             ) {
-                Text("Logout", fontWeight = FontWeight.Bold, fontSize = 16.sp)
+                Text("Çıkış yap", fontWeight = FontWeight.Bold, fontSize = 16.sp)
             }
 
-            Spacer(Modifier.height(48.dp))
+            Spacer(Modifier.height(40.dp))
         }
     }
 }
 
 @Composable
-fun SettingsItem(
+fun SettingsItemFilled(
     icon: ImageVector,
     title: String,
     subTitle: String? = null,
@@ -215,63 +209,70 @@ fun SettingsItem(
     switchChecked: Boolean = false,
     onSwitchChange: (Boolean) -> Unit = {}
 ) {
-    val colorScheme = MaterialTheme.colorScheme
-    val primaryColor = colorScheme.primary
-    val onSurfaceColor = colorScheme.onSurface
+    val primaryColor = MaterialTheme.colorScheme.primary
+    val onPrimaryColor = MaterialTheme.colorScheme.onPrimary
 
-    Row(
+    Box(
         modifier = Modifier
             .fillMaxWidth()
+            .height(60.dp)
+            .clip(RoundedCornerShape(15.dp))
+            .background(Color.White) // Figma'daki kart görünümü için beyaz arka plan
             .clickable(enabled = !hasSwitch) { onClick() }
-            .padding(vertical = 12.dp, horizontal = 8.dp),
-        verticalAlignment = Alignment.CenterVertically
+            .padding(horizontal = 16.dp),
+        contentAlignment = Alignment.CenterStart
     ) {
-        Box(
-            modifier = Modifier
-                .size(40.dp)
-                .background(primaryColor, CircleShape),
-            contentAlignment = Alignment.Center
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically
         ) {
-            Icon(icon, null, tint = Color.White, modifier = Modifier.size(22.dp))
-        }
+            // İkon dairesi
+            Box(
+                modifier = Modifier
+                    .size(36.dp)
+                    .background(primaryColor, CircleShape),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(icon, null, tint = onPrimaryColor, modifier = Modifier.size(20.dp))
+            }
 
-        Spacer(Modifier.width(16.dp))
+            Spacer(Modifier.width(16.dp))
 
-        Column(modifier = Modifier.weight(1f)) {
-            Text(
-                text = title,
-                color = onSurfaceColor,
-                fontWeight = FontWeight.Medium,
-                fontSize = 17.sp
-            )
-            if (subTitle != null) {
+            Column(modifier = Modifier.weight(1f)) {
                 Text(
-                    text = subTitle,
-                    color = onSurfaceColor.copy(0.5f),
-                    fontSize = 12.sp
+                    text = title,
+                    color = primaryColor,
+                    fontWeight = FontWeight.SemiBold,
+                    fontSize = 16.sp
+                )
+                if (subTitle != null) {
+                    Text(
+                        text = subTitle,
+                        color = primaryColor.copy(alpha = 0.5f),
+                        fontSize = 11.sp
+                    )
+                }
+            }
+
+            if (hasSwitch) {
+                Switch(
+                    checked = switchChecked,
+                    onCheckedChange = onSwitchChange,
+                    colors = SwitchDefaults.colors(
+                        checkedThumbColor = Color.White,
+                        checkedTrackColor = primaryColor,
+                        uncheckedThumbColor = primaryColor,
+                        uncheckedTrackColor = Color.LightGray
+                    )
+                )
+            } else {
+                Icon(
+                    Icons.AutoMirrored.Filled.ArrowForward,
+                    null,
+                    tint = primaryColor,
+                    modifier = Modifier.size(18.dp)
                 )
             }
-        }
-
-        if (hasSwitch) {
-            Switch(
-                checked = switchChecked,
-                onCheckedChange = onSwitchChange,
-                colors = SwitchDefaults.colors(
-                    checkedThumbColor = Color.White,
-                    checkedTrackColor = primaryColor,
-                    uncheckedThumbColor = primaryColor,
-                    uncheckedTrackColor = Color.LightGray,
-                    uncheckedBorderColor = Color.Transparent
-                )
-            )
-        } else {
-            Icon(
-                Icons.AutoMirrored.Filled.ArrowForward,
-                null,
-                tint = primaryColor,
-                modifier = Modifier.size(20.dp)
-            )
         }
     }
 }

@@ -4,7 +4,6 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.azrag.heyu.data.model.UserProfile
 import com.azrag.heyu.data.repository.UserRepository
-import com.azrag.heyu.util.Result
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.ktx.Firebase
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -30,18 +29,25 @@ class ProfileViewModel @Inject constructor(
 
     init { loadCurrentUserProfile() }
 
-    fun loadCurrentUserProfile() {
+    private fun loadCurrentUserProfile() {
         viewModelScope.launch {
-            _uiState.value = MyProfileUiState.Loading
-            when (val result = userRepository.getCurrentUserProfile()) {
-                is Result.Success -> {
-                    val profile = result.data ?: UserProfile(id = Firebase.auth.currentUser?.uid ?: "")
+            userRepository.getCurrentUserProfileStream().collect { profile ->
+                if (profile != null) {
                     _uiState.value = MyProfileUiState.Success(profile)
+                } else {
+                    _uiState.value = MyProfileUiState.Error("Profil yüklenemedi.")
                 }
-                is Result.Error -> {
-                    _uiState.value = MyProfileUiState.Error(result.message ?: "Failed to load profile.")
-                }
-                else -> {}
+            }
+        }
+    }
+
+    // GENEL GÜNCELLEME FONKSİYONU: Her şeyi bu kurtaracak
+    fun updateProfileField(update: (UserProfile) -> UserProfile) {
+        val currentState = _uiState.value
+        if (currentState is MyProfileUiState.Success) {
+            viewModelScope.launch {
+                val updatedProfile = update(currentState.profile)
+                userRepository.updateUserProfile(updatedProfile)
             }
         }
     }
